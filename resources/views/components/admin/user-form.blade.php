@@ -1,0 +1,12 @@
+@props(['user' => null, 'roles', 'plans', 'permissions'])
+<div class="grid gap-5 md:grid-cols-2">
+    <x-form.input name="name" label="نام و نام خانوادگی / شرکت" :value="$user?->name" required />
+    <x-form.input name="email" label="ایمیل ورود" type="email" :value="$user?->email" required />
+    <x-form.input name="password" label="رمز عبور" type="password" :required="!$user" :hint="$user ? 'برای حفظ رمز فعلی، خالی بگذارید.' : 'حداقل ۸ کاراکتر'" autocomplete="new-password" />
+    <x-form.input name="password_confirmation" label="تکرار رمز عبور" type="password" :required="!$user" autocomplete="new-password" />
+    <div><label for="role" class="form-label">نقش <span class="text-rose-500">*</span></label><select id="role" name="role" class="form-control" required>@foreach($roles as $role)<option value="{{ $role->value }}" @selected(old('role', $user?->role?->value ?? 'member') === $role->value)>{{ $role->label() }}</option>@endforeach</select>@error('role')<p class="mt-1.5 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror</div>
+    <div><label for="plan" class="form-label">پلن <span class="text-rose-500">*</span></label><select id="plan" name="plan" class="form-control" required>@foreach($plans as $plan)<option value="{{ $plan->value }}" @selected(old('plan', $user?->plan?->value ?? 'starter') === $plan->value)>{{ $plan->label() }}</option>@endforeach</select></div>
+    <x-form.input name="license_expires_at" label="پایان اعتبار" type="date" :value="$user?->license_expires_at?->format('Y-m-d')" hint="برای مدیر سامانه می‌تواند خالی باشد." />
+    <div class="flex items-end pb-3"><input type="hidden" name="is_active" value="0"><label class="flex items-center gap-2.5 text-sm font-semibold text-slate-700"><input type="checkbox" name="is_active" value="1" @checked(old('is_active', $user?->is_active ?? true)) class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500">حساب فعال باشد</label></div>
+</div>
+<div class="mt-7 border-t border-slate-100 pt-6"><div class="form-label">دسترسی‌ها</div><div class="mt-3 grid gap-3 sm:grid-cols-3">@foreach($permissions as $value => $label)<label class="permission-option"><input type="checkbox" name="permissions[]" value="{{ $value }}" @checked(in_array($value, old('permissions', $user?->permissions ?? []), true)) class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"><span>{{ $label }}</span></label>@endforeach</div></div>

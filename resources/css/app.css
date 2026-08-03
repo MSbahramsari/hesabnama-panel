@@ -1,0 +1,83 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+@source '../js/**/*.js';
+
+@theme {
+    --font-sans: 'Vazirmatn', 'IRANSansX', Tahoma, ui-sans-serif, system-ui, sans-serif;
+    --color-brand-50: #effcf9;
+    --color-brand-500: #14b8a6;
+    --color-brand-600: #0d9488;
+    --color-brand-700: #0f766e;
+}
+
+@layer base {
+    * { box-sizing: border-box; }
+    body { font-family: var(--font-sans); }
+    button, a, input, select, textarea { transition-duration: 160ms; }
+    [dir='ltr'] { font-variant-numeric: tabular-nums; }
+    input[type='number'], input[type='date'] { direction: ltr; text-align: right; font-variant-numeric: tabular-nums; }
+}
+
+@layer components {
+    .app-sidebar {
+        @apply fixed inset-y-0 right-0 z-40 w-72 translate-x-full bg-slate-950 text-slate-300 shadow-2xl transition-transform duration-300 lg:translate-x-0;
+    }
+    .app-sidebar.is-open { @apply translate-x-0; }
+    .nav-label { @apply mb-2 px-3 text-[10px] font-extrabold tracking-widest text-slate-500; }
+    .nav-link { @apply flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-400 transition hover:bg-white/6 hover:text-white; }
+    .nav-link.active { @apply bg-teal-300/12 text-teal-200 ring-1 ring-inset ring-teal-300/10; }
+    .icon-button { @apply inline-flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm hover:border-slate-300 hover:text-slate-900; }
+    .btn-primary { @apply inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-4 focus:ring-teal-100; }
+    .btn-secondary { @apply inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100; }
+    .card { @apply overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/50; }
+    .card-header { @apply flex flex-col gap-4 border-b border-slate-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6; }
+    .card-title { @apply text-base font-extrabold text-slate-900; }
+    .card-subtitle { @apply mt-1 text-xs leading-6 text-slate-500; }
+    .form-label { @apply mb-2 block text-xs font-bold text-slate-600; }
+    .form-control { @apply block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-teal-500 focus:ring-4 focus:ring-teal-50; }
+    .form-control-error { @apply border-rose-400 focus:border-rose-500 focus:ring-rose-50; }
+    .metric-card { @apply flex items-center gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/40; }
+    .metric-icon { @apply grid size-12 shrink-0 place-items-center rounded-2xl; }
+    .metric-value { @apply text-2xl font-black tracking-tight text-slate-950; }
+    .metric-label { @apply mt-1 text-xs font-semibold text-slate-500; }
+    .hero-mini-stat { @apply min-w-28 rounded-2xl border border-white/10 bg-white/7 p-4 backdrop-blur; }
+    .hero-mini-stat strong { @apply block text-xl font-black text-white; }
+    .hero-mini-stat span { @apply mt-1 block text-xs text-slate-400; }
+    .table-wrap { @apply w-full overflow-x-auto; }
+    .data-table { @apply w-full min-w-[760px] text-right text-sm; }
+    .data-table thead { @apply bg-slate-50/80 text-[11px] font-extrabold text-slate-500; }
+    .data-table th { @apply whitespace-nowrap px-5 py-3.5; }
+    .data-table td { @apply border-t border-slate-100 px-5 py-4 text-slate-600; }
+    .data-table tbody tr { @apply transition hover:bg-slate-50/70; }
+    .table-action { @apply whitespace-nowrap text-xs font-extrabold text-teal-700 hover:text-teal-900; }
+    .status-badge { @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[10px] font-extrabold; }
+    .status-slate { @apply bg-slate-100 text-slate-600; }
+    .status-amber { @apply bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200; }
+    .status-blue { @apply bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200; }
+    .status-rose { @apply bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-200; }
+    .status-emerald { @apply bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200; }
+    .permission-option { @apply flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 p-3.5 text-sm font-semibold text-slate-700 hover:border-teal-300 hover:bg-teal-50/40; }
+    .invoice-item-row { @apply relative grid gap-3 rounded-2xl border border-slate-200 bg-slate-50/50 p-4 pt-10 sm:grid-cols-2 lg:grid-cols-10 lg:pt-4; }
+    .invoice-item-number { @apply absolute right-4 top-3 grid size-6 place-items-center rounded-lg bg-slate-200 text-[10px] font-black text-slate-600 lg:static lg:mt-7; }
+    .timeline-step { @apply relative mr-3 border-r-2 border-slate-200 pb-7 pr-7; }
+    .timeline-step:last-child { @apply border-transparent pb-0; }
+    .timeline-step::before { content: ''; @apply absolute -right-[7px] top-0 size-3 rounded-full border-2 border-white bg-slate-300 ring-2 ring-slate-200; }
+    .timeline-step.done::before { @apply bg-emerald-500 ring-emerald-100; }
+    .timeline-step.current::before { @apply bg-amber-400 ring-amber-100; }
+    .timeline-step span { @apply block text-sm font-extrabold text-slate-800; }
+    .timeline-step small { @apply mt-1 block text-xs text-slate-400; }
+    .guest-stat { @apply rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur; }
+    .guest-stat strong { @apply block text-sm font-extrabold; }
+    .guest-stat span { @apply mt-1 block text-[11px] text-slate-400; }
+}
+
+.guest-glow { position: absolute; border-radius: 9999px; filter: blur(90px); pointer-events: none; }
+.guest-glow-one { width: 28rem; height: 28rem; background: rgba(45, 212, 191, .18); top: -12rem; left: -8rem; }
+.guest-glow-two { width: 24rem; height: 24rem; background: rgba(59, 130, 246, .13); bottom: -10rem; right: -8rem; }
+
+@media (max-width: 640px) {
+    .data-table { min-width: 680px; }
+}
