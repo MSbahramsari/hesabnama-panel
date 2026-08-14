@@ -7,6 +7,7 @@ use App\Exceptions\MoadianApiException;
 use App\Exceptions\MoadianConfigurationException;
 use App\Http\Requests\SaveGoodRequest;
 use App\Models\Good;
+use App\Models\StuffCatalogItem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,13 +37,44 @@ class GoodController extends Controller
     public function create(Request $request, TaxPlatformGateway $gateway): View
     {
         Gate::authorize('create', Good::class);
-        $commodityCode = $request->string('commodity_code')->trim()->toString();
+        $catalogSearch = mb_substr($this->normalizeCatalogSearch($request->string('catalog_query')->trim()->toString()), 0, 120);
+        $catalogType = mb_substr($request->string('catalog_type')->trim()->toString(), 0, 80);
+        $catalogVat = mb_substr($request->string('catalog_vat')->trim()->toString(), 0, 10);
+        $catalogFiltersApplied = $catalogSearch !== '' || $catalogType !== '' || $catalogVat !== '';
+        $catalogResults = null;
+
+        if ($catalogFiltersApplied) {
+            $catalogResults = StuffCatalogItem::query()
+                ->when($catalogSearch !== '', fn (Builder $query) => $query->where(fn (Builder $query) => $query
+                    ->where('item_id', 'like', "{$catalogSearch}%")
+                    ->orWhere('description', 'like', "%{$catalogSearch}%")))
+                ->when($catalogType !== '', fn (Builder $query) => $query->where('type', $catalogType))
+                ->when(is_numeric($catalogVat), fn (Builder $query) => $query->where('vat', (float) $catalogVat))
+                ->orderBy('description')
+                ->paginate(25, ['*'], 'catalog_page')
+                ->withQueryString();
+        }
+
+        $selectedCatalogItem = $request->integer('catalog_item') > 0
+            ? StuffCatalogItem::query()->find($request->integer('catalog_item'))
+            : null;
+        $commodityCode = $selectedCatalogItem?->item_id
+            ?? $request->string('commodity_code')->trim()->toString();
         $lookupResult = null;
         $lookupError = null;
 
-        if (preg_match('/^\d{8,20}$/', $commodityCode)) {
+        if ($selectedCatalogItem !== null) {
+            $lookupResult = $this->catalogLookupResult($selectedCatalogItem);
+        } elseif (preg_match('/^\d{8,20}$/', $commodityCode)) {
+            $catalogItem = StuffCatalogItem::query()
+                ->where('item_id', $commodityCode)
+                ->orderByDesc('effective_date')
+                ->first();
+
             try {
-                $lookupResult = $gateway->lookupGood($request->user(), $commodityCode);
+                $lookupResult = $catalogItem !== null
+                    ? $this->catalogLookupResult($catalogItem)
+                    : $gateway->lookupGood($request->user(), $commodityCode);
             } catch (MoadianConfigurationException|MoadianApiException $exception) {
                 $lookupError = $exception->getMessage();
             }
@@ -53,6 +85,15 @@ class GoodController extends Controller
             'lookupResult' => $lookupResult,
             'lookupError' => $lookupError,
             'isDemo' => $gateway->isDemo(),
+            'catalogSearch' => $catalogSearch,
+            'catalogType' => $catalogType,
+            'catalogVat' => $catalogVat,
+            'catalogFiltersApplied' => $catalogFiltersApplied,
+            'catalogResults' => $catalogResults,
+            'catalogTypes' => StuffCatalogItem::query()->whereNotNull('type')->distinct()->orderBy('type')->pluck('type'),
+            'catalogVats' => StuffCatalogItem::query()->distinct()->orderBy('vat')->pluck('vat'),
+            'catalogCount' => StuffCatalogItem::query()->count(),
+            'selectedCatalogItem' => $selectedCatalogItem,
         ]);
     }
 
@@ -77,5 +118,22 @@ class GoodController extends Controller
         $good->update($request->validated());
 
         return redirect()->route('goods.index')->with('success', 'اطلاعات کالا به‌روزرسانی شد.');
+    }
+
+    /** @return array{name: string, unit: string, unit_price: int, tax_rate: float, measurement_unit_code: null} */
+    private function catalogLookupResult(StuffCatalogItem $item): array
+    {
+        return [
+            'name' => $item->description,
+            'unit' => str_contains((string) $item->type, 'خدمت') ? 'خدمت' : 'عدد',
+            'unit_price' => 0,
+            'tax_rate' => (float) $item->vat,
+            'measurement_unit_code' => null,
+        ];
+    }
+
+    private function normalizeCatalogSearch(string $value): string
+    {
+        return str_replace(['ي', 'ك'], ['ی', 'ک'], $value);
     }
 }
