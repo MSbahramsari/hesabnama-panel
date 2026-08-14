@@ -57,9 +57,14 @@
                     @if(auth()->user()->isAdmin())
                         <div>
                             <div class="nav-label">مدیریت سامانه</div>
-                            <a href="{{ route('admin.users.index') }}" @class(['nav-link', 'active' => request()->routeIs('admin.users.*')])>
-                                <x-icon name="settings" class="size-5" /><span>کاربران و مجوزها</span>
-                            </a>
+                            <div class="space-y-1">
+                                <a href="{{ route('admin.users.index') }}" @class(['nav-link', 'active' => request()->routeIs('admin.users.*')])>
+                                    <x-icon name="settings" class="size-5" /><span>کاربران و مجوزها</span>
+                                </a>
+                                <a href="{{ route('admin.stuff-catalog.index') }}" @class(['nav-link', 'active' => request()->routeIs('admin.stuff-catalog.*')])>
+                                    <x-icon name="box" class="size-5" /><span>بروزرسانی کاتالوگ</span>
+                                </a>
+                            </div>
                         </div>
                     @endif
                 </nav>

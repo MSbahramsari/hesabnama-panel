@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\StuffCatalogController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CustomerController;
@@ -37,6 +38,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/profile/moadian/test', TaxpayerConnectionController::class)->middleware('throttle:5,1')->name('profile.moadian.test');
 
         Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+            Route::get('/stuff-catalog', [StuffCatalogController::class, 'index'])->name('stuff-catalog.index');
+            Route::post('/stuff-catalog', [StuffCatalogController::class, 'store'])->middleware('throttle:3,1')->name('stuff-catalog.store');
             Route::resource('users', UserController::class)->except(['show', 'destroy']);
         });
     });
