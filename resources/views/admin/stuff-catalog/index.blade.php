@@ -139,14 +139,21 @@
                                             'status-badge',
                                             'status-emerald' => $import->status === \App\Models\StuffCatalogImport::STATUS_COMPLETED,
                                             'status-rose' => $import->status === \App\Models\StuffCatalogImport::STATUS_FAILED,
-                                            'status-amber' => $import->status === \App\Models\StuffCatalogImport::STATUS_PROCESSING,
+                                            'status-amber' => in_array($import->status, [\App\Models\StuffCatalogImport::STATUS_QUEUED, \App\Models\StuffCatalogImport::STATUS_PROCESSING], true),
                                         ])>
                                             {{ match($import->status) {
                                                 \App\Models\StuffCatalogImport::STATUS_COMPLETED => 'موفق',
                                                 \App\Models\StuffCatalogImport::STATUS_FAILED => 'ناموفق',
+                                                \App\Models\StuffCatalogImport::STATUS_QUEUED => 'در صف',
                                                 default => 'در حال پردازش',
                                             } }}
                                         </span>
+                                        @if(in_array($import->status, [\App\Models\StuffCatalogImport::STATUS_QUEUED, \App\Models\StuffCatalogImport::STATUS_PROCESSING], true))
+                                            <div class="mt-2 w-28 overflow-hidden rounded-full bg-slate-100">
+                                                <div class="h-1.5 rounded-full bg-amber-500" style="width: {{ $import->progress_percent }}%"></div>
+                                            </div>
+                                            <div class="mt-1 text-[10px] font-bold text-slate-500">{{ $import->progress_percent }}٪ · {{ number_format($import->processed_rows) }} ردیف</div>
+                                        @endif
                                     </td>
                                     <td class="font-bold text-emerald-700">{{ number_format($import->new_rows) }}</td>
                                     <td class="font-bold text-blue-700">{{ number_format($import->updated_rows) }}</td>

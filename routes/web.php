@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
         Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
             Route::get('/stuff-catalog', [StuffCatalogController::class, 'index'])->name('stuff-catalog.index');
             Route::post('/stuff-catalog', [StuffCatalogController::class, 'store'])->middleware('throttle:3,1')->name('stuff-catalog.store');
+            Route::get('/stuff-catalog/imports/{stuffCatalogImport}', [StuffCatalogController::class, 'show'])->name('stuff-catalog.imports.show');
             Route::resource('users', UserController::class)->except(['show', 'destroy']);
         });
     });

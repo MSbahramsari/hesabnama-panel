@@ -12,6 +12,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'user_id',
     'file_name',
     'status',
+    'progress_percent',
+    'file_size',
+    'processed_bytes',
+    'processed_rows',
     'new_rows',
     'updated_rows',
     'unchanged_rows',
@@ -24,6 +28,8 @@ class StuffCatalogImport extends Model
 {
     /** @use HasFactory<StuffCatalogImportFactory> */
     use HasFactory;
+
+    public const STATUS_QUEUED = 'queued';
 
     public const STATUS_PROCESSING = 'processing';
 
@@ -39,6 +45,10 @@ class StuffCatalogImport extends Model
     protected function casts(): array
     {
         return [
+            'progress_percent' => 'integer',
+            'file_size' => 'integer',
+            'processed_bytes' => 'integer',
+            'processed_rows' => 'integer',
             'new_rows' => 'integer',
             'updated_rows' => 'integer',
             'unchanged_rows' => 'integer',

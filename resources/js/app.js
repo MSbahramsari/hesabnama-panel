@@ -52,6 +52,70 @@ if (catalogImportForm) {
     const progressStatus = catalogImportForm.querySelector('[data-upload-status]');
     const progressHint = catalogImportForm.querySelector('[data-upload-hint]');
     const submitButton = catalogImportForm.querySelector('[data-upload-submit]');
+    const numberFormatter = new Intl.NumberFormat('fa-IR');
+
+    const unlockForm = () => {
+        submitButton.disabled = false;
+        submitButton.classList.remove('cursor-not-allowed', 'opacity-60');
+    };
+
+    const showFailure = (message, hint) => {
+        progressStatus.textContent = message;
+        progressHint.textContent = hint;
+        progressBar.classList.remove('animate-pulse', 'bg-teal-600');
+        progressBar.classList.add('bg-rose-600');
+        unlockForm();
+    };
+
+    const pollImportProgress = async (imports) => {
+        try {
+            const responses = await Promise.all(imports.map((item) => fetch(item.status_url, {
+                headers: { Accept: 'application/json' },
+            })));
+
+            if (responses.some((response) => !response.ok)) {
+                throw new Error('Progress request failed.');
+            }
+
+            const states = await Promise.all(responses.map((response) => response.json()));
+            const failedImport = states.find((state) => state.status === 'failed');
+
+            if (failedImport) {
+                showFailure('پردازش فایل ناموفق بود.', failedImport.error_message || 'گزارش خطا در تاریخچه بروزرسانی ثبت شد.');
+
+                return;
+            }
+
+            const percentage = Math.round(states.reduce((total, state) => total + state.progress_percent, 0) / states.length);
+            const processedRows = states.reduce((total, state) => total + state.processed_rows, 0);
+            const completed = states.every((state) => state.status === 'completed');
+            const queued = states.every((state) => state.status === 'queued');
+
+            progressBar.classList.remove('animate-pulse');
+            progressBar.style.width = `${percentage}%`;
+            progressPercent.textContent = `${percentage}%`;
+            progressStatus.textContent = completed
+                ? 'پردازش کاتالوگ با موفقیت کامل شد.'
+                : queued
+                    ? 'فایل در صف پردازش است...'
+                    : 'در حال پردازش و ورود اطلاعات...';
+            progressHint.textContent = completed
+                ? 'در حال بروزرسانی گزارش صفحه...'
+                : `${numberFormatter.format(processedRows)} ردیف تاکنون بررسی شده است.`;
+
+            if (completed) {
+                window.setTimeout(() => window.location.assign(catalogImportForm.action), 800);
+
+                return;
+            }
+
+            window.setTimeout(() => pollImportProgress(imports), 1500);
+        } catch {
+            progressStatus.textContent = 'دریافت وضعیت پردازش موقتاً ممکن نیست.';
+            progressHint.textContent = 'اتصال دوباره بررسی می‌شود؛ این صفحه را نبندید.';
+            window.setTimeout(() => pollImportProgress(imports), 3000);
+        }
+    };
 
     catalogImportForm.addEventListener('submit', (event) => {
         event.preventDefault();
@@ -60,6 +124,10 @@ if (catalogImportForm) {
         const formData = new FormData(catalogImportForm);
 
         progressPanel.classList.remove('hidden');
+        progressBar.classList.remove('animate-pulse', 'bg-rose-600');
+        progressBar.classList.add('bg-teal-600');
+        progressBar.style.width = '0%';
+        progressPercent.textContent = '0%';
         submitButton.disabled = true;
         submitButton.classList.add('cursor-not-allowed', 'opacity-60');
         progressStatus.textContent = 'در حال بارگذاری فایل روی سرور...';
@@ -84,29 +152,38 @@ if (catalogImportForm) {
         });
 
         request.addEventListener('load', () => {
+            if (request.status === 202) {
+                try {
+                    const response = JSON.parse(request.responseText);
+
+                    progressBar.style.width = '0%';
+                    progressPercent.textContent = '0%';
+                    progressStatus.textContent = 'فایل دریافت شد؛ در انتظار شروع پردازش...';
+                    progressHint.textContent = 'پردازش در پس‌زمینه انجام می‌شود.';
+                    pollImportProgress(response.imports);
+                } catch {
+                    showFailure('پاسخ سرور قابل پردازش نیست.', 'صفحه را بازخوانی و تاریخچه بروزرسانی را بررسی کنید.');
+                }
+
+                return;
+            }
+
             if (request.status >= 200 && request.status < 400) {
                 window.location.assign(request.responseURL || catalogImportForm.action);
 
                 return;
             }
 
-            progressStatus.textContent = 'بروزرسانی انجام نشد.';
-            progressHint.textContent = request.status === 413
+            showFailure(
+                'بروزرسانی انجام نشد.',
+                request.status === 413
                 ? 'حجم فایل از سقف مجاز وب‌سرور بیشتر است.'
-                : 'خطایی در ارسال یا پردازش فایل رخ داد؛ دوباره تلاش کنید.';
-            progressBar.classList.remove('animate-pulse');
-            progressBar.classList.add('bg-rose-600');
-            submitButton.disabled = false;
-            submitButton.classList.remove('cursor-not-allowed', 'opacity-60');
+                : 'خطایی در ارسال فایل رخ داد؛ دوباره تلاش کنید.',
+            );
         });
 
         request.addEventListener('error', () => {
-            progressStatus.textContent = 'ارتباط با سرور قطع شد.';
-            progressHint.textContent = 'اتصال شبکه را بررسی و دوباره تلاش کنید.';
-            progressBar.classList.remove('animate-pulse');
-            progressBar.classList.add('bg-rose-600');
-            submitButton.disabled = false;
-            submitButton.classList.remove('cursor-not-allowed', 'opacity-60');
+            showFailure('ارتباط با سرور قطع شد.', 'اتصال شبکه را بررسی و دوباره تلاش کنید.');
         });
 
         request.open('POST', catalogImportForm.action);

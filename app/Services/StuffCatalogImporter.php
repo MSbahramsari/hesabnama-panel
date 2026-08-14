@@ -20,7 +20,10 @@ class StuffCatalogImporter
         'source_updated_date',
     ];
 
-    public function import(string $path): StuffCatalogImportResult
+    /**
+     * @param  null|callable(int, int, int, StuffCatalogImportResult): void  $progress
+     */
+    public function import(string $path, ?callable $progress = null): StuffCatalogImportResult
     {
         if (! is_file($path) || ! is_readable($path)) {
             throw new RuntimeException("فایل قابل خواندن نیست: {$path}");
@@ -53,13 +56,20 @@ class StuffCatalogImporter
             $updatedRows = 0;
             $unchangedRows = 0;
             $skippedRows = 0;
+            $processedRows = 0;
+            $totalBytes = max(1, (int) (filesize($path) ?: 1));
             $timestamp = now();
 
             while (($row = fgetcsv($handle, null, $delimiter, '"', '\\')) !== false) {
+                $processedRows++;
                 $record = $this->makeRecord($row, $columnIndexes, $timestamp);
 
                 if ($record === null) {
                     $skippedRows++;
+
+                    if ($processedRows % 500 === 0) {
+                        $this->reportProgress($progress, $handle, $totalBytes, $processedRows, $newRows, $updatedRows, $unchangedRows, $skippedRows);
+                    }
 
                     continue;
                 }
@@ -73,6 +83,10 @@ class StuffCatalogImporter
                     $unchangedRows += $unchanged;
                     $records = [];
                 }
+
+                if ($processedRows % 500 === 0) {
+                    $this->reportProgress($progress, $handle, $totalBytes, $processedRows, $newRows, $updatedRows, $unchangedRows, $skippedRows);
+                }
             }
 
             if ($records !== []) {
@@ -82,10 +96,39 @@ class StuffCatalogImporter
                 $unchangedRows += $unchanged;
             }
 
+            $this->reportProgress($progress, $handle, $totalBytes, $processedRows, $newRows, $updatedRows, $unchangedRows, $skippedRows);
+
             return new StuffCatalogImportResult($newRows, $updatedRows, $unchangedRows, $skippedRows);
         } finally {
             fclose($handle);
         }
+    }
+
+    /**
+     * @param  resource  $handle
+     * @param  null|callable(int, int, int, StuffCatalogImportResult): void  $progress
+     */
+    private function reportProgress(
+        ?callable $progress,
+        $handle,
+        int $totalBytes,
+        int $processedRows,
+        int $newRows,
+        int $updatedRows,
+        int $unchangedRows,
+        int $skippedRows,
+    ): void {
+        if ($progress === null) {
+            return;
+        }
+
+        $processedBytes = max(0, (int) ftell($handle));
+        $progress(
+            $processedBytes,
+            $totalBytes,
+            $processedRows,
+            new StuffCatalogImportResult($newRows, $updatedRows, $unchangedRows, $skippedRows),
+        );
     }
 
     /**

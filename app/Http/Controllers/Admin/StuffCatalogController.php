@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ImportStuffCatalogRequest;
+use App\Jobs\ImportStuffCatalog;
 use App\Models\StuffCatalogImport;
 use App\Models\StuffCatalogItem;
-use App\Services\StuffCatalogImporter;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use RuntimeException;
@@ -36,48 +38,50 @@ class StuffCatalogController extends Controller
         ]);
     }
 
-    public function store(ImportStuffCatalogRequest $request, StuffCatalogImporter $importer): RedirectResponse
+    public function store(ImportStuffCatalogRequest $request): RedirectResponse|JsonResponse
     {
-        $totals = ['new' => 0, 'updated' => 0, 'unchanged' => 0, 'skipped' => 0];
+        $queuedImports = [];
 
         foreach ($request->file('catalog_files', []) as $file) {
             if (! $file instanceof UploadedFile) {
                 continue;
             }
 
-            $history = StuffCatalogImport::query()->create([
-                'user_id' => $request->user()->id,
-                'file_name' => $file->getClientOriginalName(),
-                'status' => StuffCatalogImport::STATUS_PROCESSING,
-                'started_at' => now(),
-            ]);
+            $storedPath = null;
+            $history = null;
 
             try {
-                $path = $file->getRealPath();
+                $storedPath = $file->store('stuff-catalog-imports', 'local');
 
-                if ($path === false) {
-                    throw new RuntimeException('فایل آپلودشده روی سرور قابل خواندن نیست.');
+                if ($storedPath === false) {
+                    throw new RuntimeException('ذخیره موقت فایل روی سرور انجام نشد.');
                 }
 
-                $result = $importer->import($path);
-                $history->update([
-                    'status' => StuffCatalogImport::STATUS_COMPLETED,
-                    'new_rows' => $result->newRows,
-                    'updated_rows' => $result->updatedRows,
-                    'unchanged_rows' => $result->unchangedRows,
-                    'skipped_rows' => $result->skippedRows,
-                    'completed_at' => now(),
+                $history = StuffCatalogImport::query()->create([
+                    'user_id' => $request->user()->id,
+                    'file_name' => $file->getClientOriginalName(),
+                    'status' => StuffCatalogImport::STATUS_QUEUED,
+                    'file_size' => (int) ($file->getSize() ?: 0),
+                    'started_at' => now(),
                 ]);
-                $totals['new'] += $result->newRows;
-                $totals['updated'] += $result->updatedRows;
-                $totals['unchanged'] += $result->unchangedRows;
-                $totals['skipped'] += $result->skippedRows;
+                ImportStuffCatalog::dispatch($history->id, $storedPath)->onQueue('catalog-imports');
+                $queuedImports[] = [
+                    'id' => $history->id,
+                    'status_url' => route('admin.stuff-catalog.imports.show', $history),
+                ];
             } catch (Throwable $exception) {
-                $history->update([
-                    'status' => StuffCatalogImport::STATUS_FAILED,
-                    'error_message' => Str::limit($exception->getMessage(), 2000),
-                    'completed_at' => now(),
-                ]);
+                if (is_string($storedPath)) {
+                    Storage::disk('local')->delete($storedPath);
+                }
+
+                if ($history instanceof StuffCatalogImport) {
+                    $history->update([
+                        'status' => StuffCatalogImport::STATUS_FAILED,
+                        'error_message' => Str::limit($exception->getMessage(), 2000),
+                        'completed_at' => now(),
+                    ]);
+                }
+
                 report($exception);
 
                 $message = $exception instanceof RuntimeException
@@ -88,8 +92,30 @@ class StuffCatalogController extends Controller
             }
         }
 
-        $message = "بروزرسانی کاتالوگ انجام شد؛ {$totals['new']} ردیف جدید و {$totals['updated']} ردیف به‌روزشده است.";
+        if ($request->ajax()) {
+            return response()->json([
+                'message' => 'فایل دریافت شد و پردازش آن در صف قرار گرفت.',
+                'imports' => $queuedImports,
+            ], 202);
+        }
 
-        return redirect()->route('admin.stuff-catalog.index')->with('success', $message);
+        return redirect()->route('admin.stuff-catalog.index')->with('success', 'فایل دریافت شد و پردازش آن در صف قرار گرفت.');
+    }
+
+    public function show(StuffCatalogImport $stuffCatalogImport): JsonResponse
+    {
+        return response()->json([
+            'id' => $stuffCatalogImport->id,
+            'status' => $stuffCatalogImport->status,
+            'progress_percent' => $stuffCatalogImport->progress_percent,
+            'processed_rows' => $stuffCatalogImport->processed_rows,
+            'new_rows' => $stuffCatalogImport->new_rows,
+            'updated_rows' => $stuffCatalogImport->updated_rows,
+            'unchanged_rows' => $stuffCatalogImport->unchanged_rows,
+            'skipped_rows' => $stuffCatalogImport->skipped_rows,
+            'error_message' => $stuffCatalogImport->status === StuffCatalogImport::STATUS_FAILED
+                ? Str::limit((string) $stuffCatalogImport->error_message, 500)
+                : null,
+        ]);
     }
 }
