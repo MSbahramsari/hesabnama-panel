@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
     'description',
     'type',
     'vat',
+    'taxable',
     'source_created_date',
     'effective_date',
     'expiration_date',

@@ -56,8 +56,8 @@ it('prefills the good form from the selected catalog row', function () {
 it('imports an official-style csv and keeps repeated imports idempotent', function () {
     $path = tempnam(sys_get_temp_dir(), 'stuff-catalog-');
     $csv = <<<'CSV'
-شناسه,نام کالا و خدمات,نوع,ارزش افزوده,تاریخ ایجاد,تاریخ اجرا,تاریخ انقضا,تاریخ بروزرسانی
-۲۳۳۰۰۰۰۰۰۰۰۰۴,خدمات مشاوره مالیاتی,عمومی خدمت,۱۰٪,۱۴۰۴/۱۲/۰۱,۱۴۰۵/۰۱/۰۱,,۱۴۰۵/۰۱/۰۲
+ID,DescriptionOfID,VAT,Taxable,RunDate,ExpirationDate,Type,CreateDate,LastEditDate
+۲۳۳۰۰۰۰۰۰۰۰۰۴,خدمات مشاوره مالیاتی,۱۰٪,مشمول,۱۴۰۵/۰۱/۰۱,,عمومی خدمت,۱۴۰۴/۱۲/۰۱,۱۴۰۵/۰۱/۰۲
 CSV;
 
     file_put_contents($path, $csv);
@@ -76,6 +76,9 @@ CSV;
         'description' => 'خدمات مشاوره مالیاتی',
         'type' => 'عمومی خدمت',
         'vat' => 10,
+        'taxable' => 'مشمول',
         'effective_date' => '1405/01/01',
+        'source_created_date' => '1404/12/01',
+        'source_updated_date' => '1405/01/02',
     ]);
 });

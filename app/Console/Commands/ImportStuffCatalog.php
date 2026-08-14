@@ -115,13 +115,14 @@ class ImportStuffCatalog extends Command
         $normalizedHeaders = array_map(fn (?string $header): string => $this->normalizeHeader((string) $header), $headers);
         $aliases = [
             'item_id' => ['شناسه', 'کدشناسه', 'شناسهکالا', 'شناسهخدمت', 'شناسهکالاوخدمت', 'itemid', 'id', 'code'],
-            'description' => ['شرح', 'شرحشناسه', 'نامکالا', 'نامخدمت', 'نامکالاوخدمات', 'نامکالاوخدمت', 'description', 'title', 'name'],
+            'description' => ['شرح', 'شرحشناسه', 'نامکالا', 'نامخدمت', 'نامکالاوخدمات', 'نامکالاوخدمت', 'descriptionofid', 'description', 'title', 'name'],
             'type' => ['نوع', 'نوعشناسه', 'type'],
             'vat' => ['ارزشافزوده', 'نرخارزشافزوده', 'مالیات', 'نرخمالیات', 'vat', 'tax'],
-            'source_created_date' => ['تاریخایجاد', 'createdat', 'createddate', 'date'],
+            'taxable' => ['وضعیتمشمولیامعافبودنشناسهکالاوخدمت', 'وضعیتمشمولیت', 'مشمولیت', 'taxable'],
+            'source_created_date' => ['تاریخایجاد', 'createdat', 'createdate', 'createddate', 'date'],
             'effective_date' => ['تاریخاجرا', 'تاریخاجرایشناسه', 'rundate', 'effectivedate'],
             'expiration_date' => ['تاریخانقضا', 'انقضا', 'expirationdate', 'expiredate'],
-            'source_updated_date' => ['تاریخبروزرسانی', 'تاریخبهروزرسانی', 'updatedat', 'updateddate'],
+            'source_updated_date' => ['تاریخبروزرسانی', 'تاریخبهروزرسانی', 'lasteditdate', 'updatedat', 'updateddate'],
         ];
         $indexes = [];
 
@@ -169,17 +170,19 @@ class ImportStuffCatalog extends Command
 
         $type = $this->normalizeText($value('type'));
         $vat = $this->vat($value('vat'));
+        $taxable = $this->normalizeText($value('taxable'));
         $sourceCreatedDate = $this->latinDigits($value('source_created_date'));
         $effectiveDate = $this->latinDigits($value('effective_date'));
         $expirationDate = $this->latinDigits($value('expiration_date'));
         $sourceUpdatedDate = $this->latinDigits($value('source_updated_date'));
-        $sourceHash = hash('sha256', implode('|', [$itemId, $description, $type, $effectiveDate, $expirationDate]));
+        $sourceHash = hash('sha256', implode('|', [$itemId, $effectiveDate, $expirationDate]));
 
         return [
             'item_id' => $itemId,
             'description' => $description,
             'type' => $type !== '' ? $type : null,
             'vat' => $vat,
+            'taxable' => $taxable !== '' ? $taxable : null,
             'source_created_date' => $sourceCreatedDate !== '' ? $sourceCreatedDate : null,
             'effective_date' => $effectiveDate !== '' ? $effectiveDate : null,
             'expiration_date' => $expirationDate !== '' ? $expirationDate : null,
@@ -197,6 +200,7 @@ class ImportStuffCatalog extends Command
             'description',
             'type',
             'vat',
+            'taxable',
             'source_created_date',
             'effective_date',
             'expiration_date',

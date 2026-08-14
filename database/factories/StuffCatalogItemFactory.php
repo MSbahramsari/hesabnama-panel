@@ -30,11 +30,12 @@ class StuffCatalogItemFactory extends Factory
             'description' => $description,
             'type' => $type,
             'vat' => fake()->randomElement([0, 10]),
+            'taxable' => 'مشمول',
             'source_created_date' => '1404/12/01',
             'effective_date' => $effectiveDate,
             'expiration_date' => null,
             'source_updated_date' => '1405/01/01',
-            'source_hash' => hash('sha256', Str::of($itemId)->append('|', $description, '|', $type, '|', $effectiveDate)->toString()),
+            'source_hash' => hash('sha256', Str::of($itemId)->append('|', $effectiveDate, '|')->toString()),
         ];
     }
 }

@@ -79,6 +79,7 @@
                                         <th>نام کالا یا خدمت</th>
                                         <th>نوع</th>
                                         <th>ارزش افزوده</th>
+                                        <th>وضعیت</th>
                                         <th>تاریخ اجرا</th>
                                         <th>تاریخ انقضا</th>
                                         <th></th>
@@ -91,6 +92,7 @@
                                             <td class="min-w-80 font-bold leading-7 text-slate-900">{{ $item->description }}</td>
                                             <td><span class="status-badge status-slate">{{ $item->type ?: 'نامشخص' }}</span></td>
                                             <td><span @class(['status-badge', 'status-emerald' => (float) $item->vat === 0.0, 'status-amber' => (float) $item->vat > 0])>{{ number_format((float) $item->vat, 2) }}٪</span></td>
+                                            <td>{{ $item->taxable ?: ((float) $item->vat > 0 ? 'مشمول' : 'معاف') }}</td>
                                             <td dir="ltr" class="text-right">{{ $item->effective_date ?: '—' }}</td>
                                             <td dir="ltr" class="text-right">{{ $item->expiration_date ?: '—' }}</td>
                                             <td>

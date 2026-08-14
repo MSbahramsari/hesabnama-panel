@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('description');
             $table->string('type', 80)->nullable()->index();
             $table->decimal('vat', 5, 2)->default(0)->index();
+            $table->string('taxable', 40)->nullable()->index();
             $table->string('source_created_date', 40)->nullable();
             $table->string('effective_date', 40)->nullable();
             $table->string('expiration_date', 40)->nullable();
