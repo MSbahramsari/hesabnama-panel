@@ -17,7 +17,7 @@ class ImportStuffCatalogRequest extends FormRequest
     {
         return [
             'catalog_files' => ['required', 'array', 'min:1', 'max:4'],
-            'catalog_files.*' => ['required', File::types(['csv', 'txt'])->max('200mb')],
+            'catalog_files.*' => ['required', File::types(['csv', 'txt'])->max('500mb')],
         ];
     }
 

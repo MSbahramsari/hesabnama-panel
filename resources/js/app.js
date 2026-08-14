@@ -43,6 +43,78 @@ selectAllInvoices?.addEventListener('change', () => {
     });
 });
 
+const catalogImportForm = document.querySelector('[data-catalog-import-form]');
+
+if (catalogImportForm) {
+    const progressPanel = catalogImportForm.querySelector('[data-upload-progress]');
+    const progressBar = catalogImportForm.querySelector('[data-upload-progress-bar]');
+    const progressPercent = catalogImportForm.querySelector('[data-upload-percent]');
+    const progressStatus = catalogImportForm.querySelector('[data-upload-status]');
+    const progressHint = catalogImportForm.querySelector('[data-upload-hint]');
+    const submitButton = catalogImportForm.querySelector('[data-upload-submit]');
+
+    catalogImportForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const request = new XMLHttpRequest();
+        const formData = new FormData(catalogImportForm);
+
+        progressPanel.classList.remove('hidden');
+        submitButton.disabled = true;
+        submitButton.classList.add('cursor-not-allowed', 'opacity-60');
+        progressStatus.textContent = 'در حال بارگذاری فایل روی سرور...';
+        progressHint.textContent = 'تا پایان عملیات این صفحه را نبندید.';
+
+        request.upload.addEventListener('progress', (progressEvent) => {
+            if (!progressEvent.lengthComputable) {
+                return;
+            }
+
+            const percentage = Math.min(100, Math.round((progressEvent.loaded / progressEvent.total) * 100));
+            progressBar.style.width = `${percentage}%`;
+            progressPercent.textContent = `${percentage}%`;
+        });
+
+        request.upload.addEventListener('load', () => {
+            progressBar.style.width = '100%';
+            progressPercent.textContent = '100%';
+            progressStatus.textContent = 'آپلود کامل شد؛ در حال پردازش و ورود اطلاعات...';
+            progressHint.textContent = 'پردازش فایل بزرگ ممکن است چند دقیقه زمان ببرد.';
+            progressBar.classList.add('animate-pulse');
+        });
+
+        request.addEventListener('load', () => {
+            if (request.status >= 200 && request.status < 400) {
+                window.location.assign(request.responseURL || catalogImportForm.action);
+
+                return;
+            }
+
+            progressStatus.textContent = 'بروزرسانی انجام نشد.';
+            progressHint.textContent = request.status === 413
+                ? 'حجم فایل از سقف مجاز وب‌سرور بیشتر است.'
+                : 'خطایی در ارسال یا پردازش فایل رخ داد؛ دوباره تلاش کنید.';
+            progressBar.classList.remove('animate-pulse');
+            progressBar.classList.add('bg-rose-600');
+            submitButton.disabled = false;
+            submitButton.classList.remove('cursor-not-allowed', 'opacity-60');
+        });
+
+        request.addEventListener('error', () => {
+            progressStatus.textContent = 'ارتباط با سرور قطع شد.';
+            progressHint.textContent = 'اتصال شبکه را بررسی و دوباره تلاش کنید.';
+            progressBar.classList.remove('animate-pulse');
+            progressBar.classList.add('bg-rose-600');
+            submitButton.disabled = false;
+            submitButton.classList.remove('cursor-not-allowed', 'opacity-60');
+        });
+
+        request.open('POST', catalogImportForm.action);
+        request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        request.send(formData);
+    });
+}
+
 const invoiceForm = document.querySelector('[data-invoice-form]');
 
 if (invoiceForm) {

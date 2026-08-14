@@ -13,7 +13,9 @@ it('allows administrators to view the catalog update page', function () {
         ->get(route('admin.stuff-catalog.index'))
         ->assertOk()
         ->assertSee('بروزرسانی کاتالوگ کالا و خدمات')
-        ->assertSee('ورود فایل رسمی جدید');
+        ->assertSee('ورود فایل رسمی جدید')
+        ->assertSee('data-catalog-import-form', false)
+        ->assertSee('data-upload-progress', false);
 });
 
 it('prevents regular users from managing the shared catalog', function () {

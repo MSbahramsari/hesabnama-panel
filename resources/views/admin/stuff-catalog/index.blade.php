@@ -38,14 +38,14 @@
                     </div>
                     <a href="https://stuffid.tax.gov.ir" target="_blank" rel="noopener noreferrer" class="btn-secondary">دریافت از StuffID</a>
                 </div>
-                <form method="POST" action="{{ route('admin.stuff-catalog.store') }}" enctype="multipart/form-data" class="space-y-5 p-5 sm:p-7">
+                <form method="POST" action="{{ route('admin.stuff-catalog.store') }}" enctype="multipart/form-data" class="space-y-5 p-5 sm:p-7" data-catalog-import-form>
                     @csrf
                     <div>
                         <label for="catalog_files" class="form-label">فایل‌های CSV رسمی</label>
                         <label for="catalog_files" class="flex min-h-44 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/70 px-6 py-8 text-center hover:border-teal-400 hover:bg-teal-50/40">
                             <div class="grid size-12 place-items-center rounded-2xl bg-white text-teal-700 shadow-sm"><x-icon name="invoice" class="size-6" /></div>
                             <strong class="mt-4 text-sm text-slate-800">فایل کالا، خدمت یا هر دو را انتخاب کنید</strong>
-                            <span class="mt-2 text-xs leading-6 text-slate-500">حداکثر ۴ فایل CSV یا TXT؛ سقف برنامه برای هر فایل ۲۰۰ مگابایت است.</span>
+                            <span class="mt-2 text-xs leading-6 text-slate-500">حداکثر ۴ فایل CSV یا TXT؛ سقف برنامه برای هر فایل ۵۰۰ مگابایت است.</span>
                             <input id="catalog_files" name="catalog_files[]" type="file" accept=".csv,.txt,text/csv,text/plain" multiple required class="mt-5 block max-w-full text-xs text-slate-600 file:ml-3 file:rounded-lg file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:font-bold file:text-white">
                         </label>
                         @error('catalog_files')<p class="mt-2 text-xs font-bold text-rose-600">{{ $message }}</p>@enderror
@@ -56,8 +56,19 @@
                         فایل قبلی را پاک نکنید و جدول را خالی نکنید. واردکننده، شناسه‌های جدید را اضافه، موارد تغییرکرده را بروزرسانی و نسخه‌های بدون تغییر را نادیده می‌گیرد.
                     </div>
 
+                    <div class="hidden rounded-2xl border border-teal-200 bg-teal-50 p-4" data-upload-progress aria-live="polite">
+                        <div class="flex items-center justify-between gap-4 text-xs font-bold text-teal-900">
+                            <span data-upload-status>در حال آماده‌سازی فایل...</span>
+                            <span dir="ltr" data-upload-percent>0%</span>
+                        </div>
+                        <div class="mt-3 h-2.5 overflow-hidden rounded-full bg-teal-100">
+                            <div class="h-full w-0 rounded-full bg-teal-600 transition-[width] duration-200" data-upload-progress-bar></div>
+                        </div>
+                        <p class="mt-3 text-xs leading-6 text-teal-800" data-upload-hint>تا پایان عملیات این صفحه را نبندید.</p>
+                    </div>
+
                     <div class="flex justify-end">
-                        <button class="btn-primary">شروع بروزرسانی کاتالوگ</button>
+                        <button type="submit" class="btn-primary" data-upload-submit>شروع بروزرسانی کاتالوگ</button>
                     </div>
                 </form>
             </div>
