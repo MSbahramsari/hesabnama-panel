@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\StuffCatalogImporter;
+use App\Services\StuffCatalogMetadata;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -12,7 +13,7 @@ use RuntimeException;
 #[Description('Import official goods and services catalog CSV files into the local searchable catalog')]
 class ImportStuffCatalog extends Command
 {
-    public function handle(StuffCatalogImporter $importer): int
+    public function handle(StuffCatalogImporter $importer, StuffCatalogMetadata $metadata): int
     {
         foreach ((array) $this->argument('files') as $file) {
             $path = $this->resolvePath((string) $file);
@@ -20,6 +21,7 @@ class ImportStuffCatalog extends Command
             try {
                 $result = $importer->import($path);
             } catch (RuntimeException $exception) {
+                $metadata->forget();
                 $this->components->error($exception->getMessage());
 
                 return self::FAILURE;
@@ -31,6 +33,8 @@ class ImportStuffCatalog extends Command
             $this->line("بدون تغییر: {$result->unchangedRows}");
             $this->line("ردشده: {$result->skippedRows}");
         }
+
+        $metadata->forget();
 
         return self::SUCCESS;
     }

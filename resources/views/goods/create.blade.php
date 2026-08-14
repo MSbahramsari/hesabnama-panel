@@ -61,7 +61,7 @@
                     <div class="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7">
                         <div>
                             <h4 class="font-extrabold text-slate-900">نتایج جست‌وجو</h4>
-                            <p class="mt-1 text-xs text-slate-500">{{ number_format($catalogResults->total()) }} نتیجه از {{ number_format($catalogCount) }} ردیف کاتالوگ</p>
+                            <p class="mt-1 text-xs text-slate-500">نمایش {{ number_format($catalogResults->count()) }} نتیجه از {{ number_format($catalogCount) }} ردیف کاتالوگ</p>
                         </div>
                         <span class="text-xs font-semibold text-slate-400">برای نرخ‌های متغیر، بازه اجرای شناسه را بررسی کنید.</span>
                     </div>

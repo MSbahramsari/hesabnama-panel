@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ImportStuffCatalogRequest;
 use App\Jobs\ImportStuffCatalog;
 use App\Models\StuffCatalogImport;
-use App\Models\StuffCatalogItem;
+use App\Services\StuffCatalogMetadata;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
@@ -18,7 +18,7 @@ use Throwable;
 
 class StuffCatalogController extends Controller
 {
-    public function index(): View
+    public function index(StuffCatalogMetadata $metadata): View
     {
         $imports = StuffCatalogImport::query()
             ->with('user:id,name')
@@ -32,9 +32,9 @@ class StuffCatalogController extends Controller
         return view('admin.stuff-catalog.index', [
             'imports' => $imports,
             'lastSuccessfulImport' => $lastSuccessfulImport,
-            'catalogCount' => StuffCatalogItem::query()->count(),
-            'uniqueItemCount' => StuffCatalogItem::query()->distinct()->count('item_id'),
-            'catalogTypeCount' => StuffCatalogItem::query()->whereNotNull('type')->distinct()->count('type'),
+            'catalogCount' => $metadata->count(),
+            'uniqueItemCount' => $metadata->uniqueItemCount(),
+            'catalogTypeCount' => $metadata->typeCount(),
         ]);
     }
 

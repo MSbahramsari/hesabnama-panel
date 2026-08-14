@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\StuffCatalogImport as StuffCatalogImportModel;
 use App\Services\StuffCatalogImporter;
 use App\Services\StuffCatalogImportResult;
+use App\Services\StuffCatalogMetadata;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Storage;
@@ -30,7 +31,7 @@ class ImportStuffCatalog implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(StuffCatalogImporter $importer): void
+    public function handle(StuffCatalogImporter $importer, StuffCatalogMetadata $metadata): void
     {
         $history = StuffCatalogImportModel::query()->findOrFail($this->importId);
         $history->update([
@@ -83,6 +84,7 @@ class ImportStuffCatalog implements ShouldQueue
 
             throw $exception;
         } finally {
+            $metadata->forget();
             Storage::disk('local')->delete($this->storedPath);
         }
     }
@@ -90,6 +92,7 @@ class ImportStuffCatalog implements ShouldQueue
     public function failed(?Throwable $exception): void
     {
         $this->markAsFailed($exception ?? new RuntimeException('پردازش فایل به‌صورت غیرمنتظره متوقف شد.'));
+        app(StuffCatalogMetadata::class)->forget();
         Storage::disk('local')->delete($this->storedPath);
     }
 

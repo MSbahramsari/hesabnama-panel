@@ -8,9 +8,11 @@ use App\Exceptions\MoadianConfigurationException;
 use App\Http\Requests\SaveGoodRequest;
 use App\Models\Good;
 use App\Models\StuffCatalogItem;
+use App\Services\StuffCatalogMetadata;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
@@ -34,7 +36,7 @@ class GoodController extends Controller
         return view('goods.index', compact('goods', 'search'));
     }
 
-    public function create(Request $request, TaxPlatformGateway $gateway): View
+    public function create(Request $request, TaxPlatformGateway $gateway, StuffCatalogMetadata $metadata): View
     {
         Gate::authorize('create', Good::class);
         $catalogSearch = mb_substr($this->normalizeCatalogSearch($request->string('catalog_query')->trim()->toString()), 0, 120);
@@ -45,13 +47,10 @@ class GoodController extends Controller
 
         if ($catalogFiltersApplied) {
             $catalogResults = StuffCatalogItem::query()
-                ->when($catalogSearch !== '', fn (Builder $query) => $query->where(fn (Builder $query) => $query
-                    ->where('item_id', 'like', "{$catalogSearch}%")
-                    ->orWhere('description', 'like', "%{$catalogSearch}%")))
+                ->when($catalogSearch !== '', fn (Builder $query) => $this->applyCatalogSearch($query, $catalogSearch))
                 ->when($catalogType !== '', fn (Builder $query) => $query->where('type', $catalogType))
                 ->when(is_numeric($catalogVat), fn (Builder $query) => $query->where('vat', (float) $catalogVat))
-                ->orderBy('description')
-                ->paginate(25, ['*'], 'catalog_page')
+                ->simplePaginate(25, ['*'], 'catalog_page')
                 ->withQueryString();
         }
 
@@ -90,9 +89,9 @@ class GoodController extends Controller
             'catalogVat' => $catalogVat,
             'catalogFiltersApplied' => $catalogFiltersApplied,
             'catalogResults' => $catalogResults,
-            'catalogTypes' => StuffCatalogItem::query()->whereNotNull('type')->distinct()->orderBy('type')->pluck('type'),
-            'catalogVats' => StuffCatalogItem::query()->distinct()->orderBy('vat')->pluck('vat'),
-            'catalogCount' => StuffCatalogItem::query()->count(),
+            'catalogTypes' => $metadata->types(),
+            'catalogVats' => $metadata->vats(),
+            'catalogCount' => $metadata->count(),
             'selectedCatalogItem' => $selectedCatalogItem,
         ]);
     }
@@ -135,5 +134,28 @@ class GoodController extends Controller
     private function normalizeCatalogSearch(string $value): string
     {
         return str_replace(['ي', 'ك'], ['ی', 'ک'], $value);
+    }
+
+    private function applyCatalogSearch(Builder $query, string $catalogSearch): void
+    {
+        if (preg_match('/^\d+$/', $catalogSearch) === 1) {
+            $query->where('item_id', 'like', "{$catalogSearch}%");
+
+            return;
+        }
+
+        $booleanSearch = collect(preg_split('/\s+/u', $catalogSearch, -1, PREG_SPLIT_NO_EMPTY) ?: [])
+            ->map(fn (string $term): string => preg_replace('/[^\p{L}\p{N}]+/u', '', $term) ?? '')
+            ->filter(fn (string $term): bool => mb_strlen($term) >= 3)
+            ->map(fn (string $term): string => "+{$term}*")
+            ->implode(' ');
+
+        if (in_array(DB::getDriverName(), ['mariadb', 'mysql'], true) && $booleanSearch !== '') {
+            $query->whereFullText('description', $booleanSearch, ['mode' => 'boolean']);
+
+            return;
+        }
+
+        $query->where('description', 'like', "%{$catalogSearch}%");
     }
 }
