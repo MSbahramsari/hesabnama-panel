@@ -58,18 +58,18 @@
                 </div>
                 <div class="table-wrap">
                     <table class="data-table">
-                        <thead><tr><th class="w-10"></th><th>صورتحساب</th><th>مشتری</th><th>تاریخ</th><th>مبلغ نهایی</th><th>وضعیت</th><th></th></tr></thead>
+                        <thead><tr><th class="w-10"></th><th>صورتحساب</th><th>مشتری</th><th>تاریخ صدور</th><th>مبلغ نهایی</th><th>وضعیت</th><th class="table-actions-cell">عملیات</th></tr></thead>
                         <tbody>
                         @foreach($invoices as $invoice)
                             @php($canSend = $invoice->user_id === auth()->id() && in_array($invoice->status, [\App\Enums\InvoiceStatus::Draft, \App\Enums\InvoiceStatus::PendingSend, \App\Enums\InvoiceStatus::MoadianError], true))
                             <tr>
                                 <td><input type="checkbox" name="invoice_ids[]" value="{{ $invoice->id }}" @disabled(!$canSend) class="size-4 rounded border-slate-300 text-teal-600 disabled:opacity-30" data-invoice-checkbox></td>
-                                <td><a href="{{ route('invoices.show', $invoice) }}" class="font-black text-slate-900 hover:text-teal-700">{{ $invoice->number }}</a></td>
-                                <td><div class="font-semibold text-slate-800">{{ $invoice->customer->name }}</div><div dir="ltr" class="mt-1 text-right text-xs text-slate-400">{{ $invoice->customer->economic_code }}</div></td>
-                                <td>{{ $invoice->invoice_date->format('Y/m/d') }}</td>
-                                <td class="font-bold text-slate-900">{{ number_format($invoice->total) }} ریال</td>
+                                <td><a href="{{ route('invoices.show', $invoice) }}" class="table-primary hover:text-teal-700">{{ $invoice->number }}</a><div class="table-meta">ثبت‌شده در سامانه</div></td>
+                                <td><div class="table-primary font-extrabold">{{ $invoice->customer->name }}</div><div dir="ltr" class="table-meta justify-end">{{ $invoice->customer->economic_code }}</div></td>
+                                <td dir="ltr" class="table-number text-right">{{ $invoice->invoice_date->format('Y/m/d') }}</td>
+                                <td class="table-number">{{ number_format($invoice->total) }}<small>ریال</small></td>
                                 <td><x-status-badge :status="$invoice->status" /></td>
-                                <td><a href="{{ route('invoices.show', $invoice) }}" class="table-action">جزئیات</a></td>
+                                <td class="table-actions-cell"><a href="{{ route('invoices.show', $invoice) }}" class="table-action"><x-icon name="eye" />جزئیات</a></td>
                             </tr>
                         @endforeach
                         </tbody>

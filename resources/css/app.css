@@ -86,19 +86,28 @@
     .table-toolbar { @apply flex flex-col gap-3 border-b border-slate-100 bg-slate-50/45 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6; }
     .table-count { @apply inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-[11px] font-bold text-slate-500 ring-1 ring-inset ring-slate-200; }
     .table-count strong { @apply text-slate-900; }
-    .table-wrap { @apply w-full overflow-x-auto bg-white; scrollbar-color: #cbd5e1 transparent; scrollbar-width: thin; }
-    .table-wrap::-webkit-scrollbar { height: 7px; }
-    .table-wrap::-webkit-scrollbar-track { background: transparent; }
-    .table-wrap::-webkit-scrollbar-thumb { @apply rounded-full bg-slate-300; }
-    .data-table { @apply w-full min-w-[760px] border-separate border-spacing-0 text-right text-sm; }
-    .data-table thead { @apply bg-slate-50/95 text-[11px] font-extrabold text-slate-500; }
-    .data-table th { @apply whitespace-nowrap border-b border-slate-200/80 px-5 py-3.5; }
-    .data-table td { @apply border-b border-slate-100 px-5 py-4 align-middle font-medium leading-6 text-slate-600; }
-    .data-table tbody tr { @apply bg-white transition-colors; }
-    .data-table tbody tr:nth-child(even) { @apply bg-slate-50/25; }
-    .data-table tbody tr:hover { @apply bg-teal-50/50; }
+    .table-wrap { @apply relative w-full overflow-x-auto bg-white; scrollbar-color: #94a3b8 #f8fafc; scrollbar-width: thin; }
+    .table-wrap::-webkit-scrollbar { height: 8px; }
+    .table-wrap::-webkit-scrollbar-track { @apply bg-slate-50; }
+    .table-wrap::-webkit-scrollbar-thumb { @apply rounded-full border-2 border-solid border-slate-50 bg-slate-400; }
+    .data-table { @apply w-full min-w-[760px] border-separate border-spacing-0 text-right text-sm; font-variant-numeric: tabular-nums; }
+    .data-table thead { @apply text-[10px] font-black tracking-[.02em] text-slate-500; }
+    .data-table th { @apply whitespace-nowrap border-b border-slate-200 bg-slate-50/95 px-5 py-3.5; }
+    .data-table th:first-child { @apply pr-6; }
+    .data-table td { @apply border-b border-slate-100 px-5 py-[18px] align-middle font-medium leading-6 text-slate-600; }
+    .data-table td:first-child { @apply pr-6; }
+    .data-table tbody tr { @apply bg-white transition-[background-color,box-shadow]; box-shadow: inset -3px 0 transparent; }
+    .data-table tbody tr:hover { @apply bg-teal-50/40; box-shadow: inset -3px 0 #14b8a6; }
     .data-table tbody tr:last-child td { @apply border-b-0; }
-    .table-action { @apply inline-flex whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-extrabold text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,.03)] hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800; }
+    .table-primary { @apply text-[13px] font-black text-slate-900; }
+    .table-meta { @apply mt-1 flex items-center gap-1.5 text-[10px] font-medium text-slate-400; }
+    .table-meta::before { content: ''; @apply size-1 rounded-full bg-slate-300; }
+    .table-code { @apply inline-flex rounded-md bg-slate-100 px-2 py-1 font-mono text-[11px] font-bold tracking-wide text-slate-600 ring-1 ring-inset ring-slate-200/70; }
+    .table-number { @apply whitespace-nowrap font-extrabold text-slate-800; }
+    .table-number small { @apply mr-1 font-medium text-slate-400; }
+    .table-actions-cell { @apply w-20 text-left; }
+    .table-action { @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] font-extrabold text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,.04)] hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 hover:shadow-sm; }
+    .table-action svg { @apply size-3.5; }
     .status-badge { @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[10px] font-bold ring-1 ring-inset; }
     .status-badge::before { content: ''; @apply size-1.5 rounded-full bg-current opacity-70; }
     .status-slate { @apply bg-slate-100 text-slate-600 ring-slate-200; }
@@ -134,4 +143,16 @@
 
 @media (max-width: 640px) {
     .data-table { min-width: 680px; }
+}
+
+@media (max-width: 1023px) {
+    .data-table .table-actions-cell {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        background-color: rgba(255, 255, 255, .96);
+        box-shadow: 10px 0 20px -18px rgba(15, 23, 42, .65);
+    }
+    .data-table th.table-actions-cell { @apply bg-slate-50; z-index: 3; }
+    .data-table tbody tr:hover .table-actions-cell { @apply bg-teal-50; }
 }

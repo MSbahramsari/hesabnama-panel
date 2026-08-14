@@ -102,10 +102,10 @@
                         <tbody>
                             @foreach($recentInvoices as $invoice)
                                 <tr class="cursor-pointer" data-navigate="{{ route('invoices.show', $invoice) }}">
-                                    <td><span class="font-black text-slate-950">{{ $invoice->number }}</span></td>
-                                    <td>{{ $invoice->customer->name }}</td>
-                                    <td dir="ltr" class="text-right">{{ $invoice->invoice_date->format('Y/m/d') }}</td>
-                                    <td class="font-bold text-slate-800">{{ number_format($invoice->total) }} <small class="font-medium text-slate-400">ریال</small></td>
+                                    <td><span class="table-primary">{{ $invoice->number }}</span></td>
+                                    <td><span class="font-bold text-slate-700">{{ $invoice->customer->name }}</span></td>
+                                    <td dir="ltr" class="table-number text-right">{{ $invoice->invoice_date->format('Y/m/d') }}</td>
+                                    <td class="table-number">{{ number_format($invoice->total) }}<small>ریال</small></td>
                                     <td><x-status-badge :status="$invoice->status" /></td>
                                 </tr>
                             @endforeach

@@ -58,12 +58,12 @@
                         <tbody>
                         @foreach($invoice->items as $item)
                             <tr>
-                                <td><div class="font-bold text-slate-900">{{ $item->description }}</div><div dir="ltr" class="mt-1 text-right text-xs text-slate-400">{{ $item->commodity_code }}</div></td>
-                                <td>{{ number_format($item->quantity, 3) }}</td>
-                                <td>{{ number_format($item->unit_price) }}</td>
-                                <td>{{ number_format($item->discount) }}</td>
-                                <td>{{ number_format($item->tax_amount) }}</td>
-                                <td class="font-black text-slate-900">{{ number_format($item->total) }}</td>
+                                <td><div class="table-primary">{{ $item->description }}</div><div dir="ltr" class="table-meta justify-end">{{ $item->commodity_code }}</div></td>
+                                <td class="table-number">{{ number_format($item->quantity, 3) }}</td>
+                                <td class="table-number">{{ number_format($item->unit_price) }}</td>
+                                <td class="table-number">{{ number_format($item->discount) }}</td>
+                                <td class="table-number">{{ number_format($item->tax_amount) }}</td>
+                                <td class="table-number text-slate-950">{{ number_format($item->total) }}</td>
                             </tr>
                         @endforeach
                         </tbody>
