@@ -48,6 +48,6 @@
                 </tbody>
             </table>
         </div>
-        <div class="border-t border-slate-100 px-5 py-4">{{ $users->links() }}</div>
+        {{ $users->onEachSide(1)->links('components.pagination') }}
     </div>
 @endsection

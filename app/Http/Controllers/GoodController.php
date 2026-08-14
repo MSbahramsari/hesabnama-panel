@@ -50,7 +50,7 @@ class GoodController extends Controller
                 ->when($catalogSearch !== '', fn (Builder $query) => $this->applyCatalogSearch($query, $catalogSearch))
                 ->when($catalogType !== '', fn (Builder $query) => $query->where('type', $catalogType))
                 ->when(is_numeric($catalogVat), fn (Builder $query) => $query->where('vat', (float) $catalogVat))
-                ->simplePaginate(25, ['*'], 'catalog_page')
+                ->paginate(25, ['*'], 'catalog_page')
                 ->withQueryString();
         }
 

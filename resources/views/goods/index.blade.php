@@ -43,7 +43,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="border-t border-slate-100 px-5 py-4">{{ $goods->links() }}</div>
+            {{ $goods->onEachSide(1)->links('components.pagination') }}
         @endif
     </div>
 @endsection

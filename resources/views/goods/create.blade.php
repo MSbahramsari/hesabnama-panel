@@ -74,11 +74,11 @@
                         <div class="table-wrap catalog-table-wrap border-t border-slate-100">
                             <table class="data-table catalog-table">
                                 <colgroup>
+                                    <col class="w-[15%]">
+                                    <col class="w-[31%]">
                                     <col class="w-[14%]">
-                                    <col class="w-[32%]">
-                                    <col class="w-[14%]">
-                                    <col class="w-[12%]">
-                                    <col class="w-[16%]">
+                                    <col class="w-[13%]">
+                                    <col class="w-[15%]">
                                     <col class="w-[12%]">
                                 </colgroup>
                                 <thead>
@@ -104,9 +104,9 @@
                                                 </div>
                                             </td>
                                             <td data-label="بازه اعتبار">
-                                                <div class="catalog-validity" dir="ltr">
-                                                    <div><span>از</span><time class="catalog-date">{{ $item->effective_date ?: '—' }}</time></div>
-                                                    <div><span>تا</span><time class="catalog-date">{{ $item->expiration_date ?: 'بدون انقضا' }}</time></div>
+                                                <div class="catalog-validity">
+                                                    <div><span>از</span><time dir="ltr" class="catalog-date">{{ $item->effective_date ?: '—' }}</time></div>
+                                                    <div><span>تا</span><time dir="ltr" class="catalog-date">{{ $item->expiration_date ?: 'بدون انقضا' }}</time></div>
                                                 </div>
                                             </td>
                                             <td data-label="عملیات" class="table-actions-cell">
@@ -119,7 +119,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="border-t border-slate-100 px-5 py-4 sm:px-7">{{ $catalogResults->links() }}</div>
+                        {{ $catalogResults->onEachSide(1)->links('components.pagination') }}
                     @endif
                 </div>
             @endif

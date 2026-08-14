@@ -165,7 +165,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="border-t border-slate-100 px-5 py-4">{{ $imports->links() }}</div>
+                {{ $imports->onEachSide(1)->links('components.pagination') }}
             @endif
         </div>
     </div>

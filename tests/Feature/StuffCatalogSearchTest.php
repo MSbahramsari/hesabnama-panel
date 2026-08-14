@@ -53,6 +53,19 @@ it('prefills the good form from the selected catalog row', function () {
         ->assertSee('value="10"', false);
 });
 
+it('shows numbered pagination for catalog search results', function () {
+    $user = User::factory()->create();
+    StuffCatalogItem::factory()->count(26)->create([
+        'description' => 'خدمات حسابداری قابل جست‌وجو',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('goods.create', ['catalog_query' => 'حسابداری']))
+        ->assertOk()
+        ->assertSee('aria-label="صفحه 2"', false)
+        ->assertSee('از <strong>26</strong> مورد', false);
+});
+
 it('imports an official-style csv and keeps repeated imports idempotent', function () {
     $path = tempnam(sys_get_temp_dir(), 'stuff-catalog-');
     $csv = <<<'CSV'
