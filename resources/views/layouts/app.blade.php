@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'داشبورد') | مودیان‌یار</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased selection:bg-teal-200 selection:text-teal-950">
     <div class="app-shell" data-app-shell>
         <div class="fixed inset-0 z-30 hidden bg-slate-950/45 backdrop-blur-sm lg:hidden" data-sidebar-backdrop></div>
 
@@ -83,8 +85,8 @@
         </aside>
 
         <main class="min-h-screen lg:mr-72">
-            <header class="sticky top-0 z-20 border-b border-slate-200/80 bg-slate-50/90 backdrop-blur-xl">
-                <div class="flex h-20 items-center gap-4 px-4 sm:px-6 lg:px-10">
+            <header class="app-topbar sticky top-0 z-20">
+                <div class="mx-auto flex h-[76px] max-w-[1680px] items-center gap-4 px-4 sm:px-6 lg:px-9">
                     <button type="button" class="icon-button lg:hidden" data-sidebar-toggle aria-label="باز کردن منو">
                         <x-icon name="menu" class="size-5" />
                     </button>
@@ -106,7 +108,7 @@
                 </div>
             </header>
 
-            <div class="px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+            <div class="app-content mx-auto max-w-[1680px] px-4 py-6 sm:px-6 lg:px-9 lg:py-8">
                 <x-flash />
                 @yield('content')
             </div>
