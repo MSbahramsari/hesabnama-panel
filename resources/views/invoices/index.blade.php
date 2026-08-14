@@ -24,8 +24,8 @@
     @endif
 
     <div class="card">
-        <div class="card-header">
-            <form method="GET" class="grid w-full gap-2 sm:grid-cols-[minmax(0,1fr)_220px_auto]">
+        <div class="table-toolbar">
+            <form method="GET" class="grid w-full gap-2 sm:max-w-3xl sm:grid-cols-[minmax(0,1fr)_190px_auto]">
                 <div class="relative">
                     <x-icon name="search" class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
                     <input name="q" value="{{ $search }}" class="form-control pr-10" placeholder="شماره فاکتور یا نام مشتری">
@@ -38,6 +38,7 @@
                 </select>
                 <button class="btn-secondary justify-center">اعمال فیلتر</button>
             </form>
+            <div class="table-count"><span class="size-1.5 rounded-full bg-amber-500"></span><strong>{{ number_format($invoices->total()) }}</strong> صورتحساب</div>
         </div>
 
         @if($invoices->isEmpty())

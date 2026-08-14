@@ -5,7 +5,14 @@
 @section('page-actions')<a href="{{ route('customers.create') }}" class="btn-primary"><x-icon name="plus" class="size-4" /><span class="hidden sm:inline">مشتری جدید</span></a>@endsection
 @section('content')
     <div class="card">
-        <div class="card-header"><form method="GET" class="flex w-full max-w-md gap-2"><div class="relative flex-1"><x-icon name="search" class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><input name="q" value="{{ $search }}" class="form-control pr-10" placeholder="جست‌وجوی نام یا کد اقتصادی"></div><button class="btn-secondary">جست‌وجو</button></form></div>
+        <div class="table-toolbar">
+            <form method="GET" class="flex w-full max-w-lg gap-2">
+                <div class="relative flex-1"><x-icon name="search" class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" /><input name="q" value="{{ $search }}" class="form-control pr-10" placeholder="نام، شناسه ملی یا کد اقتصادی"></div>
+                <button class="btn-secondary">جست‌وجو</button>
+                @if($search)<a href="{{ route('customers.index') }}" class="btn-secondary px-3" title="پاک کردن جست‌وجو">×</a>@endif
+            </form>
+            <div class="table-count"><span class="size-1.5 rounded-full bg-teal-500"></span><strong>{{ number_format($customers->total()) }}</strong> مشتری ثبت‌شده</div>
+        </div>
         @if($customers->isEmpty())
             <x-empty-state title="مشتری‌ای پیدا نشد" description="برای شروع، اطلاعات مشتری را با کد اقتصادی استعلام و ذخیره کنید." :action="route('customers.create')" action-label="افزودن مشتری" />
         @else
