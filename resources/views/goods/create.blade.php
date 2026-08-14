@@ -58,12 +58,12 @@
                 </div>
             @elseif($catalogResults)
                 <div class="border-t border-slate-100">
-                    <div class="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+                    <div class="flex flex-col gap-3 bg-slate-50/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7">
                         <div>
                             <h4 class="font-extrabold text-slate-900">نتایج جست‌وجو</h4>
                             <p class="mt-1 text-xs text-slate-500">نمایش {{ number_format($catalogResults->count()) }} نتیجه از {{ number_format($catalogCount) }} ردیف کاتالوگ</p>
                         </div>
-                        <span class="text-xs font-semibold text-slate-400">برای نرخ‌های متغیر، بازه اجرای شناسه را بررسی کنید.</span>
+                        <span class="inline-flex w-fit items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] font-bold text-amber-800"><x-icon name="warning" class="size-4" />برای نرخ‌های متغیر، بازه اجرای شناسه را بررسی کنید.</span>
                     </div>
 
                     @if($catalogResults->isEmpty())
@@ -72,7 +72,7 @@
                         </div>
                     @else
                         <div class="table-wrap border-t border-slate-100">
-                            <table class="data-table min-w-[1050px]">
+                            <table class="data-table catalog-table">
                                 <thead>
                                     <tr>
                                         <th>شناسه</th>
@@ -82,21 +82,21 @@
                                         <th>وضعیت</th>
                                         <th>تاریخ اجرا</th>
                                         <th>تاریخ انقضا</th>
-                                        <th></th>
+                                        <th class="table-actions-cell">عملیات</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($catalogResults as $item)
                                         <tr>
-                                            <td dir="ltr" class="text-right font-mono font-bold text-slate-800">{{ $item->item_id }}</td>
-                                            <td class="min-w-80 font-bold leading-7 text-slate-900">{{ $item->description }}</td>
-                                            <td><span class="status-badge status-slate">{{ $item->type ?: 'نامشخص' }}</span></td>
-                                            <td><span @class(['status-badge', 'status-emerald' => (float) $item->vat === 0.0, 'status-amber' => (float) $item->vat > 0])>{{ number_format((float) $item->vat, 2) }}٪</span></td>
-                                            <td>{{ $item->taxable ?: ((float) $item->vat > 0 ? 'مشمول' : 'معاف') }}</td>
-                                            <td dir="ltr" class="text-right">{{ $item->effective_date ?: '—' }}</td>
-                                            <td dir="ltr" class="text-right">{{ $item->expiration_date ?: '—' }}</td>
-                                            <td>
-                                                <a href="{{ route('goods.create', array_merge(request()->except(['commodity_code', 'catalog_item']), ['catalog_item' => $item->id])) }}" class="btn-secondary whitespace-nowrap px-3 py-2 text-xs">
+                                            <td dir="ltr" class="text-right"><span class="catalog-id">{{ $item->item_id }}</span></td>
+                                            <td><div class="catalog-description">{{ $item->description }}</div></td>
+                                            <td><span class="catalog-chip">{{ $item->type ?: 'نامشخص' }}</span></td>
+                                            <td><span @class(['catalog-vat', 'catalog-vat-exempt' => (float) $item->vat === 0.0, 'catalog-vat-taxable' => (float) $item->vat > 0])>{{ number_format((float) $item->vat, 2) }}٪</span></td>
+                                            <td><span @class(['status-badge', 'status-amber' => (float) $item->vat > 0, 'status-emerald' => (float) $item->vat === 0.0])>{{ $item->taxable ?: ((float) $item->vat > 0 ? 'مشمول' : 'معاف') }}</span></td>
+                                            <td dir="ltr" class="text-right"><time class="catalog-date">{{ $item->effective_date ?: '—' }}</time></td>
+                                            <td dir="ltr" class="text-right"><time class="catalog-date">{{ $item->expiration_date ?: '—' }}</time></td>
+                                            <td class="table-actions-cell">
+                                                <a href="{{ route('goods.create', array_merge(request()->except(['commodity_code', 'catalog_item']), ['catalog_item' => $item->id])) }}" class="table-action catalog-select-action">
                                                     انتخاب و افزودن
                                                 </a>
                                             </td>

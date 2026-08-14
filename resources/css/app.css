@@ -108,6 +108,21 @@
     .table-actions-cell { @apply w-20 text-left; }
     .table-action { @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] font-extrabold text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,.04)] hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 hover:shadow-sm; }
     .table-action svg { @apply size-3.5; }
+    .catalog-table { @apply min-w-[1180px]; }
+    .catalog-table th { @apply py-4 text-[11px]; }
+    .catalog-table td { @apply py-6; }
+    .catalog-table tbody tr { box-shadow: none; }
+    .catalog-table tbody tr:hover { @apply bg-slate-50/80; box-shadow: inset -3px 0 #14b8a6; }
+    .catalog-description { @apply min-w-[380px] max-w-[560px] text-[14px] font-black leading-8 text-slate-900; }
+    .catalog-id { @apply whitespace-nowrap font-mono text-[13px] font-black tracking-wide text-slate-800; }
+    .catalog-chip { @apply inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-slate-200 bg-slate-100/80 px-3.5 py-2 text-[10px] font-extrabold text-slate-600; }
+    .catalog-chip::before { content: ''; @apply size-1.5 rounded-full bg-slate-400; }
+    .catalog-vat { @apply inline-flex min-w-16 items-center justify-center gap-2 whitespace-nowrap rounded-full border px-3 py-2 text-[11px] font-black; }
+    .catalog-vat::after { content: ''; @apply size-1.5 rounded-full bg-current opacity-60; }
+    .catalog-vat-taxable { @apply border-amber-300 bg-amber-50 text-amber-700; }
+    .catalog-vat-exempt { @apply border-emerald-200 bg-emerald-50 text-emerald-700; }
+    .catalog-date { @apply inline-flex whitespace-nowrap font-bold text-slate-600; font-variant-numeric: tabular-nums; }
+    .catalog-select-action { @apply min-h-11 rounded-xl px-4 text-[11px]; }
     .status-badge { @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[10px] font-bold ring-1 ring-inset; }
     .status-badge::before { content: ''; @apply size-1.5 rounded-full bg-current opacity-70; }
     .status-slate { @apply bg-slate-100 text-slate-600 ring-slate-200; }
