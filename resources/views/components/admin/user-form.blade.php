@@ -10,3 +10,4 @@
     <div class="flex items-end pb-3"><input type="hidden" name="is_active" value="0"><label class="flex items-center gap-2.5 text-sm font-semibold text-slate-700"><input type="checkbox" name="is_active" value="1" @checked(old('is_active', $user?->is_active ?? true)) class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500">حساب فعال باشد</label></div>
 </div>
 <div class="mt-7 border-t border-slate-100 pt-6"><div class="form-label">دسترسی‌ها</div><div class="mt-3 grid gap-3 sm:grid-cols-3">@foreach($permissions as $value => $label)<label class="permission-option"><input type="checkbox" name="permissions[]" value="{{ $value }}" @checked(in_array($value, old('permissions', $user?->permissions ?? []), true)) class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"><span>{{ $label }}</span></label>@endforeach</div></div>
+<x-taxpayer-profile.form :profile="$user?->taxpayerProfile" :required="!$user || !$user->isAdmin()" />

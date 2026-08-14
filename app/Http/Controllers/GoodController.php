@@ -42,7 +42,7 @@ class GoodController extends Controller
 
         if (preg_match('/^\d{8,20}$/', $commodityCode)) {
             try {
-                $lookupResult = $gateway->lookupGood($commodityCode);
+                $lookupResult = $gateway->lookupGood($request->user(), $commodityCode);
             } catch (MoadianConfigurationException|MoadianApiException $exception) {
                 $lookupError = $exception->getMessage();
             }

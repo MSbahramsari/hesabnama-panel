@@ -4,29 +4,50 @@ namespace App\Console\Commands;
 
 use App\Exceptions\MoadianApiException;
 use App\Exceptions\MoadianConfigurationException;
-use App\Services\Moadian\MoadianClient;
-use App\Services\Moadian\MoadianConfiguration;
+use App\Models\User;
+use App\Services\Moadian\MoadianClientFactory;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('moadian:status')]
+#[Signature('moadian:status {email? : ایمیل حسابی که اتصال پرونده مالیاتی آن بررسی می‌شود}')]
 #[Description('Check local configuration and connectivity to the Iranian taxpayer system')]
 class MoadianStatusCommand extends Command
 {
-    public function handle(MoadianConfiguration $configuration, MoadianClient $client): int
+    public function handle(MoadianClientFactory $clientFactory): int
     {
+        $publicConfiguration = $clientFactory->configuration(null);
         $this->components->info('بررسی اتصال سامانه مودیان');
-        $this->line('حالت درگاه: '.($configuration->isReal() ? 'واقعی' : 'آزمایشی'));
+        $this->line('حالت درگاه: '.($publicConfiguration->isReal() ? 'واقعی' : 'آزمایشی'));
 
         try {
-            $client->encryptionKey();
+            $clientFactory->publicClient()->encryptionKey();
             $this->components->info('اتصال به سرور رسمی و دریافت کلید عمومی: موفق');
         } catch (MoadianApiException $exception) {
             $this->components->error($exception->getMessage());
 
             return self::FAILURE;
         }
+
+        $email = trim((string) $this->argument('email'));
+
+        if ($email === '') {
+            $this->components->warn('برای بررسی احراز هویت یک مودی، ایمیل همان حساب را به دستور اضافه کنید.');
+            $this->line('نمونه: php artisan moadian:status user@example.com');
+
+            return self::SUCCESS;
+        }
+
+        $user = User::query()->with('taxpayerProfile')->where('email', $email)->first();
+
+        if ($user === null) {
+            $this->components->error('کاربری با این ایمیل یافت نشد.');
+
+            return self::FAILURE;
+        }
+
+        $configuration = $clientFactory->configurationForUser($user);
+        $client = $clientFactory->forUser($user);
 
         try {
             $configuration->assertReadyForAuthenticatedRequests();
@@ -41,6 +62,7 @@ class MoadianStatusCommand extends Command
         try {
             $client->token();
             $this->components->info('احراز هویت و دریافت توکن: موفق');
+            $user->taxpayerProfile?->update(['connection_verified_at' => now()]);
         } catch (MoadianApiException $exception) {
             $this->components->error($exception->getMessage());
 

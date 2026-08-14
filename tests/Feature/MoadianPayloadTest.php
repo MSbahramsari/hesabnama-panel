@@ -3,21 +3,18 @@
 use App\Models\Customer;
 use App\Models\Good;
 use App\Models\Invoice;
+use App\Models\TaxpayerProfile;
 use App\Models\User;
 use App\Services\Moadian\InvoicePayloadFactory;
+use App\Services\Moadian\MoadianClientFactory;
 use phpseclib3\Crypt\RSA;
 
 beforeEach(function () {
-    $this->privateKeyPath = tempnam(sys_get_temp_dir(), 'moadian-payload-key-');
-    file_put_contents($this->privateKeyPath, RSA::createKey(2048)->toString('PKCS8'));
+    $this->privateKey = RSA::createKey(2048)->toString('PKCS8');
 
     config()->set('services.moadian', [
         'driver' => 'real',
         'base_url' => 'https://moadian.test/api/self-tsp',
-        'fiscal_id' => 'ABC123',
-        'seller_economic_code' => '12345678901',
-        'seller_branch_code' => null,
-        'private_key_path' => $this->privateKeyPath,
         'ca_bundle_path' => null,
         'default_measurement_unit_code' => null,
         'connect_timeout' => 1,
@@ -25,14 +22,13 @@ beforeEach(function () {
     ]);
 });
 
-afterEach(function () {
-    if (is_file($this->privateKeyPath)) {
-        unlink($this->privateKeyPath);
-    }
-});
-
 it('builds a version one invoice payload from persisted invoice data', function () {
     $user = User::factory()->create();
+    $taxpayerProfile = TaxpayerProfile::factory()->for($user)->create([
+        'fiscal_id' => 'ABC123',
+        'economic_code' => '12345678901',
+        'private_key' => $this->privateKey,
+    ]);
     $customer = Customer::factory()->for($user)->create(['type' => 'legal']);
     $good = Good::factory()->for($user)->create(['measurement_unit_code' => '1627']);
     $invoice = Invoice::factory()->for($user)->for($customer)->create([
@@ -54,7 +50,8 @@ it('builds a version one invoice payload from persisted invoice data', function 
         'total' => 1_980_000,
     ]);
 
-    $payload = app(InvoicePayloadFactory::class)->make($invoice);
+    $configuration = app(MoadianClientFactory::class)->configuration($taxpayerProfile);
+    $payload = app(InvoicePayloadFactory::class)->make($invoice, $configuration);
 
     expect($payload['header'])
         ->toMatchArray([

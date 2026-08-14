@@ -26,28 +26,26 @@ storage
 bootstrap/cache
 ```
 
-فایل کلید خصوصی را بیرون از `public` قرار دهید، مالک آن را کاربر سرویس PHP قرار دهید و دسترسی آن را روی `600` تنظیم کنید.
-
 ## تنظیم اتصال سامانه مودیان
 
-مقادیر زیر باید در `.env` واقعی سرور تکمیل شوند:
+فقط تنظیمات عمومی وب‌سرویس در `.env` سرور قرار می‌گیرند:
 
 ```dotenv
 MOADIAN_DRIVER=real
-MOADIAN_FISCAL_ID=ABC123
-MOADIAN_SELLER_ECONOMIC_CODE=12345678901
-MOADIAN_PRIVATE_KEY_PATH=/absolute/path/to/private.pem
+MOADIAN_BASE_URL=https://tp.tax.gov.ir/req/api/self-tsp
 ```
 
-سپس اتصال را بررسی و کش production را بازسازی کنید:
+شناسه حافظه مالیاتی، کد اقتصادی، کد شعبه و کلید خصوصی برای هر حساب از فرم ایجاد کاربر یا پروفایل همان کاربر ثبت می‌شوند. کلید خصوصی به‌صورت رمزنگاری‌شده در دیتابیس نگهداری می‌شود؛ بنابراین `APP_KEY` تولیدشده را پس از ثبت کلیدها تغییر ندهید.
+
+سپس کش production را بازسازی و اتصال حساب موردنظر را با ایمیل آن بررسی کنید:
 
 ```bash
 php artisan optimize:clear
-php artisan moadian:status
+php artisan moadian:status user@example.com
 php artisan optimize
 ```
 
-دستور `moadian:status` باید دریافت کلید عمومی و توکن را موفق اعلام کند. تا قبل از تکمیل شناسه حافظه مالیاتی و شماره اقتصادی، ارسال واقعی عمداً غیرفعال می‌ماند.
+دستور `moadian:status` باید دریافت کلید عمومی و توکن همان پرونده مالیاتی را موفق اعلام کند. کاربران همچنین می‌توانند از صفحه پروفایل خود دکمه «آزمایش اتصال و توکن» را اجرا کنند.
 
 ## تنظیم Nginx
 
@@ -92,7 +90,7 @@ GET /up
 ورود مدیر
 ثبت مشتری و کالا
 ساخت صورتحساب
-php artisan moadian:status
+php artisan moadian:status user@example.com
 ```
 
 برای نخستین ارسال واقعی، از یک صورتحساب معتبر و کم‌ریسک استفاده کنید و پس از دریافت `referenceNumber` وضعیت آن را از همان صفحه استعلام بگیرید.

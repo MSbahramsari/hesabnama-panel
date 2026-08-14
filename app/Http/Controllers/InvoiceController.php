@@ -8,8 +8,9 @@ use App\Http\Requests\SaveInvoiceRequest;
 use App\Models\Customer;
 use App\Models\Good;
 use App\Models\Invoice;
-use App\Services\Moadian\MoadianConfiguration;
+use App\Services\Moadian\MoadianClientFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -17,12 +18,13 @@ use Illuminate\View\View;
 
 class InvoiceController extends Controller
 {
-    public function index(Request $request, MoadianConfiguration $moadianConfiguration): View
+    public function index(Request $request, MoadianClientFactory $clientFactory): View
     {
         Gate::authorize('viewAny', Invoice::class);
         $user = $request->user();
         $search = $request->string('q')->trim()->toString();
         $status = $request->string('status')->toString();
+        $moadianConfiguration = $clientFactory->configurationForUser($user);
 
         $invoices = Invoice::query()
             ->select(['id', 'user_id', 'customer_id', 'number', 'invoice_date', 'status', 'buyer_status', 'total', 'created_at'])
@@ -61,10 +63,11 @@ class InvoiceController extends Controller
         return redirect()->route('invoices.show', $invoice)->with('success', 'فاکتور به‌صورت پیش‌نویس ذخیره شد.');
     }
 
-    public function show(Invoice $invoice, MoadianConfiguration $moadianConfiguration): View
+    public function show(Invoice $invoice, MoadianClientFactory $clientFactory): View
     {
         Gate::authorize('view', $invoice);
         $invoice->load(['customer', 'items.good']);
+        $moadianConfiguration = $clientFactory->configurationForUser($invoice->user);
 
         return view('invoices.show', [
             'invoice' => $invoice,
@@ -89,7 +92,7 @@ class InvoiceController extends Controller
         return redirect()->route('invoices.show', $invoice)->with('success', 'فاکتور به‌روزرسانی شد.');
     }
 
-    /** @return array{customers: \Illuminate\Database\Eloquent\Collection<int, Customer>, goods: \Illuminate\Database\Eloquent\Collection<int, Good>, suggestedNumber: string} */
+    /** @return array{customers: Collection<int, Customer>, goods: Collection<int, Good>, suggestedNumber: string} */
     private function formData(Request $request): array
     {
         $user = $request->user();

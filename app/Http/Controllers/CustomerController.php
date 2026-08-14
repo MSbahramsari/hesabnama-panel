@@ -42,7 +42,7 @@ class CustomerController extends Controller
 
         if (preg_match('/^\d{10,14}$/', $economicCode)) {
             try {
-                $lookupResult = $gateway->lookupCustomer($economicCode);
+                $lookupResult = $gateway->lookupCustomer($request->user(), $economicCode);
             } catch (MoadianConfigurationException|MoadianApiException $exception) {
                 $lookupError = $exception->getMessage();
             }

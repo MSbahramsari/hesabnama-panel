@@ -19,6 +19,23 @@ document.querySelectorAll('[data-navigate]').forEach((element) => {
     element.addEventListener('click', () => window.location.assign(element.dataset.navigate));
 });
 
+const roleSelect = document.querySelector('#role');
+const taxpayerProfile = document.querySelector('[data-taxpayer-profile]');
+
+if (roleSelect && taxpayerProfile) {
+    const syncTaxpayerRequirements = () => {
+        const isRequired = roleSelect.value !== 'admin';
+
+        taxpayerProfile.querySelectorAll('[data-taxpayer-required]').forEach((field) => {
+            field.required = isRequired;
+        });
+        taxpayerProfile.classList.toggle('opacity-60', !isRequired);
+    };
+
+    roleSelect.addEventListener('change', syncTaxpayerRequirements);
+    syncTaxpayerRequirements();
+}
+
 const selectAllInvoices = document.querySelector('[data-select-all-invoices]');
 selectAllInvoices?.addEventListener('change', () => {
     document.querySelectorAll('[data-invoice-checkbox]:not(:disabled)').forEach((checkbox) => {

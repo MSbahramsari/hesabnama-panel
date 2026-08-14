@@ -4,8 +4,11 @@ namespace App\Http\Requests;
 
 use App\Enums\Plan;
 use App\Enums\UserRole;
+use App\Models\TaxpayerProfile;
 use App\Models\User;
+use App\Rules\ValidPrivateKey;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class SaveUserRequest extends FormRequest
@@ -20,6 +23,7 @@ class SaveUserRequest extends FormRequest
         $this->merge([
             'permissions' => $this->input('permissions', []),
             'is_active' => $this->boolean('is_active'),
+            'fiscal_id' => Str::upper(trim((string) $this->input('fiscal_id'))),
         ]);
     }
 
@@ -27,6 +31,8 @@ class SaveUserRequest extends FormRequest
     public function rules(): array
     {
         $user = $this->route('user');
+        $taxpayerProfile = $user?->taxpayerProfile;
+        $requiresTaxpayerProfile = $this->input('role') !== UserRole::Admin->value;
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -38,6 +44,25 @@ class SaveUserRequest extends FormRequest
             'permissions.*' => [Rule::in(['customers', 'goods', 'invoices'])],
             'license_expires_at' => ['nullable', 'date'],
             'is_active' => ['required', 'boolean'],
+            'taxpayer_name' => [Rule::requiredIf($requiresTaxpayerProfile), 'nullable', 'string', 'max:255'],
+            'taxpayer_type' => [Rule::requiredIf($requiresTaxpayerProfile), 'nullable', Rule::in(['legal', 'individual'])],
+            'national_id' => [Rule::requiredIf($requiresTaxpayerProfile), 'nullable', 'digits_between:10,14'],
+            'economic_code' => [Rule::requiredIf($requiresTaxpayerProfile), 'nullable', 'digits_between:10,14'],
+            'fiscal_id' => [
+                Rule::requiredIf($requiresTaxpayerProfile),
+                'nullable',
+                'regex:/^[A-Z0-9]{6}$/',
+                Rule::unique((new TaxpayerProfile)->getTable())->ignore($taxpayerProfile),
+            ],
+            'branch_code' => ['nullable', 'digits_between:1,10'],
+            'private_key' => [
+                Rule::requiredIf($requiresTaxpayerProfile && $taxpayerProfile === null),
+                'nullable',
+                'file',
+                'extensions:pem,key,txt',
+                'max:64',
+                new ValidPrivateKey,
+            ],
         ];
     }
 }

@@ -10,14 +10,13 @@ use Carbon\CarbonImmutable;
 class InvoicePayloadFactory
 {
     public function __construct(
-        private MoadianConfiguration $configuration,
         private TaxIdGenerator $taxIdGenerator,
     ) {}
 
     /** @return array{header: array<string, mixed>, body: array<int, array<string, mixed>>, payments: array<int, array<string, mixed>>, extension: null} */
-    public function make(Invoice $invoice): array
+    public function make(Invoice $invoice, MoadianConfiguration $configuration): array
     {
-        $this->configuration->assertReadyForSubmission();
+        $configuration->assertReadyForSubmission();
         $invoice->loadMissing(['customer', 'items.good']);
 
         if ($invoice->items->isEmpty()) {
@@ -25,7 +24,7 @@ class InvoicePayloadFactory
         }
 
         $issuedAt = $this->issuedAt($invoice);
-        $taxId = $this->taxIdGenerator->generate($this->configuration->fiscalId(), $issuedAt, (int) $invoice->getKey());
+        $taxId = $this->taxIdGenerator->generate($configuration->fiscalId(), $issuedAt, (int) $invoice->getKey());
 
         return [
             'header' => [
@@ -37,11 +36,11 @@ class InvoicePayloadFactory
                 'irtaxid' => null,
                 'inp' => 1,
                 'ins' => 1,
-                'tins' => $this->configuration->sellerEconomicCode(),
+                'tins' => $configuration->sellerEconomicCode(),
                 'tob' => $invoice->customer->type === 'individual' ? 1 : 2,
                 'bid' => $invoice->customer->national_id,
                 'tinb' => $invoice->customer->economic_code,
-                'sbc' => $this->configuration->sellerBranchCode(),
+                'sbc' => $configuration->sellerBranchCode(),
                 'bpc' => $invoice->customer->postal_code,
                 'bbc' => null,
                 'ft' => null,
@@ -62,7 +61,7 @@ class InvoicePayloadFactory
                 'tvop' => null,
                 'tax17' => 0,
             ],
-            'body' => $invoice->items->map(fn (InvoiceItem $item): array => $this->body($item))->all(),
+            'body' => $invoice->items->map(fn (InvoiceItem $item): array => $this->body($item, $configuration))->all(),
             'payments' => [[
                 'iinn' => null,
                 'acn' => null,
@@ -77,9 +76,9 @@ class InvoicePayloadFactory
     }
 
     /** @return array<string, mixed> */
-    private function body(InvoiceItem $item): array
+    private function body(InvoiceItem $item, MoadianConfiguration $configuration): array
     {
-        $measurementUnitCode = $item->good?->measurement_unit_code ?? $this->configuration->defaultMeasurementUnitCode();
+        $measurementUnitCode = $item->good?->measurement_unit_code ?? $configuration->defaultMeasurementUnitCode();
 
         if ($measurementUnitCode === null) {
             throw new MoadianConfigurationException("کد واحد اندازه‌گیری رسمی برای قلم «{$item->description}» وارد نشده است.");

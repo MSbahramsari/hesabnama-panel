@@ -4,13 +4,14 @@ namespace App\Services;
 
 use App\Contracts\TaxPlatformGateway;
 use App\Models\Invoice;
+use App\Models\User;
 use App\Services\Moadian\InquiryResult;
 use App\Services\Moadian\SubmissionResult;
 use Illuminate\Support\Str;
 
 class DemoTaxPlatformGateway implements TaxPlatformGateway
 {
-    public function lookupCustomer(string $economicCode): ?array
+    public function lookupCustomer(User $user, string $economicCode): ?array
     {
         return [
             '411111111111' => [
@@ -30,7 +31,7 @@ class DemoTaxPlatformGateway implements TaxPlatformGateway
         ][$economicCode] ?? null;
     }
 
-    public function lookupGood(string $commodityCode): ?array
+    public function lookupGood(User $user, string $commodityCode): ?array
     {
         return [
             '10000001' => ['name' => 'خدمات مشاوره مالیاتی', 'unit' => 'ساعت', 'unit_price' => 25000000, 'tax_rate' => 10],

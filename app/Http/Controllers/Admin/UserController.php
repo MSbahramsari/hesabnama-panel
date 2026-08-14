@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\SaveUserWithTaxpayerProfileAction;
 use App\Enums\Plan;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
@@ -32,19 +33,21 @@ class UserController extends Controller
         return view('admin.users.create', $this->formData());
     }
 
-    public function store(SaveUserRequest $request): RedirectResponse
+    public function store(SaveUserRequest $request, SaveUserWithTaxpayerProfileAction $action): RedirectResponse
     {
-        $user = User::create($request->validated());
+        $user = $action->handle($request->validated());
 
         return redirect()->route('admin.users.index')->with('success', "کاربر {$user->name} ساخته شد؛ رمز فقط از مسیر امن برای او ارسال شود.");
     }
 
     public function edit(User $user): View
     {
+        $user->load('taxpayerProfile');
+
         return view('admin.users.edit', array_merge($this->formData(), compact('user')));
     }
 
-    public function update(SaveUserRequest $request, User $user): RedirectResponse
+    public function update(SaveUserRequest $request, User $user, SaveUserWithTaxpayerProfileAction $action): RedirectResponse
     {
         $data = $request->validated();
 
@@ -56,7 +59,7 @@ class UserController extends Controller
             $data = Arr::except($data, ['password']);
         }
 
-        $user->update($data);
+        $action->handle($data, $user);
 
         return redirect()->route('admin.users.index')->with('success', 'اطلاعات کاربر به‌روزرسانی شد.');
     }

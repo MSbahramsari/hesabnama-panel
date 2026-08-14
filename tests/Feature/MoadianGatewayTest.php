@@ -4,8 +4,9 @@ use App\Exceptions\MoadianApiException;
 use App\Models\Customer;
 use App\Models\Good;
 use App\Models\Invoice;
+use App\Models\TaxpayerProfile;
 use App\Models\User;
-use App\Services\Moadian\MoadianClient;
+use App\Services\Moadian\MoadianClientFactory;
 use App\Services\MoadianTaxPlatformGateway;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
@@ -15,9 +16,7 @@ use phpseclib3\Crypt\RSA;
 beforeEach(function () {
     Cache::flush();
     $key = RSA::createKey(2048);
-    $privateKey = $key->toString('PKCS8');
-    $this->privateKeyPath = tempnam(sys_get_temp_dir(), 'moadian-test-key-');
-    file_put_contents($this->privateKeyPath, $privateKey);
+    $this->privateKey = $key->toString('PKCS8');
     $publicKey = $key->getPublicKey()->toString('PKCS8');
     $this->organizationPublicKey = preg_replace(
         '/-----BEGIN PUBLIC KEY-----|-----END PUBLIC KEY-----|\s/',
@@ -28,21 +27,113 @@ beforeEach(function () {
     config()->set('services.moadian', [
         'driver' => 'real',
         'base_url' => 'https://moadian.test/api/self-tsp',
-        'fiscal_id' => 'ABC123',
-        'seller_economic_code' => '12345678901',
-        'seller_branch_code' => null,
-        'private_key_path' => $this->privateKeyPath,
         'ca_bundle_path' => null,
         'default_measurement_unit_code' => '1627',
         'connect_timeout' => 1,
         'timeout' => 2,
     ]);
+
+    $this->user = User::factory()->create();
+    $this->taxpayerProfile = TaxpayerProfile::factory()->for($this->user)->create([
+        'fiscal_id' => 'ABC123',
+        'economic_code' => '12345678901',
+        'private_key' => $this->privateKey,
+    ]);
+    $this->client = app(MoadianClientFactory::class)->forUser($this->user);
 });
 
-afterEach(function () {
-    if (is_file($this->privateKeyPath)) {
-        unlink($this->privateKeyPath);
-    }
+it('looks up a customer from the official economic code endpoint', function () {
+    Http::preventStrayRequests();
+    Http::fake(function (Request $request) {
+        if (str_ends_with($request->url(), '/sync/GET_TOKEN')) {
+            return Http::response([
+                'result' => [
+                    'data' => [
+                        'token' => 'customer-lookup-token',
+                        'expiresIn' => (int) floor(microtime(true) * 1000) + 600_000,
+                    ],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'result' => [
+                'data' => [
+                    'economicCode' => '411111111111',
+                    'nameTrade' => 'شرکت استعلام‌شده',
+                    'nationalId' => '14001234567',
+                    'taxpayerType' => 'LEGAL',
+                    'addressTaxpayer' => 'تهران',
+                    'postalcodeTaxpayer' => '1991912345',
+                ],
+            ],
+        ]);
+    });
+
+    $customer = app(MoadianTaxPlatformGateway::class)
+        ->lookupCustomer($this->user, '411111111111');
+
+    expect($customer)->toMatchArray([
+        'name' => 'شرکت استعلام‌شده',
+        'national_id' => '14001234567',
+        'type' => 'legal',
+        'address' => 'تهران',
+        'postal_code' => '1991912345',
+    ]);
+
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/sync/GET_ECONOMIC_CODE_INFORMATION')
+        && $request->hasHeader('Authorization', 'Bearer customer-lookup-token')
+        && ($request->data()['packet']['fiscalId'] ?? null) === 'ABC123'
+        && ($request->data()['packet']['data']['economicCode'] ?? null) === '411111111111');
+});
+
+it('looks up a good from the official service and stuff endpoint', function () {
+    Http::preventStrayRequests();
+    Http::fake(function (Request $request) {
+        if (str_ends_with($request->url(), '/sync/GET_TOKEN')) {
+            return Http::response([
+                'result' => [
+                    'data' => [
+                        'token' => 'good-lookup-token',
+                        'expiresIn' => (int) floor(microtime(true) * 1000) + 600_000,
+                    ],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'result' => [
+                'data' => [
+                    'result' => [[
+                        'itemId' => '10000001',
+                        'title' => 'خدمات مشاوره مالیاتی',
+                        'unitTitle' => 'ساعت',
+                        'unitCode' => '1627',
+                        'tax' => 10,
+                    ]],
+                ],
+            ],
+        ]);
+    });
+
+    $good = app(MoadianTaxPlatformGateway::class)
+        ->lookupGood($this->user, '10000001');
+
+    expect($good)->toMatchArray([
+        'name' => 'خدمات مشاوره مالیاتی',
+        'unit' => 'ساعت',
+        'unit_price' => 0,
+        'tax_rate' => 10,
+        'measurement_unit_code' => '1627',
+    ]);
+
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/sync/GET_SERVICE_STUFF_LIST')
+        && $request->hasHeader('Authorization', 'Bearer good-lookup-token')
+        && ($request->data()['packet']['fiscalId'] ?? null) === 'ABC123'
+        && ($request->data()['packet']['data']['filters'][0] ?? null) === [
+            'field' => 'itemId',
+            'value' => '10000001',
+        ]);
 });
 
 it('authenticates, encrypts and submits an invoice packet', function () {
@@ -85,7 +176,7 @@ it('authenticates, encrypts and submits an invoice packet', function () {
         ]);
     });
 
-    $result = app(MoadianClient::class)->submitInvoice([
+    $result = $this->client->submitInvoice([
         'header' => ['taxid' => 'ABC1230481F000000000C2'],
         'body' => [['sstid' => '10000001', 'fee' => 1000]],
         'payments' => [],
@@ -140,8 +231,7 @@ it('inquires the official status by reference number', function () {
         ]);
     });
 
-    $result = app(MoadianClient::class)
-        ->inquiryByReferenceNumber('967072eb-203e-428e-b9bb-6d2efdb9d356');
+    $result = $this->client->inquiryByReferenceNumber('967072eb-203e-428e-b9bb-6d2efdb9d356');
 
     expect($result->isSuccessful())->toBeTrue()
         ->and($result->isFailed())->toBeFalse();
@@ -205,7 +295,7 @@ it('preserves the uid and marks a repeated submission as retry', function () {
         ]);
     });
 
-    $user = User::factory()->create();
+    $user = $this->user;
     $customer = Customer::factory()->for($user)->create();
     $good = Good::factory()->for($user)->create(['measurement_unit_code' => '1627']);
     $invoice = Invoice::factory()->for($user)->for($customer)->create();

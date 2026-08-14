@@ -2,19 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\SaveUserWithTaxpayerProfileAction;
 use App\Http\Requests\UpdateProfileRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    public function edit(): View
+    public function edit(Request $request): View
     {
+        $request->user()->load('taxpayerProfile');
+
         return view('profile.edit');
     }
 
-    public function update(UpdateProfileRequest $request): RedirectResponse
+    public function update(UpdateProfileRequest $request, SaveUserWithTaxpayerProfileAction $action): RedirectResponse
     {
         $data = $request->validated();
 
@@ -22,7 +26,7 @@ class ProfileController extends Controller
             $data = Arr::except($data, ['password']);
         }
 
-        $request->user()->update($data);
+        $action->handle($data, $request->user());
 
         return back()->with('success', 'پروفایل شما به‌روزرسانی شد.');
     }

@@ -22,7 +22,7 @@ class MoadianClient
     /** @return array{id: string, key: string} */
     public function encryptionKey(): array
     {
-        return Cache::remember('moadian.server-encryption-key', now()->addDay(), function (): array {
+        return Cache::remember($this->configuration->encryptionKeyCacheKey(), now()->addDay(), function (): array {
             $response = $this->post('/sync/GET_SERVER_INFORMATION', [
                 'packet' => $this->packet('GET_SERVER_INFORMATION', null, ''),
                 'signature' => null,
@@ -128,7 +128,8 @@ class MoadianClient
     public function token(): string
     {
         $this->configuration->assertReadyForAuthenticatedRequests();
-        $cached = Cache::get('moadian.access-token');
+        $cacheKey = $this->configuration->tokenCacheKey();
+        $cached = Cache::get($cacheKey);
 
         if (is_array($cached) && (int) ($cached['expires_at'] ?? 0) > $this->timestamp() + 30_000) {
             return (string) $cached['token'];
@@ -150,7 +151,7 @@ class MoadianClient
             throw new MoadianApiException('توکن معتبر از سامانه مودیان دریافت نشد.');
         }
 
-        Cache::put('moadian.access-token', [
+        Cache::put($cacheKey, [
             'token' => $token,
             'expires_at' => $expiresAt,
         ], now()->addMilliseconds(max(1, $expiresAt - $this->timestamp() - 30_000)));
@@ -189,7 +190,7 @@ class MoadianClient
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     private function packet(string $packetType, mixed $data, ?string $fiscalId = null): array
@@ -208,8 +209,8 @@ class MoadianClient
     }
 
     /**
-     * @param array<string, mixed> $payload
-     * @param array<string, string> $headers
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, string>  $headers
      */
     private function signRequest(array $payload, array $headers): string
     {

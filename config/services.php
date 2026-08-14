@@ -38,10 +38,6 @@ return [
     'moadian' => [
         'driver' => env('MOADIAN_DRIVER', 'demo'),
         'base_url' => env('MOADIAN_BASE_URL', 'https://tp.tax.gov.ir/req/api/self-tsp'),
-        'fiscal_id' => env('MOADIAN_FISCAL_ID'),
-        'seller_economic_code' => env('MOADIAN_SELLER_ECONOMIC_CODE'),
-        'seller_branch_code' => env('MOADIAN_SELLER_BRANCH_CODE'),
-        'private_key_path' => env('MOADIAN_PRIVATE_KEY_PATH'),
         'ca_bundle_path' => env('MOADIAN_CA_BUNDLE_PATH'),
         'default_measurement_unit_code' => env('MOADIAN_DEFAULT_MEASUREMENT_UNIT_CODE'),
         'connect_timeout' => (int) env('MOADIAN_CONNECT_TIMEOUT', 5),

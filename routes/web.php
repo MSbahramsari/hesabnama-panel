@@ -8,6 +8,7 @@ use App\Http\Controllers\GoodController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InvoiceWorkflowController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TaxpayerConnectionController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -33,6 +34,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::post('/profile/moadian/test', TaxpayerConnectionController::class)->middleware('throttle:5,1')->name('profile.moadian.test');
 
         Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
             Route::resource('users', UserController::class)->except(['show', 'destroy']);

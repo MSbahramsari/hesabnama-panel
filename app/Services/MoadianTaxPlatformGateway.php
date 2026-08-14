@@ -4,22 +4,23 @@ namespace App\Services;
 
 use App\Contracts\TaxPlatformGateway;
 use App\Models\Invoice;
+use App\Models\User;
 use App\Services\Moadian\InquiryResult;
 use App\Services\Moadian\InvoicePayloadFactory;
-use App\Services\Moadian\MoadianClient;
+use App\Services\Moadian\MoadianClientFactory;
 use App\Services\Moadian\SubmissionResult;
 use Illuminate\Support\Str;
 
 class MoadianTaxPlatformGateway implements TaxPlatformGateway
 {
     public function __construct(
-        private MoadianClient $client,
+        private MoadianClientFactory $clientFactory,
         private InvoicePayloadFactory $payloadFactory,
     ) {}
 
-    public function lookupCustomer(string $economicCode): ?array
+    public function lookupCustomer(User $user, string $economicCode): ?array
     {
-        $customer = $this->client->economicCodeInformation($economicCode);
+        $customer = $this->clientFactory->forUser($user)->economicCodeInformation($economicCode);
 
         if ($customer === null) {
             return null;
@@ -34,9 +35,9 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
         ];
     }
 
-    public function lookupGood(string $commodityCode): ?array
+    public function lookupGood(User $user, string $commodityCode): ?array
     {
-        $good = $this->client->serviceStuffInformation($commodityCode);
+        $good = $this->clientFactory->forUser($user)->serviceStuffInformation($commodityCode);
 
         if ($good === null) {
             return null;
@@ -53,7 +54,9 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
 
     public function submit(Invoice $invoice): SubmissionResult
     {
-        $payload = $this->payloadFactory->make($invoice);
+        $configuration = $this->clientFactory->configurationForUser($invoice->user);
+        $client = $this->clientFactory->forUser($invoice->user);
+        $payload = $this->payloadFactory->make($invoice, $configuration);
         $isRetry = filled($invoice->submission_uid);
         $uid = $invoice->submission_uid ?? (string) Str::uuid();
 
@@ -64,12 +67,14 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
             ]);
         }
 
-        return $this->client->submitInvoice($payload, $uid, $isRetry);
+        return $client->submitInvoice($payload, $uid, $isRetry);
     }
 
     public function inquire(Invoice $invoice): InquiryResult
     {
-        return $this->client->inquiryByReferenceNumber((string) $invoice->reference_number);
+        return $this->clientFactory
+            ->forUser($invoice->user)
+            ->inquiryByReferenceNumber((string) $invoice->reference_number);
     }
 
     public function isDemo(): bool

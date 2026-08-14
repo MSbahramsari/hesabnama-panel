@@ -3,9 +3,12 @@
 namespace App\Services\Moadian;
 
 use App\Exceptions\MoadianConfigurationException;
+use App\Models\TaxpayerProfile;
 
 class MoadianConfiguration
 {
+    public function __construct(private ?TaxpayerProfile $taxpayerProfile = null) {}
+
     public function isReal(): bool
     {
         return $this->driver() === 'real';
@@ -23,17 +26,17 @@ class MoadianConfiguration
 
     public function fiscalId(): string
     {
-        return mb_strtoupper(trim((string) config('services.moadian.fiscal_id')));
+        return mb_strtoupper(trim((string) $this->taxpayerProfile?->fiscal_id));
     }
 
     public function sellerEconomicCode(): string
     {
-        return trim((string) config('services.moadian.seller_economic_code'));
+        return trim((string) $this->taxpayerProfile?->economic_code);
     }
 
     public function sellerBranchCode(): ?string
     {
-        $branchCode = trim((string) config('services.moadian.seller_branch_code'));
+        $branchCode = trim((string) $this->taxpayerProfile?->branch_code);
 
         return $branchCode !== '' ? $branchCode : null;
     }
@@ -53,11 +56,6 @@ class MoadianConfiguration
     public function connectTimeout(): int
     {
         return (int) config('services.moadian.connect_timeout', 5);
-    }
-
-    public function privateKeyPath(): string
-    {
-        return trim((string) config('services.moadian.private_key_path'));
     }
 
     public function caBundlePath(): ?string
@@ -98,18 +96,22 @@ class MoadianConfiguration
 
     public function privateKeyPem(): string
     {
-        $path = $this->privateKeyPath();
+        $privateKey = $this->taxpayerProfile?->private_key;
 
-        if ($path === '' || ! is_file($path) || ! is_readable($path)) {
-            throw new MoadianConfigurationException('فایل کلید خصوصی سامانه مودیان در مسیر تنظیم‌شده قابل خواندن نیست.');
-        }
-
-        $privateKey = file_get_contents($path);
-
-        if ($privateKey === false || openssl_pkey_get_private($privateKey) === false) {
-            throw new MoadianConfigurationException('فایل کلید خصوصی سامانه مودیان معتبر نیست.');
+        if (! is_string($privateKey) || $privateKey === '' || openssl_pkey_get_private($privateKey) === false) {
+            throw new MoadianConfigurationException('کلید خصوصی معتبر برای پرونده مالیاتی این حساب ثبت نشده است.');
         }
 
         return $privateKey;
+    }
+
+    public function tokenCacheKey(): string
+    {
+        return 'moadian.access-token.'.($this->taxpayerProfile?->getKey() ?? 'missing');
+    }
+
+    public function encryptionKeyCacheKey(): string
+    {
+        return 'moadian.server-encryption-key.'.hash('xxh128', $this->baseUrl());
     }
 }
