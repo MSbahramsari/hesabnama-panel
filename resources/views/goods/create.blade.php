@@ -71,31 +71,45 @@
                             نتیجه‌ای با این مشخصات پیدا نشد.
                         </div>
                     @else
-                        <div class="table-wrap border-t border-slate-100">
+                        <div class="table-wrap catalog-table-wrap border-t border-slate-100">
                             <table class="data-table catalog-table">
+                                <colgroup>
+                                    <col class="w-[14%]">
+                                    <col class="w-[32%]">
+                                    <col class="w-[14%]">
+                                    <col class="w-[12%]">
+                                    <col class="w-[16%]">
+                                    <col class="w-[12%]">
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th>شناسه</th>
                                         <th>نام کالا یا خدمت</th>
                                         <th>نوع</th>
-                                        <th>ارزش افزوده</th>
-                                        <th>وضعیت</th>
-                                        <th>تاریخ اجرا</th>
-                                        <th>تاریخ انقضا</th>
+                                        <th>مالیات</th>
+                                        <th>بازه اعتبار</th>
                                         <th class="table-actions-cell">عملیات</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($catalogResults as $item)
                                         <tr>
-                                            <td dir="ltr" class="text-right"><span class="catalog-id">{{ $item->item_id }}</span></td>
-                                            <td><div class="catalog-description">{{ $item->description }}</div></td>
-                                            <td><span class="catalog-chip">{{ $item->type ?: 'نامشخص' }}</span></td>
-                                            <td><span @class(['catalog-vat', 'catalog-vat-exempt' => (float) $item->vat === 0.0, 'catalog-vat-taxable' => (float) $item->vat > 0])>{{ number_format((float) $item->vat, 2) }}٪</span></td>
-                                            <td><span @class(['status-badge', 'status-amber' => (float) $item->vat > 0, 'status-emerald' => (float) $item->vat === 0.0])>{{ $item->taxable ?: ((float) $item->vat > 0 ? 'مشمول' : 'معاف') }}</span></td>
-                                            <td dir="ltr" class="text-right"><time class="catalog-date">{{ $item->effective_date ?: '—' }}</time></td>
-                                            <td dir="ltr" class="text-right"><time class="catalog-date">{{ $item->expiration_date ?: '—' }}</time></td>
-                                            <td class="table-actions-cell">
+                                            <td data-label="شناسه" dir="ltr" class="text-right"><span class="catalog-id">{{ $item->item_id }}</span></td>
+                                            <td data-label="نام کالا یا خدمت"><div class="catalog-description">{{ $item->description }}</div></td>
+                                            <td data-label="نوع"><span class="catalog-chip">{{ $item->type ?: 'نامشخص' }}</span></td>
+                                            <td data-label="مالیات">
+                                                <div class="catalog-tax-cell">
+                                                    <span @class(['catalog-vat', 'catalog-vat-exempt' => (float) $item->vat === 0.0, 'catalog-vat-taxable' => (float) $item->vat > 0])>{{ number_format((float) $item->vat, 2) }}٪</span>
+                                                    <span class="catalog-tax-state">{{ $item->taxable ?: ((float) $item->vat > 0 ? 'مشمول' : 'معاف') }}</span>
+                                                </div>
+                                            </td>
+                                            <td data-label="بازه اعتبار">
+                                                <div class="catalog-validity" dir="ltr">
+                                                    <div><span>از</span><time class="catalog-date">{{ $item->effective_date ?: '—' }}</time></div>
+                                                    <div><span>تا</span><time class="catalog-date">{{ $item->expiration_date ?: 'بدون انقضا' }}</time></div>
+                                                </div>
+                                            </td>
+                                            <td data-label="عملیات" class="table-actions-cell">
                                                 <a href="{{ route('goods.create', array_merge(request()->except(['commodity_code', 'catalog_item']), ['catalog_item' => $item->id])) }}" class="table-action catalog-select-action">
                                                     انتخاب و افزودن
                                                 </a>

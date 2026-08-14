@@ -108,21 +108,28 @@
     .table-actions-cell { @apply w-20 text-left; }
     .table-action { @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] font-extrabold text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,.04)] hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 hover:shadow-sm; }
     .table-action svg { @apply size-3.5; }
-    .catalog-table { @apply min-w-[1180px]; }
-    .catalog-table th { @apply py-4 text-[11px]; }
-    .catalog-table td { @apply py-6; }
+    .catalog-table { @apply min-w-0 table-fixed; }
+    .catalog-table th { @apply border-teal-100 bg-teal-50/70 py-4 text-[11px] text-slate-600; }
+    .catalog-table td { @apply py-5; }
     .catalog-table tbody tr { box-shadow: none; }
-    .catalog-table tbody tr:hover { @apply bg-slate-50/80; box-shadow: inset -3px 0 #14b8a6; }
-    .catalog-description { @apply min-w-[380px] max-w-[560px] text-[14px] font-black leading-8 text-slate-900; }
-    .catalog-id { @apply whitespace-nowrap font-mono text-[13px] font-black tracking-wide text-slate-800; }
-    .catalog-chip { @apply inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-slate-200 bg-slate-100/80 px-3.5 py-2 text-[10px] font-extrabold text-slate-600; }
-    .catalog-chip::before { content: ''; @apply size-1.5 rounded-full bg-slate-400; }
+    .catalog-table tbody tr:nth-child(even) { @apply bg-slate-50/35; }
+    .catalog-table tbody tr:hover { @apply bg-teal-50/55; box-shadow: inset -3px 0 #14b8a6; }
+    .catalog-description { @apply text-[13px] font-black leading-7 text-slate-900; }
+    .catalog-id { @apply whitespace-nowrap font-mono text-[12px] font-black tracking-wide text-slate-800; }
+    .catalog-chip { @apply inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/80 px-3 py-2 text-[10px] font-extrabold leading-5 text-blue-700; }
+    .catalog-chip::before { content: ''; @apply size-1.5 shrink-0 rounded-full bg-blue-400; }
     .catalog-vat { @apply inline-flex min-w-16 items-center justify-center gap-2 whitespace-nowrap rounded-full border px-3 py-2 text-[11px] font-black; }
     .catalog-vat::after { content: ''; @apply size-1.5 rounded-full bg-current opacity-60; }
     .catalog-vat-taxable { @apply border-amber-300 bg-amber-50 text-amber-700; }
     .catalog-vat-exempt { @apply border-emerald-200 bg-emerald-50 text-emerald-700; }
-    .catalog-date { @apply inline-flex whitespace-nowrap font-bold text-slate-600; font-variant-numeric: tabular-nums; }
-    .catalog-select-action { @apply min-h-11 rounded-xl px-4 text-[11px]; }
+    .catalog-tax-cell { @apply flex flex-col items-start gap-2; }
+    .catalog-tax-state { @apply inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-500; }
+    .catalog-tax-state::before { content: ''; @apply size-1.5 rounded-full bg-emerald-500; }
+    .catalog-validity { @apply space-y-2 text-[10px]; }
+    .catalog-validity div { @apply flex items-center gap-2; }
+    .catalog-validity span { @apply w-4 text-slate-400; }
+    .catalog-date { @apply inline-flex whitespace-nowrap font-bold text-slate-700; font-variant-numeric: tabular-nums; }
+    .catalog-select-action { @apply min-h-10 rounded-xl border-teal-200 bg-teal-50 px-3 text-[10px] text-teal-800 hover:border-teal-700 hover:bg-teal-700 hover:text-white; }
     .status-badge { @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[10px] font-bold ring-1 ring-inset; }
     .status-badge::before { content: ''; @apply size-1.5 rounded-full bg-current opacity-70; }
     .status-slate { @apply bg-slate-100 text-slate-600 ring-slate-200; }
@@ -158,6 +165,25 @@
 
 @media (max-width: 640px) {
     .data-table { min-width: 680px; }
+    .catalog-table { min-width: 0; }
+}
+
+@media (max-width: 767px) {
+    .catalog-table-wrap { @apply overflow-visible border-0 bg-transparent; }
+    .catalog-table { @apply block w-full; }
+    .catalog-table colgroup, .catalog-table thead { @apply hidden; }
+    .catalog-table tbody { @apply grid gap-3 bg-slate-50 p-3; }
+    .catalog-table tbody tr, .catalog-table tbody tr:nth-child(even) { @apply grid grid-cols-2 gap-x-4 gap-y-3 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm; box-shadow: none; }
+    .catalog-table tbody tr:hover { @apply bg-white; box-shadow: none; }
+    .catalog-table td, .catalog-table td:first-child { @apply flex flex-col items-start border-0 p-0; }
+    .catalog-table td::before { content: attr(data-label); @apply mb-1.5 text-[9px] font-bold text-slate-400; }
+    .catalog-table td:nth-child(2) { @apply col-span-2 row-start-1 border-b border-slate-100 pb-3; }
+    .catalog-table td:nth-child(1) { @apply row-start-2; }
+    .catalog-table td:nth-child(3) { @apply row-start-2; }
+    .catalog-table td:nth-child(4) { @apply row-start-3; }
+    .catalog-table td:nth-child(5) { @apply row-start-3; }
+    .catalog-table .table-actions-cell { @apply static col-span-2 row-start-4 w-full bg-transparent pt-2 shadow-none; }
+    .catalog-select-action { @apply w-full; }
 }
 
 @media (max-width: 1023px) {
