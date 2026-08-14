@@ -42,19 +42,19 @@ class StuffCatalogMetadata
     /** @return Collection<int, string> */
     public function types(): Collection
     {
-        return Cache::rememberForever(
+        return collect($this->rememberArray(
             self::TYPES_KEY,
-            fn (): Collection => StuffCatalogItem::query()->whereNotNull('type')->distinct()->orderBy('type')->pluck('type'),
-        );
+            fn (): array => StuffCatalogItem::query()->whereNotNull('type')->distinct()->orderBy('type')->pluck('type')->all(),
+        ));
     }
 
     /** @return Collection<int, string> */
     public function vats(): Collection
     {
-        return Cache::rememberForever(
+        return collect($this->rememberArray(
             self::VATS_KEY,
-            fn (): Collection => StuffCatalogItem::query()->distinct()->orderBy('vat')->pluck('vat'),
-        );
+            fn (): array => StuffCatalogItem::query()->distinct()->orderBy('vat')->pluck('vat')->all(),
+        ));
     }
 
     public function forget(): void
@@ -68,5 +68,24 @@ class StuffCatalogMetadata
         ] as $key) {
             Cache::forget($key);
         }
+    }
+
+    /**
+     * @param  callable(): array<int, mixed>  $resolve
+     * @return array<int, mixed>
+     */
+    private function rememberArray(string $key, callable $resolve): array
+    {
+        $value = Cache::rememberForever($key, $resolve);
+
+        if (is_array($value)) {
+            return $value;
+        }
+
+        Cache::forget($key);
+        $resolved = $resolve();
+        Cache::forever($key, $resolved);
+
+        return $resolved;
     }
 }
