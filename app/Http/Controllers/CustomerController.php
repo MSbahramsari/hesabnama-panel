@@ -39,11 +39,15 @@ class CustomerController extends Controller
         $economicCode = $request->string('economic_code')->trim()->toString();
         $lookupResult = null;
         $lookupError = null;
+        $lookupNeedsConfiguration = false;
 
         if (preg_match('/^\d{10,14}$/', $economicCode)) {
             try {
                 $lookupResult = $gateway->lookupCustomer($request->user(), $economicCode);
-            } catch (MoadianConfigurationException|MoadianApiException $exception) {
+            } catch (MoadianConfigurationException $exception) {
+                $lookupNeedsConfiguration = true;
+                $lookupError = $exception->getMessage();
+            } catch (MoadianApiException $exception) {
                 $lookupError = $exception->getMessage();
             }
         }
@@ -52,6 +56,7 @@ class CustomerController extends Controller
             'economicCode' => $economicCode,
             'lookupResult' => $lookupResult,
             'lookupError' => $lookupError,
+            'lookupNeedsConfiguration' => $lookupNeedsConfiguration,
             'isDemo' => $gateway->isDemo(),
         ]);
     }

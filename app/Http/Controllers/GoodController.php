@@ -61,6 +61,7 @@ class GoodController extends Controller
             ?? $request->string('commodity_code')->trim()->toString();
         $lookupResult = null;
         $lookupError = null;
+        $lookupNeedsConfiguration = false;
 
         if ($selectedCatalogItem !== null) {
             $lookupResult = $this->catalogLookupResult($selectedCatalogItem);
@@ -74,7 +75,10 @@ class GoodController extends Controller
                 $lookupResult = $catalogItem !== null
                     ? $this->catalogLookupResult($catalogItem)
                     : $gateway->lookupGood($request->user(), $commodityCode);
-            } catch (MoadianConfigurationException|MoadianApiException $exception) {
+            } catch (MoadianConfigurationException $exception) {
+                $lookupNeedsConfiguration = true;
+                $lookupError = $exception->getMessage();
+            } catch (MoadianApiException $exception) {
                 $lookupError = $exception->getMessage();
             }
         }
@@ -83,6 +87,7 @@ class GoodController extends Controller
             'commodityCode' => $commodityCode,
             'lookupResult' => $lookupResult,
             'lookupError' => $lookupError,
+            'lookupNeedsConfiguration' => $lookupNeedsConfiguration,
             'isDemo' => $gateway->isDemo(),
             'catalogSearch' => $catalogSearch,
             'catalogType' => $catalogType,

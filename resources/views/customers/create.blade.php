@@ -24,7 +24,15 @@
                         <input name="economic_code" value="{{ $economicCode }}" class="form-control bg-white" inputmode="numeric" placeholder="کد اقتصادی">
                         <button class="btn-primary shrink-0">استعلام اطلاعات</button>
                     </form>
-                    @if($lookupError)
+                    @if($lookupError && $lookupNeedsConfiguration)
+                        <div class="mt-4 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <div class="font-extrabold">تنظیمات اتصال مودیان این حساب کامل نیست.</div>
+                                <p class="mt-1 text-xs leading-6 text-amber-700">{{ $lookupError }}</p>
+                            </div>
+                            <a href="{{ route('profile.edit').'#taxpayer-connection' }}" class="btn-secondary shrink-0">تکمیل تنظیمات اتصال</a>
+                        </div>
+                    @elseif($lookupError)
                         <p class="mt-3 text-sm font-bold text-rose-600">{{ $lookupError }}</p>
                     @elseif($economicCode && !$lookupResult)
                         <p class="mt-3 text-sm font-bold text-amber-700">اطلاعاتی برای این کد دریافت نشد؛ می‌توانید مشخصات را دستی تکمیل کنید.</p>

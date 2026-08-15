@@ -144,7 +144,15 @@
                 <input name="commodity_code" value="{{ $commodityCode }}" class="form-control" inputmode="numeric" placeholder="شناسه ۱۳ رقمی کالا یا خدمت">
                 <button class="btn-primary shrink-0 justify-center">بررسی شناسه</button>
             </form>
-            @if($lookupError)
+            @if($lookupError && $lookupNeedsConfiguration)
+                <div class="mx-5 mb-5 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 sm:mx-7 sm:mb-7 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <div class="font-extrabold">تنظیمات اتصال مودیان این حساب کامل نیست.</div>
+                        <p class="mt-1 text-xs leading-6 text-amber-700">{{ $lookupError }}</p>
+                    </div>
+                    <a href="{{ route('profile.edit').'#taxpayer-connection' }}" class="btn-secondary shrink-0">تکمیل تنظیمات اتصال</a>
+                </div>
+            @elseif($lookupError)
                 <p class="mx-5 mb-5 rounded-xl bg-rose-50 p-3 text-sm font-bold text-rose-700 sm:mx-7 sm:mb-7">{{ $lookupError }}</p>
             @elseif($commodityCode && !$lookupResult)
                 <p class="mx-5 mb-5 rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-700 sm:mx-7 sm:mb-7">اطلاعاتی برای این شناسه دریافت نشد؛ می‌توانید مشخصات قلم را دستی تکمیل کنید.</p>

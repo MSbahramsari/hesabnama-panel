@@ -5,6 +5,7 @@
 @section('page-subtitle', 'اطلاعات حساب، اشتراک و اتصال اختصاصی شما به سامانه مودیان')
 
 @section('content')
+    @php($taxpayerProfile = auth()->user()->taxpayerProfile)
     <div class="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
         <aside class="card p-6">
             <div class="grid size-16 place-items-center rounded-2xl bg-slate-900 text-2xl font-black text-teal-300">{{ mb_substr(auth()->user()->name, 0, 1) }}</div>
@@ -17,22 +18,26 @@
                 <div class="flex justify-between text-sm"><span class="text-slate-500">اعتبار تا</span><strong>{{ auth()->user()->license_expires_at?->format('Y/m/d') ?? 'بدون انقضا' }}</strong></div>
             </div>
 
-            @if(!auth()->user()->isAdmin() && auth()->user()->taxpayerProfile)
-                <div class="mt-6 border-t border-slate-100 pt-5">
-                    <div class="flex items-center justify-between gap-3 text-sm">
-                        <span class="text-slate-500">اتصال مودیان</span>
-                        @if(auth()->user()->taxpayerProfile->connection_verified_at)
-                            <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">تأییدشده</span>
-                        @else
-                            <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">نیازمند بررسی</span>
-                        @endif
-                    </div>
+            <div class="mt-6 border-t border-slate-100 pt-5">
+                <div class="flex items-center justify-between gap-3 text-sm">
+                    <span class="text-slate-500">اتصال مودیان</span>
+                    @if(!$taxpayerProfile)
+                        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">تکمیل‌نشده</span>
+                    @elseif($taxpayerProfile->connection_verified_at)
+                        <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">تأییدشده</span>
+                    @else
+                        <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">نیازمند بررسی</span>
+                    @endif
+                </div>
+                @if($taxpayerProfile)
                     <form method="POST" action="{{ route('profile.moadian.test') }}" class="mt-4">
                         @csrf
                         <button class="btn-secondary w-full">آزمایش اتصال و توکن</button>
                     </form>
-                </div>
-            @endif
+                @else
+                    <a href="#taxpayer-connection" class="btn-secondary mt-4 w-full">تکمیل اطلاعات اتصال</a>
+                @endif
+            </div>
         </aside>
 
         <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="card p-5 sm:p-7">
@@ -53,9 +58,7 @@
                 </div>
             </div>
 
-            @if(!auth()->user()->isAdmin())
-                <x-taxpayer-profile.form :profile="auth()->user()->taxpayerProfile" />
-            @endif
+            <x-taxpayer-profile.form :profile="$taxpayerProfile" :required="!auth()->user()->isAdmin() || $taxpayerProfile !== null" />
 
             <div class="mt-7 flex justify-end"><button class="btn-primary">ذخیره تغییرات</button></div>
         </form>

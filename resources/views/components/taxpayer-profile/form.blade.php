@@ -1,10 +1,16 @@
 @props(['profile' => null, 'required' => true])
 
-<section class="mt-7 border-t border-slate-100 pt-6" data-taxpayer-profile>
+<section id="taxpayer-connection" class="mt-7 scroll-mt-24 border-t border-slate-100 pt-6" data-taxpayer-profile>
     <div class="mb-5">
         <h3 class="card-title">اطلاعات اتصال به سامانه مودیان</h3>
         <p class="card-subtitle">این مشخصات و کلید خصوصی فقط برای پرونده مالیاتی همین حساب استفاده می‌شوند.</p>
     </div>
+
+    @if(!$required)
+        <div class="mb-5 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-xs leading-7 text-blue-800">
+            تکمیل این بخش برای مدیریت عمومی سامانه اختیاری است؛ اما برای استعلام واقعی مشتری، استعلام مستقیم شناسه کالا و ارسال صورتحساب با همین حساب، همه اطلاعات اتصال الزامی هستند.
+        </div>
+    @endif
 
     <div class="grid gap-5 md:grid-cols-2">
         <x-form.input name="taxpayer_name" label="نام مودی / شرکت" :value="$profile?->taxpayer_name" :required="$required" data-taxpayer-required />
@@ -20,7 +26,7 @@
 
         <x-form.input name="national_id" label="شناسه ملی / کد ملی" inputmode="numeric" :value="$profile?->national_id" :required="$required" data-taxpayer-required />
         <x-form.input name="economic_code" label="کد اقتصادی" inputmode="numeric" :value="$profile?->economic_code" :required="$required" data-taxpayer-required />
-        <x-form.input name="fiscal_id" label="شناسه یکتای حافظه مالیاتی" dir="ltr" maxlength="6" :value="$profile?->fiscal_id" :required="$required" hint="دقیقاً ۶ کاراکتر انگلیسی یا عدد" data-taxpayer-required />
+        <x-form.input name="fiscal_id" label="شناسه یکتای حافظه مالیاتی" dir="ltr" maxlength="6" minlength="6" pattern="[A-Za-z0-9]{6}" autocomplete="off" :value="$profile?->fiscal_id" :required="$required" hint="کد ۶ کاراکتری دریافت‌شده از کارپوشه مودیان؛ این کد با کد اقتصادی مشتری متفاوت است." data-taxpayer-required />
         <x-form.input name="branch_code" label="کد شعبه" inputmode="numeric" :value="$profile?->branch_code" hint="در صورت نداشتن شعبه، خالی بگذارید." />
 
         <div class="md:col-span-2">

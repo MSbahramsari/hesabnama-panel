@@ -35,7 +35,7 @@ class SaveUserWithTaxpayerProfileAction
 
             $hasTaxpayerProfile = $user->taxpayerProfile()->exists();
 
-            if ($user->role !== UserRole::Admin || $hasTaxpayerProfile) {
+            if ($user->role !== UserRole::Admin || $hasTaxpayerProfile || $this->hasTaxpayerCredentials($taxpayerData)) {
                 $privateKeyFile = Arr::pull($taxpayerData, 'private_key');
                 $profile = $user->taxpayerProfile()->firstOrNew();
 
@@ -65,5 +65,17 @@ class SaveUserWithTaxpayerProfileAction
 
             return $user->load('taxpayerProfile');
         });
+    }
+
+    /** @param array<string, mixed> $taxpayerData */
+    private function hasTaxpayerCredentials(array $taxpayerData): bool
+    {
+        foreach (['taxpayer_name', 'national_id', 'economic_code', 'fiscal_id', 'private_key'] as $field) {
+            if (filled($taxpayerData[$field] ?? null)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

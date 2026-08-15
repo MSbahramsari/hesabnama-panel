@@ -27,7 +27,7 @@ class UpdateProfileRequest extends FormRequest
     public function rules(): array
     {
         $taxpayerProfile = $this->user()->taxpayerProfile;
-        $requiresTaxpayerProfile = ! $this->user()->isAdmin();
+        $requiresTaxpayerProfile = $this->requiresTaxpayerProfile($taxpayerProfile);
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -53,5 +53,20 @@ class UpdateProfileRequest extends FormRequest
                 new ValidPrivateKey,
             ],
         ];
+    }
+
+    private function requiresTaxpayerProfile(?TaxpayerProfile $taxpayerProfile): bool
+    {
+        if (! $this->user()->isAdmin() || $taxpayerProfile !== null || $this->hasFile('private_key')) {
+            return true;
+        }
+
+        foreach (['taxpayer_name', 'national_id', 'economic_code', 'fiscal_id'] as $field) {
+            if (filled($this->input($field))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

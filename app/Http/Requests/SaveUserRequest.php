@@ -32,7 +32,7 @@ class SaveUserRequest extends FormRequest
     {
         $user = $this->route('user');
         $taxpayerProfile = $user?->taxpayerProfile;
-        $requiresTaxpayerProfile = $this->input('role') !== UserRole::Admin->value;
+        $requiresTaxpayerProfile = $this->requiresTaxpayerProfile($taxpayerProfile);
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -64,5 +64,20 @@ class SaveUserRequest extends FormRequest
                 new ValidPrivateKey,
             ],
         ];
+    }
+
+    private function requiresTaxpayerProfile(?TaxpayerProfile $taxpayerProfile): bool
+    {
+        if ($this->input('role') !== UserRole::Admin->value || $taxpayerProfile !== null || $this->hasFile('private_key')) {
+            return true;
+        }
+
+        foreach (['taxpayer_name', 'national_id', 'economic_code', 'fiscal_id'] as $field) {
+            if (filled($this->input($field))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
