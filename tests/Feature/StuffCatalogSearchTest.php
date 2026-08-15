@@ -30,6 +30,7 @@ it('searches the catalog by description and filters the results', function () {
         ->assertOk()
         ->assertSee($matchingItem->item_id)
         ->assertSee($matchingItem->description)
+        ->assertSee('#good-details', false)
         ->assertDontSee('رایانه قابل حمل');
 });
 
@@ -50,6 +51,8 @@ it('prefills the good form from the selected catalog row', function () {
         ->assertSee($item->item_id)
         ->assertSee($item->description)
         ->assertSee('اختصاصی خدمت')
+        ->assertSee('data-selected-catalog-form', false)
+        ->assertSee('قلم از کاتالوگ رسمی انتخاب شد')
         ->assertSee('value="10"', false);
 });
 

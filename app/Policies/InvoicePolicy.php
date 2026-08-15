@@ -28,6 +28,11 @@ class InvoicePolicy
         return $this->view($user, $invoice) && $invoice->isEditable();
     }
 
+    public function delete(User $user, Invoice $invoice): bool
+    {
+        return $this->view($user, $invoice) && $invoice->status === InvoiceStatus::Draft;
+    }
+
     public function send(User $user, Invoice $invoice): bool
     {
         return $this->view($user, $invoice) && in_array($invoice->status, [InvoiceStatus::Draft, InvoiceStatus::PendingSend, InvoiceStatus::MoadianError], true);

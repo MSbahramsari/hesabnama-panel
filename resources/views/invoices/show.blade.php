@@ -3,9 +3,23 @@
 @section('page-title', 'جزئیات صورتحساب')
 @section('page-subtitle', $invoice->number.' — '.$invoice->customer->name)
 @section('page-actions')
+    <a href="{{ route('invoices.index') }}" class="btn-secondary">
+        <x-icon name="arrow-left" class="size-4 rotate-180" />
+        <span class="hidden sm:inline">بازگشت</span>
+    </a>
     @if($invoice->isEditable())
         <a href="{{ route('invoices.edit', $invoice) }}" class="btn-secondary">ویرایش</a>
     @endif
+    @can('delete', $invoice)
+        <form method="POST" action="{{ route('invoices.destroy', $invoice) }}" data-confirm="این پیش‌نویس صورتحساب حذف شود؟ این عملیات قابل بازگشت نیست.">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn-danger">
+                <x-icon name="trash" class="size-4" />
+                <span class="hidden sm:inline">حذف</span>
+            </button>
+        </form>
+    @endcan
 @endsection
 @section('content')
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">

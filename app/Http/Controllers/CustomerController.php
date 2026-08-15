@@ -78,4 +78,18 @@ class CustomerController extends Controller
 
         return redirect()->route('customers.index')->with('success', 'اطلاعات مشتری به‌روزرسانی شد.');
     }
+
+    public function destroy(Customer $customer): RedirectResponse
+    {
+        Gate::authorize('delete', $customer);
+
+        if ($customer->invoices()->exists()) {
+            return redirect()->route('customers.edit', $customer)
+                ->with('error', 'این مشتری در یک یا چند صورتحساب استفاده شده و قابل حذف نیست؛ می‌توانید آن را غیرفعال کنید.');
+        }
+
+        $customer->delete();
+
+        return redirect()->route('customers.index')->with('success', 'مشتری با موفقیت حذف شد.');
+    }
 }

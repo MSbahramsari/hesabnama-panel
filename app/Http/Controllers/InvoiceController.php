@@ -92,6 +92,14 @@ class InvoiceController extends Controller
         return redirect()->route('invoices.show', $invoice)->with('success', 'فاکتور به‌روزرسانی شد.');
     }
 
+    public function destroy(Invoice $invoice): RedirectResponse
+    {
+        Gate::authorize('delete', $invoice);
+        $invoice->delete();
+
+        return redirect()->route('invoices.index')->with('success', 'پیش‌نویس صورتحساب با موفقیت حذف شد.');
+    }
+
     /** @return array{customers: Collection<int, Customer>, goods: Collection<int, Good>, suggestedNumber: string} */
     private function formData(Request $request): array
     {

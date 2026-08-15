@@ -25,9 +25,9 @@ Route::middleware('auth')->group(function () {
         Route::redirect('/', '/dashboard');
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
-        Route::resource('customers', CustomerController::class)->except(['show', 'destroy']);
-        Route::resource('goods', GoodController::class)->except(['show', 'destroy']);
-        Route::resource('invoices', InvoiceController::class)->except(['destroy']);
+        Route::resource('customers', CustomerController::class)->except(['show']);
+        Route::resource('goods', GoodController::class)->except(['show']);
+        Route::resource('invoices', InvoiceController::class);
         Route::post('/invoices/send', [InvoiceWorkflowController::class, 'send'])->middleware('throttle:10,1')->name('invoices.send');
         Route::post('/invoices/{invoice}/confirm-demo', [InvoiceWorkflowController::class, 'confirm'])->name('invoices.confirm_demo');
         Route::post('/invoices/{invoice}/inquire', [InvoiceWorkflowController::class, 'inquire'])->middleware('throttle:20,1')->name('invoices.inquire');

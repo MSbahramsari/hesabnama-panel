@@ -4,15 +4,6 @@
 @section('page-title', 'داشبورد')
 @section('page-subtitle', 'خلاصه‌ای از عملکرد مالیاتی و آخرین فعالیت‌های حساب شما')
 
-@section('page-actions')
-    @if(auth()->user()->hasPermission('invoices'))
-        <a href="{{ route('invoices.create') }}" class="btn-primary">
-            <x-icon name="plus" class="size-4" />
-            <span class="hidden sm:inline">صورتحساب جدید</span>
-        </a>
-    @endif
-@endsection
-
 @section('content')
     @php
         $invoiceCount = max((int) $metrics['invoices'], 1);
@@ -94,7 +85,7 @@
                 @endif
             </div>
             @if($recentInvoices->isEmpty())
-                <x-empty-state title="هنوز صورتحسابی ندارید" description="اولین صورتحساب را بسازید تا وضعیت آن را از همین داشبورد دنبال کنید." :action="auth()->user()->hasPermission('invoices') ? route('invoices.create') : null" action-label="ساخت صورتحساب" />
+                <x-empty-state title="هنوز صورتحسابی ندارید" description="پس از ثبت اولین صورتحساب، وضعیت آن را از همین داشبورد دنبال کنید." />
             @else
                 <div class="table-wrap">
                     <table class="data-table">

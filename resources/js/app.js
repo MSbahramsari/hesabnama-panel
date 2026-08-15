@@ -19,6 +19,28 @@ document.querySelectorAll('[data-navigate]').forEach((element) => {
     element.addEventListener('click', () => window.location.assign(element.dataset.navigate));
 });
 
+document.querySelectorAll('[data-confirm]').forEach((form) => {
+    form.addEventListener('submit', (event) => {
+        if (!window.confirm(form.dataset.confirm)) {
+            event.preventDefault();
+        }
+    });
+});
+
+const selectedCatalogForm = document.querySelector('[data-selected-catalog-form]');
+
+if (selectedCatalogForm) {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    window.requestAnimationFrame(() => {
+        selectedCatalogForm.scrollIntoView({
+            behavior: prefersReducedMotion ? 'auto' : 'smooth',
+            block: 'start',
+        });
+        selectedCatalogForm.querySelector('input[name="unit_price"]')?.focus({ preventScroll: true });
+    });
+}
+
 const roleSelect = document.querySelector('#role');
 const taxpayerProfile = document.querySelector('[data-taxpayer-profile]');
 

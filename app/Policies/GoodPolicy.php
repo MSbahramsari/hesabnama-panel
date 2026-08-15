@@ -26,4 +26,9 @@ class GoodPolicy
     {
         return $this->view($user, $good);
     }
+
+    public function delete(User $user, Good $good): bool
+    {
+        return $this->view($user, $good);
+    }
 }

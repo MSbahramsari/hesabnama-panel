@@ -2,6 +2,12 @@
 @section('title', 'مشتری جدید')
 @section('page-title', 'افزودن مشتری')
 @section('page-subtitle', $isDemo ? 'استعلام آزمایشی یا ثبت دستی اطلاعات خریدار' : 'استعلام مستقیم کد اقتصادی از سامانه مودیان')
+@section('page-actions')
+    <a href="{{ route('customers.index') }}" class="btn-secondary">
+        <x-icon name="arrow-left" class="size-4 rotate-180" />
+        <span class="hidden sm:inline">بازگشت</span>
+    </a>
+@endsection
 @section('content')
     <div class="mx-auto max-w-4xl space-y-5">
         <div class="rounded-2xl border border-blue-200 bg-blue-50 p-5">

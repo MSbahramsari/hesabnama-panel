@@ -79,14 +79,16 @@
                         <span class="flex items-center gap-2 text-slate-400"><i class="size-2 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,.08)]"></i>وضعیت سامانه</span>
                         <span class="font-bold text-emerald-300">فعال</span>
                     </div>
-                    <a href="{{ route('profile.edit') }}" class="sidebar-profile">
-                        <div class="avatar">{{ mb_substr(auth()->user()->name, 0, 1) }}</div>
-                        <div class="min-w-0 flex-1">
-                            <div class="truncate text-sm font-bold text-white">{{ auth()->user()->name }}</div>
-                            <div class="mt-0.5 truncate text-[11px] text-slate-400">پلن {{ auth()->user()->plan->label() }}</div>
-                        </div>
-                        <x-icon name="arrow-left" class="size-4 text-slate-500" />
-                    </a>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="sidebar-logout">
+                            <span class="grid size-9 place-items-center rounded-xl bg-white/5 text-slate-400 ring-1 ring-inset ring-white/8">
+                                <x-icon name="logout" class="size-4" />
+                            </span>
+                            <span class="flex-1 text-right">خروج از حساب</span>
+                            <x-icon name="arrow-left" class="size-4 text-slate-600" />
+                        </button>
+                    </form>
                 </div>
             </div>
         </aside>

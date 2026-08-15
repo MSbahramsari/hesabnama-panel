@@ -2,6 +2,12 @@
 @section('title', 'جست‌وجو و افزودن کالا یا خدمت')
 @section('page-title', 'کاتالوگ کالا و خدمات')
 @section('page-subtitle', 'جست‌وجوی نام یا شناسه، بررسی نرخ ارزش افزوده و افزودن مستقیم به اقلام شما')
+@section('page-actions')
+    <a href="{{ route('goods.index') }}" class="btn-secondary">
+        <x-icon name="arrow-left" class="size-4 rotate-180" />
+        <span class="hidden sm:inline">بازگشت</span>
+    </a>
+@endsection
 @section('content')
     <div class="space-y-5">
         <div class="card">
@@ -27,7 +33,7 @@
             <form method="GET" action="{{ route('goods.create') }}" class="grid gap-4 p-5 sm:p-7 lg:grid-cols-12">
                 <div class="lg:col-span-6">
                     <label for="catalog_query" class="form-label">نام یا شناسه کالا / خدمت</label>
-                    <input id="catalog_query" name="catalog_query" value="{{ $catalogSearch }}" class="form-control" placeholder="مثلاً خدمات حسابداری یا شناسه ۱۳ رقمی" autofocus>
+                    <input id="catalog_query" name="catalog_query" value="{{ $catalogSearch }}" class="form-control" placeholder="مثلاً خدمات حسابداری یا شناسه ۱۳ رقمی" @if(!$selectedCatalogItem) autofocus @endif>
                 </div>
                 <div class="lg:col-span-3">
                     <label for="catalog_type" class="form-label">نوع شناسه</label>
@@ -110,8 +116,9 @@
                                                 </div>
                                             </td>
                                             <td data-label="عملیات" class="table-actions-cell">
-                                                <a href="{{ route('goods.create', array_merge(request()->except(['commodity_code', 'catalog_item']), ['catalog_item' => $item->id])) }}" class="table-action catalog-select-action">
-                                                    انتخاب و افزودن
+                                                <a href="{{ route('goods.create', array_merge(request()->except(['commodity_code', 'catalog_item']), ['catalog_item' => $item->id])).'#good-details' }}" class="table-action catalog-select-action">
+                                                    <x-icon name="plus" class="size-3.5" />
+                                                    انتخاب و تکمیل
                                                 </a>
                                             </td>
                                         </tr>
@@ -145,8 +152,17 @@
         </details>
 
         @if(preg_match('/^\d{8,20}$/', $commodityCode))
-            <form method="POST" action="{{ route('goods.store') }}" class="card p-5 sm:p-7">
+            <form id="good-details" method="POST" action="{{ route('goods.store') }}" class="card scroll-mt-24 p-5 sm:p-7" @if($selectedCatalogItem) data-selected-catalog-form @endif>
                 @csrf
+                @if($selectedCatalogItem)
+                    <div class="mb-6 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+                        <span class="grid size-8 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white"><x-icon name="check" class="size-4" /></span>
+                        <div>
+                            <div class="font-extrabold">قلم از کاتالوگ رسمی انتخاب شد.</div>
+                            <p class="mt-1 text-xs leading-6 text-emerald-700">اطلاعات استعلام‌شده را بررسی کنید، قیمت واحد را وارد کنید و برای افزودن به کالاهای خود دکمه ذخیره را بزنید.</p>
+                        </div>
+                    </div>
+                @endif
                 <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                         <h3 class="card-title">{{ $lookupResult ? 'اطلاعات قلم انتخاب‌شده' : 'ثبت دستی قلم' }}</h3>

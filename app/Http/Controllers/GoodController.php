@@ -119,6 +119,20 @@ class GoodController extends Controller
         return redirect()->route('goods.index')->with('success', 'اطلاعات کالا به‌روزرسانی شد.');
     }
 
+    public function destroy(Good $good): RedirectResponse
+    {
+        Gate::authorize('delete', $good);
+
+        if ($good->invoiceItems()->exists()) {
+            return redirect()->route('goods.edit', $good)
+                ->with('error', 'این قلم در یک یا چند صورتحساب استفاده شده و قابل حذف نیست؛ می‌توانید آن را غیرفعال کنید.');
+        }
+
+        $good->delete();
+
+        return redirect()->route('goods.index')->with('success', 'کالا یا خدمت با موفقیت حذف شد.');
+    }
+
     /** @return array{name: string, unit: string, unit_price: int, tax_rate: float, measurement_unit_code: null} */
     private function catalogLookupResult(StuffCatalogItem $item): array
     {
