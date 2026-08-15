@@ -24,21 +24,38 @@
         @if($goods->isEmpty())
             <x-empty-state title="کالا یا خدمتی پیدا نشد" description="شناسه کالا را استعلام کنید و اولین قلم را بسازید." :action="route('goods.create')" action-label="افزودن قلم" />
         @else
-            <div class="table-wrap">
-                <table class="data-table">
+            <div class="table-wrap goods-table-wrap">
+                <table class="data-table goods-table">
+                    <colgroup>
+                        <col class="w-[27%]">
+                        <col class="w-[17%]">
+                        <col class="w-[10%]">
+                        <col class="w-[14%]">
+                        <col class="w-[10%]">
+                        <col class="w-[9%]">
+                        <col class="w-[13%]">
+                    </colgroup>
                     <thead><tr><th>عنوان قلم</th><th>شناسه کالا/خدمت</th><th>واحد</th><th>قیمت واحد</th><th>نرخ مالیات</th><th>وضعیت</th><th class="table-actions-cell">عملیات</th></tr></thead>
                     <tbody>
                         @foreach($goods as $good)
                             <tr>
-                                <td><div class="table-primary">{{ $good->name }}</div><div class="table-meta">قابل استفاده در صورتحساب</div></td>
-                                <td dir="ltr" class="text-right"><span class="table-code">{{ $good->commodity_code }}</span></td>
-                                <td>{{ $good->unit }}</td>
-                                <td class="table-number">{{ number_format($good->unit_price) }}<small>ریال</small></td>
-                                <td class="table-number">{{ number_format($good->tax_rate, 0) }}<small>٪</small></td>
-                                <td><span @class(['status-badge', 'status-emerald' => $good->is_active, 'status-slate' => ! $good->is_active])>{{ $good->is_active ? 'فعال' : 'غیرفعال' }}</span></td>
-                                <td class="table-actions-cell">
+                                <td data-label="عنوان قلم">
+                                    <div class="goods-name-cell">
+                                        <span class="goods-name-icon"><x-icon name="box" class="size-4" /></span>
+                                        <div class="min-w-0">
+                                            <div class="goods-name">{{ $good->name }}</div>
+                                            <div class="goods-caption">آماده استفاده در صورتحساب</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td data-label="شناسه کالا/خدمت" dir="ltr" class="text-right"><span class="goods-code">{{ $good->commodity_code }}</span></td>
+                                <td data-label="واحد"><span class="goods-unit">{{ $good->unit }}</span></td>
+                                <td data-label="قیمت واحد"><span class="goods-price">{{ number_format($good->unit_price) }}</span><small class="goods-price-unit">ریال</small></td>
+                                <td data-label="نرخ مالیات"><span @class(['goods-tax', 'goods-tax-exempt' => (float) $good->tax_rate === 0.0, 'goods-taxable' => (float) $good->tax_rate > 0])>{{ number_format($good->tax_rate, 0) }}٪</span></td>
+                                <td data-label="وضعیت"><span @class(['status-badge', 'status-emerald' => $good->is_active, 'status-slate' => ! $good->is_active])>{{ $good->is_active ? 'فعال' : 'غیرفعال' }}</span></td>
+                                <td data-label="عملیات" class="table-actions-cell">
                                     <div class="table-row-actions">
-                                        <a href="{{ route('goods.edit', $good) }}" class="table-action"><x-icon name="edit" />ویرایش</a>
+                                        <a href="{{ route('goods.edit', $good) }}" class="table-action goods-edit-action"><x-icon name="edit" />ویرایش</a>
                                         @can('delete', $good)
                                             <form method="POST" action="{{ route('goods.destroy', $good) }}" data-confirm="این کالا یا خدمت حذف شود؟ این عملیات قابل بازگشت نیست.">
                                                 @csrf

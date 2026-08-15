@@ -123,11 +123,14 @@ it('shows navigation deletion and logout controls in the panel', function () {
         ->get(route('goods.index'))
         ->assertOk()
         ->assertSee(route('goods.destroy', $good), false)
-        ->assertSee('table-row-actions', false);
+        ->assertSee('table-row-actions', false)
+        ->assertSee('goods-table', false)
+        ->assertSee('goods-name-icon', false);
 
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertOk()
         ->assertSee('خروج از حساب')
+        ->assertSee('topbar-page-icon', false)
         ->assertDontSee('صورتحساب جدید');
 });

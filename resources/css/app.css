@@ -45,8 +45,20 @@
     }
     .app-sidebar.is-open { @apply translate-x-0; }
     .app-main { transition: margin 240ms ease; }
-    .app-topbar { @apply border-b border-slate-200/70 bg-white/88 shadow-[0_1px_0_rgba(15,23,42,.02)] backdrop-blur-xl; }
-    .app-content { min-height: calc(100vh - 78px); }
+    .app-topbar {
+        @apply relative border-b border-slate-200/80 bg-white/90 shadow-[0_8px_30px_rgba(15,23,42,.035)] backdrop-blur-xl;
+        background-image: linear-gradient(110deg, rgba(240, 253, 250, .72), rgba(255, 255, 255, .92) 42%, rgba(248, 250, 252, .88));
+    }
+    .app-topbar::after { content: ''; @apply absolute inset-x-0 bottom-0 h-px; background: linear-gradient(90deg, transparent, rgba(20, 184, 166, .45), transparent 78%); }
+    .app-content { min-height: calc(100vh - 86px); }
+    .topbar-inner { @apply mx-auto flex min-h-[86px] max-w-[1600px] items-center gap-3 px-4 sm:gap-4 sm:px-6 lg:px-10; }
+    .topbar-page-icon { @apply hidden size-11 shrink-0 place-items-center rounded-2xl border border-teal-100 bg-teal-50 text-teal-700 shadow-[0_5px_18px_rgba(13,148,136,.08)] sm:grid; }
+    .topbar-kicker { @apply mb-1 hidden items-center gap-2 text-[10px] font-extrabold text-slate-400 sm:flex; }
+    .topbar-kicker > span:first-child { @apply text-teal-700; }
+    .topbar-kicker-dot { @apply size-1 rounded-full bg-slate-300; }
+    .topbar-title { @apply truncate text-lg font-black tracking-tight text-slate-950 sm:text-[21px]; }
+    .topbar-subtitle { @apply hidden min-w-0 truncate border-r border-slate-200 pr-3 text-[11px] font-medium text-slate-400 2xl:block; }
+    .topbar-tools { @apply flex shrink-0 items-center gap-2; }
     .sidebar-brand { @apply flex h-[88px] items-center gap-3.5 border-b border-white/8 px-5; }
     .brand-mark { @apply relative grid size-11 shrink-0 place-items-center overflow-hidden rounded-[15px] bg-teal-400 text-lg font-black text-slate-950 shadow-[0_8px_24px_rgba(20,184,166,.18)]; }
     .brand-mark::before { content: ''; @apply absolute -left-2 -top-4 size-9 rounded-full bg-white/35 blur-md; }
@@ -57,7 +69,7 @@
     .sidebar-logout:hover > span:first-child { @apply bg-rose-400/10 text-rose-300 ring-rose-300/15; }
     .avatar { @apply grid size-10 shrink-0 place-items-center rounded-xl bg-white/8 text-sm font-black text-teal-200 ring-1 ring-inset ring-white/8; }
     .avatar-light { @apply size-9 bg-teal-50 text-teal-700 ring-teal-100; }
-    .topbar-profile { @apply items-center gap-2.5 rounded-xl border border-transparent px-2 py-1.5 transition hover:border-slate-200 hover:bg-slate-50; }
+    .topbar-profile { @apply items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white/75 px-2.5 py-2 shadow-[0_2px_8px_rgba(15,23,42,.035)] transition hover:-translate-y-0.5 hover:border-teal-200 hover:bg-white hover:shadow-md; }
     .nav-label { @apply mb-2 px-3 text-[10px] font-bold tracking-[.07em] text-slate-500; }
     .nav-link { @apply relative flex items-center gap-3 overflow-hidden rounded-xl px-3.5 py-3 text-[13px] font-semibold text-slate-400 transition hover:bg-white/5 hover:text-white; }
     .nav-link svg { @apply text-slate-500 transition-colors; }
@@ -150,6 +162,27 @@
     .catalog-date { @apply inline-flex whitespace-nowrap font-bold text-slate-700; font-variant-numeric: tabular-nums; }
     .catalog-table .table-actions-cell { @apply w-auto text-right; }
     .catalog-select-action { @apply min-h-10 rounded-xl border-teal-200 bg-teal-50 px-3 text-[10px] text-teal-800 hover:border-teal-700 hover:bg-teal-700 hover:text-white; }
+    .goods-table { @apply min-w-0 table-fixed; }
+    .goods-table th { @apply border-violet-100 bg-violet-50/70 px-3 py-4 text-[11px] text-slate-600; }
+    .goods-table th:first-child { @apply pr-4; }
+    .goods-table td { @apply px-3 py-4; }
+    .goods-table td:first-child { @apply pr-4; }
+    .goods-table tbody tr { box-shadow: none; }
+    .goods-table tbody tr:nth-child(even) { @apply bg-slate-50/45; }
+    .goods-table tbody tr:hover { @apply bg-violet-50/55; box-shadow: inset -3px 0 #8b5cf6; }
+    .goods-name-cell { @apply flex min-w-0 items-center gap-3; }
+    .goods-name-icon { @apply grid size-9 shrink-0 place-items-center rounded-xl bg-violet-100 text-violet-700 ring-1 ring-inset ring-violet-200/80; }
+    .goods-name { @apply line-clamp-2 text-[13px] font-black leading-6 text-slate-900; }
+    .goods-caption { @apply mt-1 text-[9px] font-semibold text-slate-400; }
+    .goods-code { @apply inline-flex max-w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-1.5 font-mono text-[11px] font-black tracking-wide text-blue-700; }
+    .goods-unit { @apply inline-flex rounded-full border border-violet-100 bg-violet-50 px-3 py-1.5 text-[10px] font-extrabold text-violet-700; }
+    .goods-price { @apply whitespace-nowrap text-[12px] font-black text-slate-900; }
+    .goods-price-unit { @apply mr-1 text-[9px] font-semibold text-slate-400; }
+    .goods-tax { @apply inline-flex min-w-14 items-center justify-center rounded-full border px-2.5 py-1.5 text-[10px] font-black; }
+    .goods-taxable { @apply border-amber-200 bg-amber-50 text-amber-700; }
+    .goods-tax-exempt { @apply border-emerald-200 bg-emerald-50 text-emerald-700; }
+    .goods-table .table-actions-cell { @apply w-auto text-right; }
+    .goods-edit-action { @apply border-violet-200 bg-violet-50 text-violet-700 hover:border-violet-600 hover:bg-violet-600 hover:text-white; }
     .pagination-shell { @apply flex flex-col gap-4 border-t border-slate-100 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6; }
     .pagination-meta { @apply text-[10px] font-medium text-slate-500; }
     .pagination-meta strong { @apply font-black text-slate-800; }
@@ -225,4 +258,31 @@
     }
     .data-table th.table-actions-cell { @apply bg-slate-50; z-index: 3; }
     .data-table tbody tr:hover .table-actions-cell { @apply bg-teal-50; }
+}
+
+@media (max-width: 767px) {
+    .topbar-inner { @apply min-h-[74px]; }
+    .app-content { min-height: calc(100vh - 74px); }
+}
+
+@media (max-width: 1279px) {
+    .goods-table-wrap { @apply overflow-visible border-0 bg-transparent; }
+    .goods-table { @apply block w-full; }
+    .goods-table colgroup, .goods-table thead { @apply hidden; }
+    .goods-table tbody { @apply grid gap-3 bg-slate-50 p-3; }
+    .goods-table tbody tr, .goods-table tbody tr:nth-child(even) { @apply grid grid-cols-2 gap-x-4 gap-y-4 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm; box-shadow: none; }
+    .goods-table tbody tr:hover { @apply bg-white; box-shadow: none; }
+    .goods-table td, .goods-table td:first-child { @apply flex flex-col items-start border-0 p-0; }
+    .goods-table td::before { content: attr(data-label); @apply mb-1.5 text-[9px] font-bold text-slate-400; }
+    .goods-table td:nth-child(1) { @apply col-span-2 row-start-1 border-b border-slate-100 pb-3; }
+    .goods-table td:nth-child(1)::before { @apply hidden; }
+    .goods-table td:nth-child(2) { @apply row-start-2; }
+    .goods-table td:nth-child(4) { @apply row-start-2; }
+    .goods-table td:nth-child(3) { @apply row-start-3; }
+    .goods-table td:nth-child(5) { @apply row-start-3; }
+    .goods-table td:nth-child(6) { @apply col-span-2 row-start-4 border-t border-slate-100 pt-3; }
+    .goods-table .table-actions-cell { position: static; @apply col-span-2 row-start-5 w-full bg-transparent pt-1 shadow-none; }
+    .goods-table .table-row-actions { @apply grid w-full grid-cols-2 gap-2; }
+    .goods-table .table-row-actions form { @apply w-full; }
+    .goods-table .table-action { @apply w-full; }
 }

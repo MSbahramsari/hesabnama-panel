@@ -10,6 +10,17 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen text-slate-900 antialiased selection:bg-teal-200 selection:text-teal-950">
+    @php
+        $topbarContext = match (true) {
+            request()->routeIs('customers.*') => ['label' => 'مدیریت طرف‌حساب‌ها', 'icon' => 'users'],
+            request()->routeIs('goods.*') => ['label' => 'مدیریت کالا و خدمات', 'icon' => 'box'],
+            request()->routeIs('invoices.*') => ['label' => 'صورتحساب الکترونیکی', 'icon' => 'invoice'],
+            request()->routeIs('profile.*') => ['label' => 'تنظیمات حساب', 'icon' => 'settings'],
+            request()->routeIs('admin.users.*') => ['label' => 'مدیریت کاربران', 'icon' => 'users'],
+            request()->routeIs('admin.stuff-catalog.*') => ['label' => 'کاتالوگ رسمی', 'icon' => 'box'],
+            default => ['label' => 'نمای کلی سامانه', 'icon' => 'home'],
+        };
+    @endphp
     <div class="app-shell" data-app-shell>
         <div class="fixed inset-0 z-30 hidden bg-slate-950/45 backdrop-blur-sm lg:hidden" data-sidebar-backdrop></div>
 
@@ -95,20 +106,27 @@
 
         <main class="app-main min-h-screen lg:mr-72">
             <header class="app-topbar sticky top-0 z-20">
-                <div class="mx-auto flex h-[78px] max-w-[1600px] items-center gap-4 px-4 sm:px-6 lg:px-10">
+                <div class="topbar-inner">
                     <button type="button" class="icon-button lg:hidden" data-sidebar-toggle aria-label="باز کردن منو">
                         <x-icon name="menu" class="size-5" />
                     </button>
-                    <div class="min-w-0 flex-1">
-                        <div class="mb-0.5 hidden items-center gap-2 text-[10px] font-bold text-slate-400 sm:flex">
-                            <span>پنل مدیریت مالیاتی</span><span class="size-1 rounded-full bg-slate-300"></span><span>{{ \App\Support\JalaliDate::format(now()) }}</span>
-                        </div>
-                        <h1 class="truncate text-lg font-black tracking-tight text-slate-950 sm:text-xl">@yield('page-title', 'داشبورد')</h1>
-                        @hasSection('page-subtitle')
-                            <p class="mt-1 hidden truncate text-xs text-slate-500 lg:block">@yield('page-subtitle')</p>
-                        @endif
+                    <div class="topbar-page-icon">
+                        <x-icon :name="$topbarContext['icon']" class="size-5" />
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="min-w-0 flex-1">
+                        <div class="topbar-kicker">
+                            <span>{{ $topbarContext['label'] }}</span>
+                            <span class="topbar-kicker-dot"></span>
+                            <time>{{ \App\Support\JalaliDate::format(now()) }}</time>
+                        </div>
+                        <div class="flex min-w-0 items-baseline gap-3">
+                            <h1 class="topbar-title">@yield('page-title', 'داشبورد')</h1>
+                            @hasSection('page-subtitle')
+                                <p class="topbar-subtitle">@yield('page-subtitle')</p>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="topbar-tools">
                         <a href="{{ route('profile.edit') }}" class="topbar-profile hidden xl:flex">
                             <div class="avatar avatar-light">{{ mb_substr(auth()->user()->name, 0, 1) }}</div>
                             <div class="min-w-0 text-right">
