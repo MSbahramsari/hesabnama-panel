@@ -9,7 +9,8 @@ it('does not expose demo credentials on the login page', function () {
         ->assertDontSee('حساب آزمایشی')
         ->assertDontSee('demo@moadian.test')
         ->assertSee('name="remember"', false)
-        ->assertSee('مرا به خاطر بسپار');
+        ->assertSee('مرا به خاطر بسپار')
+        ->assertDontSee('(۳۰ روز)');
 
     expect(config('session.lifetime'))->toBe(180);
     expect(config('session.expire_on_close'))->toBeTrue();
