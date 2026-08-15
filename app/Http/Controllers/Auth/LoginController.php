@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
+use Illuminate\Auth\SessionGuard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +19,16 @@ class LoginController extends Controller
 
     public function store(LoginRequest $request): RedirectResponse
     {
-        if (! Auth::attempt($request->safe()->only(['email', 'password']))) {
+        $guard = Auth::guard();
+
+        if ($guard instanceof SessionGuard) {
+            $guard->setRememberDuration((int) config('auth.remember_duration'));
+        }
+
+        if (! $guard->attempt(
+            $request->safe()->only(['email', 'password']),
+            $request->boolean('remember'),
+        )) {
             return back()->withErrors(['email' => 'اطلاعات ورود صحیح نیست.'])->onlyInput('email');
         }
 

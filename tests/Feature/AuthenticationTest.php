@@ -1,15 +1,19 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 it('does not expose demo credentials on the login page', function () {
     $this->get(route('login'))
         ->assertSuccessful()
         ->assertDontSee('حساب آزمایشی')
         ->assertDontSee('demo@moadian.test')
-        ->assertDontSee('name="remember"', false);
+        ->assertSee('name="remember"', false)
+        ->assertSee('مرا به خاطر بسپار');
 
     expect(config('session.lifetime'))->toBe(180);
+    expect(config('session.expire_on_close'))->toBeTrue();
+    expect(config('auth.remember_duration'))->toBe(43200);
 });
 
 it('purges only the known seeded demo accounts', function () {
@@ -32,8 +36,11 @@ it('does not create demo data when the database seeder runs', function () {
     expect(User::query()->count())->toBe(0);
 });
 
-it('authenticates an active licensed user', function () {
-    $user = User::factory()->create(['email' => 'active@example.com']);
+it('authenticates an active licensed user without creating a remember token', function () {
+    $user = User::factory()->create([
+        'email' => 'active@example.com',
+        'remember_token' => null,
+    ]);
 
     $this->post(route('login.store'), [
         'email' => $user->email,
@@ -41,6 +48,25 @@ it('authenticates an active licensed user', function () {
     ])->assertRedirect(route('dashboard'));
 
     $this->assertAuthenticatedAs($user);
+    expect($user->refresh()->remember_token)->toBeNull();
+});
+
+it('keeps a remembered login for thirty days', function () {
+    $user = User::factory()->create([
+        'email' => 'remembered@example.com',
+        'remember_token' => null,
+    ]);
+    $recallerCookieName = Auth::guard()->getRecallerName();
+
+    $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+        'remember' => true,
+    ])->assertRedirect(route('dashboard'))
+        ->assertCookie($recallerCookieName);
+
+    $this->assertAuthenticatedAs($user);
+    expect($user->refresh()->remember_token)->not->toBeNull();
 });
 
 it('redirects an expired user to the license message', function () {

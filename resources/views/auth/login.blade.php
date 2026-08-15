@@ -18,6 +18,11 @@
             @csrf
             <x-form.input name="email" label="ایمیل" type="email" placeholder="name@company.ir" autocomplete="email" required />
             <x-form.input name="password" label="رمز عبور" type="password" placeholder="حداقل ۸ کاراکتر" autocomplete="current-password" required />
+            <label class="flex cursor-pointer items-center gap-2.5 text-sm font-semibold text-slate-600">
+                <input type="checkbox" name="remember" value="1" @checked(old('remember')) class="size-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                <span>مرا به خاطر بسپار</span>
+                <span class="text-xs font-medium text-slate-400">(۳۰ روز)</span>
+            </label>
             <button type="submit" class="btn-primary w-full justify-center py-3.5">ورود به داشبورد <x-icon name="arrow-left" class="size-4" /></button>
         </form>
     </div>

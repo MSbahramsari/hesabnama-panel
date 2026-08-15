@@ -20,6 +20,8 @@ return [
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
+    'remember_duration' => (int) env('AUTH_REMEMBER_DURATION', 43200),
+
     /*
     |--------------------------------------------------------------------------
     | Authentication Guards
