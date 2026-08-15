@@ -27,13 +27,13 @@
             <div class="table-wrap goods-table-wrap">
                 <table class="data-table goods-table">
                     <colgroup>
-                        <col class="w-[27%]">
+                        <col class="w-[25%]">
                         <col class="w-[17%]">
                         <col class="w-[10%]">
                         <col class="w-[14%]">
                         <col class="w-[10%]">
                         <col class="w-[9%]">
-                        <col class="w-[13%]">
+                        <col class="w-[15%]">
                     </colgroup>
                     <thead><tr><th>عنوان قلم</th><th>شناسه کالا/خدمت</th><th>واحد</th><th>قیمت واحد</th><th>نرخ مالیات</th><th>وضعیت</th><th class="table-actions-cell">عملیات</th></tr></thead>
                     <tbody>

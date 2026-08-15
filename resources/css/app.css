@@ -181,7 +181,10 @@
     .goods-tax { @apply inline-flex min-w-14 items-center justify-center rounded-full border px-2.5 py-1.5 text-[10px] font-black; }
     .goods-taxable { @apply border-amber-200 bg-amber-50 text-amber-700; }
     .goods-tax-exempt { @apply border-emerald-200 bg-emerald-50 text-emerald-700; }
-    .goods-table .table-actions-cell { @apply w-auto text-right; }
+    .goods-table .table-actions-cell { @apply w-auto px-4 text-center; }
+    .goods-table .table-row-actions { @apply mx-auto grid w-full max-w-[260px] grid-cols-2 gap-2; }
+    .goods-table .table-row-actions form { @apply w-full; }
+    .goods-table .table-action { @apply w-full; }
     .goods-edit-action { @apply border-violet-200 bg-violet-50 text-violet-700 hover:border-violet-600 hover:bg-violet-600 hover:text-white; }
     .pagination-shell { @apply flex flex-col gap-4 border-t border-slate-100 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6; }
     .pagination-meta { @apply text-[10px] font-medium text-slate-500; }
@@ -281,7 +284,7 @@
     .goods-table td:nth-child(3) { @apply row-start-3; }
     .goods-table td:nth-child(5) { @apply row-start-3; }
     .goods-table td:nth-child(6) { @apply col-span-2 row-start-4 border-t border-slate-100 pt-3; }
-    .goods-table .table-actions-cell { position: static; @apply col-span-2 row-start-5 w-full bg-transparent pt-1 shadow-none; }
+    .goods-table .table-actions-cell { position: static; @apply col-span-2 row-start-5 w-full bg-transparent px-0 pt-1 shadow-none; }
     .goods-table .table-row-actions { @apply grid w-full grid-cols-2 gap-2; }
     .goods-table .table-row-actions form { @apply w-full; }
     .goods-table .table-action { @apply w-full; }
