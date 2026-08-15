@@ -18,7 +18,7 @@ class LoginController extends Controller
 
     public function store(LoginRequest $request): RedirectResponse
     {
-        if (! Auth::attempt($request->safe()->only(['email', 'password']), $request->boolean('remember'))) {
+        if (! Auth::attempt($request->safe()->only(['email', 'password']))) {
             return back()->withErrors(['email' => 'اطلاعات ورود صحیح نیست.'])->onlyInput('email');
         }
 

@@ -21,9 +21,6 @@
                             </p>
                         </div>
                     </div>
-                    <a href="https://stuffid.tax.gov.ir" target="_blank" rel="noopener noreferrer" class="btn-secondary shrink-0">
-                        مرجع رسمی سازمان مالیاتی
-                    </a>
                 </div>
             </div>
 

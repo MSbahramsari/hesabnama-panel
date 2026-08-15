@@ -34,6 +34,15 @@ it('searches the catalog by description and filters the results', function () {
         ->assertDontSee('رایانه قابل حمل');
 });
 
+it('does not show the external official reference action', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('goods.create'))
+        ->assertOk()
+        ->assertDontSee('مرجع رسمی سازمان مالیاتی');
+});
+
 it('prefills the good form from the selected catalog row', function () {
     $user = User::factory()->create();
     $item = StuffCatalogItem::factory()->create([
