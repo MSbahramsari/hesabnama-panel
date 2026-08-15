@@ -15,7 +15,7 @@
             <div class="mt-6 space-y-3 border-t border-slate-100 pt-5">
                 <div class="flex justify-between text-sm"><span class="text-slate-500">پلن</span><strong>{{ auth()->user()->plan->label() }}</strong></div>
                 <div class="flex justify-between text-sm"><span class="text-slate-500">نقش</span><strong>{{ auth()->user()->role->label() }}</strong></div>
-                <div class="flex justify-between text-sm"><span class="text-slate-500">اعتبار تا</span><strong>{{ auth()->user()->license_expires_at?->format('Y/m/d') ?? 'بدون انقضا' }}</strong></div>
+                <div class="flex justify-between text-sm"><span class="text-slate-500">اعتبار تا</span><strong>{{ \App\Support\JalaliDate::format(auth()->user()->license_expires_at) ?? 'بدون انقضا' }}</strong></div>
             </div>
 
             <div class="mt-6 border-t border-slate-100 pt-5">

@@ -16,7 +16,7 @@
 <div class="grid gap-5 md:grid-cols-3">
     <div><label for="customer_id" class="form-label">مشتری <span class="text-rose-500">*</span></label><select id="customer_id" name="customer_id" class="form-control" required><option value="">انتخاب مشتری</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id', $invoice?->customer_id) === (string) $customer->id)>{{ $customer->name }} — {{ $customer->economic_code }}</option>@endforeach</select>@error('customer_id')<p class="mt-1.5 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror<a href="{{ route('customers.create') }}" class="mt-2 inline-flex text-xs font-bold text-teal-700">+ افزودن سریع مشتری</a></div>
     <x-form.input name="number" label="شماره صورتحساب" :value="$invoice?->number ?? $suggestedNumber" required />
-    <x-form.input name="invoice_date" label="تاریخ صورتحساب" type="date" :value="$invoice?->invoice_date?->format('Y-m-d') ?? today()->format('Y-m-d')" required />
+    <x-form.jalali-date name="invoice_date" label="تاریخ صورتحساب" :value="$invoice?->invoice_date ?? today()" required />
     <x-form.textarea name="description" label="توضیحات" :value="$invoice?->description" class="md:col-span-3" />
 </div>
 

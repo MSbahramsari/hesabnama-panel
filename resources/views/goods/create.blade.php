@@ -2,14 +2,11 @@
 @section('title', 'جست‌وجو و افزودن کالا یا خدمت')
 @section('page-title', 'کاتالوگ کالا و خدمات')
 @section('page-subtitle', 'جست‌وجوی نام یا شناسه، بررسی نرخ ارزش افزوده و افزودن مستقیم به اقلام شما')
-@section('page-actions')
-    <a href="{{ route('goods.index') }}" class="btn-secondary">
-        <x-icon name="arrow-left" class="size-4 rotate-180" />
-        <span class="hidden sm:inline">بازگشت</span>
-    </a>
-@endsection
 @section('content')
     <div class="space-y-5">
+        <div class="page-content-actions">
+            <a href="{{ route('goods.index') }}" class="btn-secondary"><x-icon name="arrow-left" class="size-4 rotate-180" />بازگشت</a>
+        </div>
         <div class="card">
             <div class="border-b border-slate-100 bg-gradient-to-l from-violet-50 to-white px-5 py-6 sm:px-7">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -111,8 +108,8 @@
                                             </td>
                                             <td data-label="بازه اعتبار">
                                                 <div class="catalog-validity">
-                                                    <div><span>از</span><time dir="ltr" class="catalog-date">{{ $item->effective_date ?: '—' }}</time></div>
-                                                    <div><span>تا</span><time dir="ltr" class="catalog-date">{{ $item->expiration_date ?: 'بدون انقضا' }}</time></div>
+                                                    <div><span>از</span><time dir="ltr" class="catalog-date">{{ \App\Support\JalaliDate::catalogDate($item->effective_date) ?: '—' }}</time></div>
+                                                    <div><span>تا</span><time dir="ltr" class="catalog-date">{{ \App\Support\JalaliDate::catalogDate($item->expiration_date) ?: 'بدون انقضا' }}</time></div>
                                                 </div>
                                             </td>
                                             <td data-label="عملیات" class="table-actions-cell">
@@ -180,7 +177,7 @@
                         <div class="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold leading-6 text-emerald-800">
                             {{ $selectedCatalogItem->type ?: 'کاتالوگ رسمی' }}
                             @if($selectedCatalogItem->effective_date)
-                                · اجرا از {{ $selectedCatalogItem->effective_date }}
+                                · اجرا از {{ \App\Support\JalaliDate::catalogDate($selectedCatalogItem->effective_date) }}
                             @endif
                         </div>
                     @endif

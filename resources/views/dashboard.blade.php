@@ -95,7 +95,7 @@
                                 <tr class="cursor-pointer" data-navigate="{{ route('invoices.show', $invoice) }}">
                                     <td><span class="table-primary">{{ $invoice->number }}</span></td>
                                     <td><span class="font-bold text-slate-700">{{ $invoice->customer->name }}</span></td>
-                                    <td dir="ltr" class="table-number text-right">{{ $invoice->invoice_date->format('Y/m/d') }}</td>
+                                    <td dir="ltr" class="table-number text-right">{{ \App\Support\JalaliDate::format($invoice->invoice_date) }}</td>
                                     <td class="table-number">{{ number_format($invoice->total) }}<small>ریال</small></td>
                                     <td><x-status-badge :status="$invoice->status" /></td>
                                 </tr>

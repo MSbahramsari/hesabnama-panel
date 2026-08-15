@@ -4,10 +4,6 @@
 @section('page-title', 'کاربران و مجوزها')
 @section('page-subtitle', 'ساخت حساب، تعیین پلن، دسترسی و تاریخ انقضا')
 
-@section('page-actions')
-    <a href="{{ route('admin.users.create') }}" class="btn-primary"><x-icon name="plus" class="size-4" /><span class="hidden sm:inline">کاربر جدید</span></a>
-@endsection
-
 @section('content')
     <div class="card">
         <div class="table-toolbar">
@@ -19,7 +15,10 @@
                 <button class="btn-secondary">جست‌وجو</button>
                 @if($search)<a href="{{ route('admin.users.index') }}" class="btn-secondary px-3" title="پاک کردن جست‌وجو">×</a>@endif
             </form>
-            <div class="table-count"><span class="size-1.5 rounded-full bg-blue-500"></span><strong>{{ number_format($users->total()) }}</strong> حساب کاربری</div>
+            <div class="flex items-center gap-2">
+                <div class="table-count"><span class="size-1.5 rounded-full bg-blue-500"></span><strong>{{ number_format($users->total()) }}</strong> حساب کاربری</div>
+                <a href="{{ route('admin.users.create') }}" class="btn-primary"><x-icon name="plus" class="size-4" /><span>کاربر جدید</span></a>
+            </div>
         </div>
 
         <div class="table-wrap">
@@ -31,7 +30,7 @@
                             <td><div class="table-primary">{{ $user->name }}</div><div dir="ltr" class="table-meta justify-end">{{ $user->email }}</div></td>
                             <td><span class="rounded-lg bg-blue-50 px-2.5 py-1.5 text-[10px] font-bold text-blue-700">{{ $user->role->label() }}</span></td>
                             <td class="font-bold text-slate-700">{{ $user->plan->label() }}</td>
-                            <td dir="ltr" class="table-number text-right">{{ $user->license_expires_at?->format('Y/m/d') ?? 'بدون انقضا' }}</td>
+                            <td dir="ltr" class="table-number text-right">{{ \App\Support\JalaliDate::format($user->license_expires_at) ?? 'بدون انقضا' }}</td>
                             <td>
                                 <div class="flex flex-wrap gap-1.5">
                                     @forelse($user->permissions ?? [] as $permission)

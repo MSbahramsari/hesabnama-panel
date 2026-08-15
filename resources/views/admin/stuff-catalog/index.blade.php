@@ -2,11 +2,11 @@
 @section('title', 'بروزرسانی کاتالوگ')
 @section('page-title', 'بروزرسانی کاتالوگ کالا و خدمات')
 @section('page-subtitle', 'ورود فایل رسمی، مشاهده تغییرات و کنترل زمان آخرین بروزرسانی')
-@section('page-actions')
-    <a href="{{ route('goods.create') }}" class="btn-secondary hidden sm:inline-flex">مشاهده جست‌وجوی کالا</a>
-@endsection
 @section('content')
     <div class="space-y-6">
+        <div class="page-content-actions">
+            <a href="{{ route('goods.create') }}" class="btn-secondary">مشاهده جست‌وجوی کالا</a>
+        </div>
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div class="metric-card">
                 <div class="metric-icon bg-violet-50 text-violet-700"><x-icon name="box" class="size-6" /></div>
@@ -23,7 +23,7 @@
             <div class="metric-card">
                 <div class="metric-icon bg-amber-50 text-amber-700"><x-icon name="settings" class="size-6" /></div>
                 <div>
-                    <div class="text-sm font-black leading-7 text-slate-950">{{ $lastSuccessfulImport?->completed_at?->format('Y/m/d H:i') ?? 'هنوز انجام نشده' }}</div>
+                    <div class="text-sm font-black leading-7 text-slate-950">{{ \App\Support\JalaliDate::format($lastSuccessfulImport?->completed_at, 'Y/m/d H:i') ?? 'هنوز انجام نشده' }}</div>
                     <div class="metric-label">آخرین بروزرسانی موفق</div>
                 </div>
             </div>
@@ -159,7 +159,7 @@
                                     <td class="font-bold text-blue-700">{{ number_format($import->updated_rows) }}</td>
                                     <td>{{ number_format($import->unchanged_rows) }}</td>
                                     <td class="font-bold text-rose-700">{{ number_format($import->skipped_rows) }}</td>
-                                    <td dir="ltr" class="text-right">{{ $import->completed_at?->format('Y/m/d H:i') ?? $import->started_at?->format('Y/m/d H:i') }}</td>
+                                    <td dir="ltr" class="text-right">{{ \App\Support\JalaliDate::format($import->completed_at ?? $import->started_at, 'Y/m/d H:i') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

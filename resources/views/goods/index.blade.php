@@ -4,10 +4,6 @@
 @section('page-title', 'کالا و خدمات')
 @section('page-subtitle', 'فهرست اقلام قابل استفاده در صورتحساب')
 
-@section('page-actions')
-    <a href="{{ route('goods.create') }}" class="btn-primary"><x-icon name="plus" class="size-4" /><span class="hidden sm:inline">قلم جدید</span></a>
-@endsection
-
 @section('content')
     <div class="card">
         <div class="table-toolbar">
@@ -19,7 +15,10 @@
                 <button class="btn-secondary">جست‌وجو</button>
                 @if($search)<a href="{{ route('goods.index') }}" class="btn-secondary px-3" title="پاک کردن جست‌وجو">×</a>@endif
             </form>
-            <div class="table-count"><span class="size-1.5 rounded-full bg-violet-500"></span><strong>{{ number_format($goods->total()) }}</strong> قلم ثبت‌شده</div>
+            <div class="flex items-center gap-2">
+                <div class="table-count"><span class="size-1.5 rounded-full bg-violet-500"></span><strong>{{ number_format($goods->total()) }}</strong> قلم ثبت‌شده</div>
+                <a href="{{ route('goods.create') }}" class="btn-primary"><x-icon name="plus" class="size-4" /><span>قلم جدید</span></a>
+            </div>
         </div>
 
         @if($goods->isEmpty())
@@ -37,7 +36,18 @@
                                 <td class="table-number">{{ number_format($good->unit_price) }}<small>ریال</small></td>
                                 <td class="table-number">{{ number_format($good->tax_rate, 0) }}<small>٪</small></td>
                                 <td><span @class(['status-badge', 'status-emerald' => $good->is_active, 'status-slate' => ! $good->is_active])>{{ $good->is_active ? 'فعال' : 'غیرفعال' }}</span></td>
-                                <td class="table-actions-cell"><a href="{{ route('goods.edit', $good) }}" class="table-action"><x-icon name="edit" />ویرایش</a></td>
+                                <td class="table-actions-cell">
+                                    <div class="table-row-actions">
+                                        <a href="{{ route('goods.edit', $good) }}" class="table-action"><x-icon name="edit" />ویرایش</a>
+                                        @can('delete', $good)
+                                            <form method="POST" action="{{ route('goods.destroy', $good) }}" data-confirm="این کالا یا خدمت حذف شود؟ این عملیات قابل بازگشت نیست.">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="table-action table-action-danger"><x-icon name="trash" />حذف</button>
+                                            </form>
+                                        @endcan
+                                    </div>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

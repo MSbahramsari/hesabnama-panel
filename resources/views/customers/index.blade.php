@@ -4,10 +4,6 @@
 @section('page-title', 'مشتریان')
 @section('page-subtitle', 'اطلاعات خریداران و طرف‌حساب‌ها را مدیریت کنید')
 
-@section('page-actions')
-    <a href="{{ route('customers.create') }}" class="btn-primary"><x-icon name="plus" class="size-4" /><span class="hidden sm:inline">مشتری جدید</span></a>
-@endsection
-
 @section('content')
     <div class="card">
         <div class="table-toolbar">
@@ -19,7 +15,10 @@
                 <button class="btn-secondary">جست‌وجو</button>
                 @if($search)<a href="{{ route('customers.index') }}" class="btn-secondary px-3" title="پاک کردن جست‌وجو">×</a>@endif
             </form>
-            <div class="table-count"><span class="size-1.5 rounded-full bg-teal-500"></span><strong>{{ number_format($customers->total()) }}</strong> مشتری ثبت‌شده</div>
+            <div class="flex items-center gap-2">
+                <div class="table-count"><span class="size-1.5 rounded-full bg-teal-500"></span><strong>{{ number_format($customers->total()) }}</strong> مشتری ثبت‌شده</div>
+                <a href="{{ route('customers.create') }}" class="btn-primary"><x-icon name="plus" class="size-4" /><span>مشتری جدید</span></a>
+            </div>
         </div>
 
         @if($customers->isEmpty())
@@ -36,7 +35,18 @@
                                 <td><span class="rounded-lg bg-slate-100 px-2.5 py-1.5 text-[10px] font-bold text-slate-600">{{ $customer->type === 'legal' ? 'حقوقی' : 'حقیقی' }}</span></td>
                                 <td dir="ltr" class="table-number text-right">{{ $customer->phone ?: '—' }}</td>
                                 <td><span @class(['status-badge', 'status-emerald' => $customer->is_active, 'status-slate' => ! $customer->is_active])>{{ $customer->is_active ? 'فعال' : 'غیرفعال' }}</span></td>
-                                <td class="table-actions-cell"><a href="{{ route('customers.edit', $customer) }}" class="table-action"><x-icon name="edit" />ویرایش</a></td>
+                                <td class="table-actions-cell">
+                                    <div class="table-row-actions">
+                                        <a href="{{ route('customers.edit', $customer) }}" class="table-action"><x-icon name="edit" />ویرایش</a>
+                                        @can('delete', $customer)
+                                            <form method="POST" action="{{ route('customers.destroy', $customer) }}" data-confirm="این مشتری حذف شود؟ این عملیات قابل بازگشت نیست.">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="table-action table-action-danger"><x-icon name="trash" />حذف</button>
+                                            </form>
+                                        @endcan
+                                    </div>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

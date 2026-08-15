@@ -69,6 +69,7 @@
     .btn-primary { @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-[0_5px_15px_rgba(15,118,110,.20)] hover:-translate-y-0.5 hover:bg-teal-800 hover:shadow-[0_8px_22px_rgba(15,118,110,.24)] focus:outline-none focus:ring-4 focus:ring-teal-100; }
     .btn-secondary { @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,.03)] hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-slate-100; }
     .btn-danger { @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-extrabold text-rose-700 shadow-[0_1px_2px_rgba(15,23,42,.03)] hover:-translate-y-0.5 hover:border-rose-600 hover:bg-rose-600 hover:text-white hover:shadow-md focus:outline-none focus:ring-4 focus:ring-rose-100; }
+    .page-content-actions { @apply flex flex-wrap items-center justify-start gap-2; }
     .card { @apply overflow-hidden rounded-[20px] border border-slate-200/75 bg-white shadow-[0_10px_35px_rgba(30,41,59,.045)]; }
     .card-header { @apply flex flex-col gap-4 border-b border-slate-100 bg-white px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6; }
     .card-title { @apply text-[15px] font-black tracking-tight text-slate-950; }
@@ -76,6 +77,18 @@
     .form-label { @apply mb-2 block text-xs font-bold text-slate-600; }
     .form-control { @apply block w-full rounded-xl border border-slate-200 bg-slate-50/45 px-3.5 py-3 text-sm font-medium text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,.02)] outline-none placeholder:font-normal placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-50; }
     .form-control-error { @apply border-rose-400 focus:border-rose-500 focus:ring-rose-50; }
+    .jalali-picker-panel { @apply fixed z-[70] max-h-[calc(100vh-24px)] w-80 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 text-right shadow-[0_24px_60px_rgba(15,23,42,.22)]; }
+    .jalali-picker-header { @apply flex items-center justify-between border-b border-slate-100 pb-3 text-sm text-slate-900; }
+    .jalali-picker-nav { @apply grid size-8 place-items-center rounded-lg text-slate-500 hover:bg-teal-50 hover:text-teal-700; }
+    .jalali-weekdays { @apply mt-3 grid grid-cols-7 text-center text-[10px] font-extrabold text-slate-400; }
+    .jalali-weekdays span { @apply py-2; }
+    .jalali-days { @apply grid grid-cols-7 gap-1; }
+    .jalali-day { @apply grid aspect-square place-items-center rounded-lg text-[11px] font-bold text-slate-600 hover:bg-teal-50 hover:text-teal-800; }
+    .jalali-day.is-today { @apply text-teal-700 ring-1 ring-inset ring-teal-300; }
+    .jalali-day.is-selected { @apply bg-teal-700 text-white shadow-sm ring-0 hover:bg-teal-800 hover:text-white; }
+    .jalali-day-placeholder { @apply aspect-square; }
+    .jalali-picker-footer { @apply mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-[10px] font-extrabold text-teal-700; }
+    .jalali-picker-footer button { @apply rounded-lg px-2.5 py-1.5 hover:bg-slate-100; }
     .metric-card { @apply relative flex min-h-32 items-start justify-between overflow-hidden rounded-[20px] border border-slate-200/75 bg-white p-5 shadow-[0_8px_28px_rgba(30,41,59,.04)] transition hover:-translate-y-1 hover:border-slate-300/80 hover:shadow-[0_14px_34px_rgba(30,41,59,.075)]; }
     .metric-card::after { content: ''; @apply absolute -bottom-9 -left-7 size-24 rounded-full bg-current opacity-[.035]; }
     .metric-icon { @apply grid size-11 shrink-0 place-items-center rounded-[14px] ring-1 ring-inset ring-current/10; }
@@ -107,9 +120,11 @@
     .table-code { @apply inline-flex rounded-md bg-slate-100 px-2 py-1 font-mono text-[11px] font-bold tracking-wide text-slate-600 ring-1 ring-inset ring-slate-200/70; }
     .table-number { @apply whitespace-nowrap font-extrabold text-slate-800; }
     .table-number small { @apply mr-1 font-medium text-slate-400; }
-    .table-actions-cell { @apply w-20 text-left; }
+    .table-actions-cell { @apply w-36 text-right; }
+    .table-row-actions { @apply inline-flex items-center justify-start gap-1.5; }
     .table-action { @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] font-extrabold text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,.04)] hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 hover:shadow-sm; }
     .table-action svg { @apply size-3.5; }
+    .table-action-danger { @apply border-rose-100 text-rose-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700; }
     .catalog-table { @apply min-w-0 table-fixed; }
     .catalog-table th { @apply border-teal-100 bg-teal-50/70 px-3 py-4 text-[11px] text-slate-600; }
     .catalog-table th:first-child { @apply pr-4; }

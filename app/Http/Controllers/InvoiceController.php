@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Models\Good;
 use App\Models\Invoice;
 use App\Services\Moadian\MoadianClientFactory;
+use App\Support\JalaliDate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -108,6 +109,6 @@ class InvoiceController extends Controller
         $goods = Good::query()->whereBelongsTo($user)->where('is_active', true)->orderBy('name')->get();
         $sequence = Invoice::query()->whereBelongsTo($user)->whereYear('created_at', now()->year)->count() + 1;
 
-        return ['customers' => $customers, 'goods' => $goods, 'suggestedNumber' => 'INV-'.now()->format('Ym').'-'.str_pad((string) $sequence, 4, '0', STR_PAD_LEFT)];
+        return ['customers' => $customers, 'goods' => $goods, 'suggestedNumber' => 'INV-'.JalaliDate::format(now(), 'Ym').'-'.str_pad((string) $sequence, 4, '0', STR_PAD_LEFT)];
     }
 }

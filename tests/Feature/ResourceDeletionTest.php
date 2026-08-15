@@ -97,7 +97,9 @@ it('shows navigation deletion and logout controls in the panel', function () {
     $this->actingAs($user)
         ->get(route('invoices.create'))
         ->assertOk()
-        ->assertSee('بازگشت');
+        ->assertSee('بازگشت')
+        ->assertSee('data-jalali-date', false)
+        ->assertDontSee('type="date"', false);
 
     $this->actingAs($user)
         ->get(route('customers.edit', $customer))
@@ -110,6 +112,18 @@ it('shows navigation deletion and logout controls in the panel', function () {
         ->assertOk()
         ->assertSee('حذف قلم')
         ->assertSee(route('goods.destroy', $good), false);
+
+    $this->actingAs($user)
+        ->get(route('customers.index'))
+        ->assertOk()
+        ->assertSee(route('customers.destroy', $customer), false)
+        ->assertSee('table-row-actions', false);
+
+    $this->actingAs($user)
+        ->get(route('goods.index'))
+        ->assertOk()
+        ->assertSee(route('goods.destroy', $good), false)
+        ->assertSee('table-row-actions', false);
 
     $this->actingAs($user)
         ->get(route('dashboard'))

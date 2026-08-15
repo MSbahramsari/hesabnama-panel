@@ -101,7 +101,7 @@
                     </button>
                     <div class="min-w-0 flex-1">
                         <div class="mb-0.5 hidden items-center gap-2 text-[10px] font-bold text-slate-400 sm:flex">
-                            <span>پنل مدیریت مالیاتی</span><span class="size-1 rounded-full bg-slate-300"></span><span>{{ now()->format('Y/m/d') }}</span>
+                            <span>پنل مدیریت مالیاتی</span><span class="size-1 rounded-full bg-slate-300"></span><span>{{ \App\Support\JalaliDate::format(now()) }}</span>
                         </div>
                         <h1 class="truncate text-lg font-black tracking-tight text-slate-950 sm:text-xl">@yield('page-title', 'داشبورد')</h1>
                         @hasSection('page-subtitle')
@@ -109,7 +109,6 @@
                         @endif
                     </div>
                     <div class="flex items-center gap-2">
-                        @yield('page-actions')
                         <a href="{{ route('profile.edit') }}" class="topbar-profile hidden xl:flex">
                             <div class="avatar avatar-light">{{ mb_substr(auth()->user()->name, 0, 1) }}</div>
                             <div class="min-w-0 text-right">

@@ -19,7 +19,7 @@ it('allows an admin to provision a licensed user', function () {
         'role' => UserRole::Member->value,
         'plan' => Plan::Business->value,
         'permissions' => ['customers', 'goods', 'invoices'],
-        'license_expires_at' => now()->addYear()->format('Y-m-d'),
+        'license_expires_at_jalali' => '1406/05/24',
         'is_active' => true,
         'taxpayer_name' => 'شرکت کاربر تازه',
         'taxpayer_type' => 'legal',
@@ -37,6 +37,7 @@ it('allows an admin to provision a licensed user', function () {
 
     expect($user->permissions)->toBe(['customers', 'goods', 'invoices'])
         ->and($user->hasActiveLicense())->toBeTrue()
+        ->and($user->license_expires_at->format('Y-m-d'))->toBe('2027-08-15')
         ->and($user->taxpayerProfile->fiscal_id)->toBe('ABC123')
         ->and($user->taxpayerProfile->private_key)->toBe($privateKey)
         ->and($storedPrivateKey)->not->toBe($privateKey);
@@ -90,5 +91,7 @@ it('renders the taxpayer fields on the account creation form', function () {
     $this->actingAs($admin)
         ->get(route('admin.users.create'))
         ->assertSuccessful()
-        ->assertSee('اطلاعات اتصال به سامانه مودیان');
+        ->assertSee('اطلاعات اتصال به سامانه مودیان')
+        ->assertSee('data-jalali-date', false)
+        ->assertDontSee('type="date"', false);
 });

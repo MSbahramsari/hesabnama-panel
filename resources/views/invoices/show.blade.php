@@ -2,26 +2,20 @@
 @section('title', $invoice->number)
 @section('page-title', 'جزئیات صورتحساب')
 @section('page-subtitle', $invoice->number.' — '.$invoice->customer->name)
-@section('page-actions')
-    <a href="{{ route('invoices.index') }}" class="btn-secondary">
-        <x-icon name="arrow-left" class="size-4 rotate-180" />
-        <span class="hidden sm:inline">بازگشت</span>
-    </a>
-    @if($invoice->isEditable())
-        <a href="{{ route('invoices.edit', $invoice) }}" class="btn-secondary">ویرایش</a>
-    @endif
-    @can('delete', $invoice)
-        <form method="POST" action="{{ route('invoices.destroy', $invoice) }}" data-confirm="این پیش‌نویس صورتحساب حذف شود؟ این عملیات قابل بازگشت نیست.">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn-danger">
-                <x-icon name="trash" class="size-4" />
-                <span class="hidden sm:inline">حذف</span>
-            </button>
-        </form>
-    @endcan
-@endsection
 @section('content')
+    <div class="page-content-actions mb-5">
+        <a href="{{ route('invoices.index') }}" class="btn-secondary"><x-icon name="arrow-left" class="size-4 rotate-180" />بازگشت</a>
+        @if($invoice->isEditable())
+            <a href="{{ route('invoices.edit', $invoice) }}" class="btn-secondary"><x-icon name="edit" class="size-4" />ویرایش</a>
+        @endif
+        @can('delete', $invoice)
+            <form method="POST" action="{{ route('invoices.destroy', $invoice) }}" data-confirm="این پیش‌نویس صورتحساب حذف شود؟ این عملیات قابل بازگشت نیست.">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn-danger"><x-icon name="trash" class="size-4" />حذف</button>
+            </form>
+        @endcan
+    </div>
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div class="space-y-6">
             <div class="card p-5 sm:p-7">
@@ -29,7 +23,7 @@
                     <div>
                         <div class="text-xs font-bold text-slate-400">شماره صورتحساب</div>
                         <div class="mt-2 text-2xl font-black tracking-tight text-slate-950">{{ $invoice->number }}</div>
-                        <div class="mt-2 text-sm text-slate-500">تاریخ صدور: {{ $invoice->invoice_date->format('Y/m/d') }}</div>
+                        <div class="mt-2 text-sm text-slate-500">تاریخ صدور: {{ \App\Support\JalaliDate::format($invoice->invoice_date) }}</div>
                     </div>
                     <x-status-badge :status="$invoice->status" />
                 </div>
@@ -96,9 +90,9 @@
             <div class="card p-5">
                 <h3 class="card-title">چرخه ارسال</h3>
                 <div class="mt-5 space-y-0">
-                    <div class="timeline-step done"><span>ثبت پیش‌نویس</span><small>{{ $invoice->created_at->format('Y/m/d H:i') }}</small></div>
-                    <div @class(['timeline-step', 'done' => $invoice->sent_at, 'current' => !$invoice->sent_at])><span>ارسال به مودیان</span><small>{{ $invoice->sent_at?->format('Y/m/d H:i') ?? 'در انتظار اقدام' }}</small></div>
-                    <div @class(['timeline-step', 'done' => $invoice->confirmed_at, 'current' => $invoice->status === \App\Enums\InvoiceStatus::AwaitingConfirmation])><span>تأیید مودیان</span><small>{{ $invoice->confirmed_at?->format('Y/m/d H:i') ?? 'در انتظار پاسخ' }}</small></div>
+                    <div class="timeline-step done"><span>ثبت پیش‌نویس</span><small>{{ \App\Support\JalaliDate::format($invoice->created_at, 'Y/m/d H:i') }}</small></div>
+                    <div @class(['timeline-step', 'done' => $invoice->sent_at, 'current' => !$invoice->sent_at])><span>ارسال به مودیان</span><small>{{ \App\Support\JalaliDate::format($invoice->sent_at, 'Y/m/d H:i') ?? 'در انتظار اقدام' }}</small></div>
+                    <div @class(['timeline-step', 'done' => $invoice->confirmed_at, 'current' => $invoice->status === \App\Enums\InvoiceStatus::AwaitingConfirmation])><span>تأیید مودیان</span><small>{{ \App\Support\JalaliDate::format($invoice->confirmed_at, 'Y/m/d H:i') ?? 'در انتظار پاسخ' }}</small></div>
                 </div>
 
                 @can('send', $invoice)

@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Customer;
 use App\Models\Good;
 use App\Models\Invoice;
+use App\Support\JalaliDate;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -13,6 +14,15 @@ class SaveInvoiceRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user()?->hasPermission('invoices') ?? false;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('invoice_date_jalali')) {
+            $this->merge([
+                'invoice_date' => JalaliDate::toGregorianDate($this->string('invoice_date_jalali')->toString()),
+            ]);
+        }
     }
 
     /** @return array<string, array<int, mixed>> */

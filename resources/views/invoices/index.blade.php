@@ -2,12 +2,6 @@
 @section('title', 'صورتحساب‌ها')
 @section('page-title', 'صورتحساب‌ها')
 @section('page-subtitle', 'جست‌وجو، ارسال گروهی و پیگیری وضعیت صورتحساب‌ها')
-@section('page-actions')
-    <a href="{{ route('invoices.create') }}" class="btn-primary">
-        <x-icon name="plus" class="size-4" />
-        <span class="hidden sm:inline">صورتحساب جدید</span>
-    </a>
-@endsection
 @section('content')
     @if(!$moadianIsReal)
         <div class="mb-5 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm leading-7 text-blue-900">
@@ -38,7 +32,10 @@
                 </select>
                 <button class="btn-secondary justify-center">اعمال فیلتر</button>
             </form>
-            <div class="table-count"><span class="size-1.5 rounded-full bg-amber-500"></span><strong>{{ number_format($invoices->total()) }}</strong> صورتحساب</div>
+            <div class="flex items-center gap-2">
+                <div class="table-count"><span class="size-1.5 rounded-full bg-amber-500"></span><strong>{{ number_format($invoices->total()) }}</strong> صورتحساب</div>
+                <a href="{{ route('invoices.create') }}" class="btn-primary"><x-icon name="plus" class="size-4" /><span>صورتحساب جدید</span></a>
+            </div>
         </div>
 
         @if($invoices->isEmpty())
@@ -66,7 +63,7 @@
                                 <td><input type="checkbox" name="invoice_ids[]" value="{{ $invoice->id }}" @disabled(!$canSend) class="size-4 rounded border-slate-300 text-teal-600 disabled:opacity-30" data-invoice-checkbox></td>
                                 <td><a href="{{ route('invoices.show', $invoice) }}" class="table-primary hover:text-teal-700">{{ $invoice->number }}</a><div class="table-meta">ثبت‌شده در سامانه</div></td>
                                 <td><div class="table-primary font-extrabold">{{ $invoice->customer->name }}</div><div dir="ltr" class="table-meta justify-end">{{ $invoice->customer->economic_code }}</div></td>
-                                <td dir="ltr" class="table-number text-right">{{ $invoice->invoice_date->format('Y/m/d') }}</td>
+                                <td dir="ltr" class="table-number text-right">{{ \App\Support\JalaliDate::format($invoice->invoice_date) }}</td>
                                 <td class="table-number">{{ number_format($invoice->total) }}<small>ریال</small></td>
                                 <td><x-status-badge :status="$invoice->status" /></td>
                                 <td class="table-actions-cell"><a href="{{ route('invoices.show', $invoice) }}" class="table-action"><x-icon name="eye" />جزئیات</a></td>

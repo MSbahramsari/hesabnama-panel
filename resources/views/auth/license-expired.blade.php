@@ -9,7 +9,7 @@
         <p class="mt-4 text-sm leading-8 text-slate-500">اعتبار حساب شما به پایان رسیده یا توسط مدیر غیرفعال شده است. برای تمدید پلن با مدیر سامانه تماس بگیرید.</p>
         <div class="mt-7 rounded-2xl border border-slate-200 bg-white p-5 text-right shadow-sm">
             <div class="flex items-center justify-between gap-4 py-2 text-sm"><span class="text-slate-500">حساب</span><strong>{{ auth()->user()->email }}</strong></div>
-            <div class="flex items-center justify-between gap-4 border-t border-slate-100 py-2 text-sm"><span class="text-slate-500">پایان اعتبار</span><strong>{{ auth()->user()->license_expires_at?->format('Y/m/d') ?? 'تعیین نشده' }}</strong></div>
+            <div class="flex items-center justify-between gap-4 border-t border-slate-100 py-2 text-sm"><span class="text-slate-500">پایان اعتبار</span><strong>{{ \App\Support\JalaliDate::format(auth()->user()->license_expires_at) ?? 'تعیین نشده' }}</strong></div>
         </div>
         <form method="POST" action="{{ route('logout') }}" class="mt-7">
             @csrf

@@ -7,6 +7,7 @@ use App\Enums\UserRole;
 use App\Models\TaxpayerProfile;
 use App\Models\User;
 use App\Rules\ValidPrivateKey;
+use App\Support\JalaliDate;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -20,11 +21,18 @@ class SaveUserRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge([
+        $prepared = [
             'permissions' => $this->input('permissions', []),
             'is_active' => $this->boolean('is_active'),
             'fiscal_id' => Str::upper(trim((string) $this->input('fiscal_id'))),
-        ]);
+        ];
+
+        if ($this->has('license_expires_at_jalali')) {
+            $jalaliDate = $this->string('license_expires_at_jalali')->trim()->toString();
+            $prepared['license_expires_at'] = $jalaliDate === '' ? null : JalaliDate::toGregorianDate($jalaliDate);
+        }
+
+        $this->merge($prepared);
     }
 
     /** @return array<string, array<int, mixed>> */

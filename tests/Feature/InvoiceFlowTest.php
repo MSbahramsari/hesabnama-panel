@@ -39,6 +39,27 @@ it('creates an invoice and calculates its totals on the server', function () {
         ->and($invoice->items)->toHaveCount(1);
 });
 
+it('accepts a jalali invoice date and stores its gregorian equivalent', function () {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->for($user)->create();
+    $good = Good::factory()->for($user)->create();
+
+    $this->actingAs($user)->post(route('invoices.store'), [
+        'customer_id' => $customer->id,
+        'number' => 'INV-JALALI-0001',
+        'invoice_date_jalali' => '۱۴۰۵/۰۵/۲۴',
+        'items' => [[
+            'good_id' => $good->id,
+            'quantity' => 1,
+            'unit_price' => 1000000,
+            'tax_rate' => 10,
+            'discount' => 0,
+        ]],
+    ])->assertRedirect();
+
+    expect(Invoice::whereBelongsTo($user)->firstOrFail()->invoice_date->format('Y-m-d'))->toBe('2026-08-15');
+});
+
 it('moves selected invoices through send confirmation and buyer status', function () {
     $user = User::factory()->create();
     $customer = Customer::factory()->for($user)->create();
