@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'داشبورد') | مودیان‌یار</title>
+    <title>@yield('title', 'داشبورد') | {{ config('app.name') }}</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -28,11 +28,11 @@
             <div class="flex h-full flex-col">
                 <div class="sidebar-brand">
                     <div class="brand-mark" aria-hidden="true">
-                        <span>م</span>
+                        <span>ح</span>
                         <i></i>
                     </div>
                     <div>
-                        <div class="text-lg font-black tracking-tight text-white">مودیان‌یار</div>
+                        <div class="text-lg font-black tracking-tight text-white">{{ config('app.name') }}</div>
                         <div class="mt-0.5 text-[11px] font-medium text-slate-400">مدیریت هوشمند امور مالیاتی</div>
                     </div>
                 </div>

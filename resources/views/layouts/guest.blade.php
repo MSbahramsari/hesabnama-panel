@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'ورود') | مودیان‌یار</title>
+    <title>@yield('title', 'ورود') | {{ config('app.name') }}</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -15,9 +15,9 @@
             <div class="guest-glow guest-glow-one"></div>
             <div class="guest-glow guest-glow-two"></div>
             <div class="relative z-10 flex items-center gap-3 text-white">
-                <div class="grid size-12 place-items-center rounded-2xl bg-teal-300 text-xl font-black text-slate-950">م</div>
+                <div class="grid size-12 place-items-center rounded-2xl bg-teal-300 text-xl font-black text-slate-950">ح</div>
                 <div>
-                    <div class="text-xl font-extrabold">مودیان‌یار</div>
+                    <div class="text-xl font-extrabold">{{ config('app.name') }}</div>
                     <div class="text-xs text-slate-400">سامانه مدیریت صورتحساب الکترونیکی</div>
                 </div>
             </div>
@@ -37,8 +37,8 @@
         <section class="flex items-center justify-center bg-slate-50 px-5 py-12 sm:px-10">
             <div class="w-full max-w-md">
                 <div class="mb-10 flex items-center gap-3 lg:hidden">
-                    <div class="grid size-11 place-items-center rounded-2xl bg-slate-900 text-lg font-black text-teal-300">م</div>
-                    <div class="text-xl font-extrabold">مودیان‌یار</div>
+                    <div class="grid size-11 place-items-center rounded-2xl bg-slate-900 text-lg font-black text-teal-300">ح</div>
+                    <div class="text-xl font-extrabold">{{ config('app.name') }}</div>
                 </div>
                 @yield('content')
             </div>
