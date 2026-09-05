@@ -12,6 +12,17 @@
     </div>
 @endif
 
+@if(session('import_errors'))
+    <div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950" role="alert">
+        <div class="font-black">ردیف‌های پردازش‌نشده</div>
+        <ul class="mt-2 list-inside list-disc space-y-1 text-xs leading-6 text-amber-800">
+            @foreach(session('import_errors') as $importError)
+                <li>{{ $importError }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 @if($errors->any())
     <div class="mb-6 flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900 shadow-sm" role="alert">
         <span class="grid size-7 shrink-0 place-items-center rounded-full bg-rose-500 text-white"><x-icon name="warning" class="size-4" /></span>

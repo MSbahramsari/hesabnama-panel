@@ -1,5 +1,7 @@
 @props(['invoice' => null, 'customers', 'goods', 'suggestedNumber'])
 @php
+    $isCorrection = $invoice?->invoice_type === \App\Enums\InvoiceType::Correction;
+    $settlementMethod = old('settlement_method', $invoice?->settlement_method?->value ?? \App\Enums\SettlementMethod::Cash->value);
     $initialItems = old('items');
     if ($initialItems === null && $invoice) {
         $initialItems = $invoice->items->map(fn ($item) => [
@@ -13,10 +15,42 @@
     $initialItems ??= [['good_id' => $goods->first()?->id, 'quantity' => 1, 'unit_price' => $goods->first()?->unit_price ?? 0, 'tax_rate' => $goods->first()?->tax_rate ?? 10, 'discount' => 0]];
 @endphp
 
+@if($invoice && $invoice->invoice_type !== \App\Enums\InvoiceType::Original)
+    <div @class(['mb-6 rounded-2xl border p-4 text-sm leading-7', 'border-blue-200 bg-blue-50 text-blue-900' => $isCorrection, 'border-rose-200 bg-rose-50 text-rose-900' => !$isCorrection])>
+        <strong>صورتحساب {{ $invoice->invoice_type->label() }}</strong>
+        @if($invoice->referenceInvoice)
+            <span>— مرجع: {{ $invoice->referenceInvoice->number }} / {{ $invoice->referenceInvoice->tax_id }}</span>
+        @endif
+    </div>
+@endif
+
 <div class="grid gap-5 md:grid-cols-3">
-    <div><label for="customer_id" class="form-label">مشتری <span class="text-rose-500">*</span></label><select id="customer_id" name="customer_id" class="form-control" required><option value="">انتخاب مشتری</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id', $invoice?->customer_id) === (string) $customer->id)>{{ $customer->name }} — {{ $customer->economic_code }}</option>@endforeach</select>@error('customer_id')<p class="mt-1.5 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror<a href="{{ route('customers.create') }}" class="mt-2 inline-flex text-xs font-bold text-teal-700">+ افزودن سریع مشتری</a></div>
+    <div>
+        <label for="customer_id" class="form-label">مشتری <span class="text-rose-500">*</span></label>
+        @if($isCorrection)
+            <input type="hidden" name="customer_id" value="{{ $invoice->customer_id }}">
+            <div class="form-control bg-slate-100 text-slate-500">{{ $invoice->referenceInvoice->customer->name ?? $customers->firstWhere('id', $invoice->customer_id)?->name }}</div>
+            <p class="mt-2 text-[10px] text-slate-400">خریدار صورتحساب اصلاحی باید با مرجع یکسان باشد.</p>
+        @else
+            <select id="customer_id" name="customer_id" class="form-control" required><option value="">انتخاب مشتری</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id', $invoice?->customer_id) === (string) $customer->id)>{{ $customer->name }} — {{ $customer->economic_code }}</option>@endforeach</select>
+            <a href="{{ route('customers.create') }}" class="mt-2 inline-flex text-xs font-bold text-teal-700">+ افزودن سریع مشتری</a>
+        @endif
+        @error('customer_id')<p class="mt-1.5 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
+    </div>
     <x-form.input name="number" label="شماره صورتحساب" :value="$invoice?->number ?? $suggestedNumber" required />
     <x-form.jalali-date name="invoice_date" label="تاریخ صورتحساب" :value="$invoice?->invoice_date ?? today()" required />
+    <div>
+        <label for="settlement_method" class="form-label">روش تسویه <span class="text-rose-500">*</span></label>
+        <select id="settlement_method" name="settlement_method" class="form-control" data-settlement-method required>
+            @foreach(\App\Enums\SettlementMethod::cases() as $method)
+                <option value="{{ $method->value }}" @selected($settlementMethod === $method->value)>{{ $method->label() }}</option>
+            @endforeach
+        </select>
+        @error('settlement_method')<p class="mt-1.5 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
+    </div>
+    <div data-cash-amount-field @class(['hidden' => $settlementMethod !== \App\Enums\SettlementMethod::Mixed->value])>
+        <x-form.input name="cash_amount" label="مبلغ پرداختی نقدی (بدون مالیات)" type="number" min="1" step="1" :value="$invoice?->settlement_method === \App\Enums\SettlementMethod::Mixed ? $invoice->cash_amount : null" />
+    </div>
     <x-form.textarea name="description" label="توضیحات" :value="$invoice?->description" class="md:col-span-3" />
 </div>
 

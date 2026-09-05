@@ -3,6 +3,7 @@
 use App\Contracts\TaxPlatformGateway;
 use App\Enums\BuyerStatus;
 use App\Enums\InvoiceStatus;
+use App\Enums\SettlementMethod;
 use App\Exceptions\MoadianApiException;
 use App\Models\Customer;
 use App\Models\Good;
@@ -58,6 +59,65 @@ it('accepts a jalali invoice date and stores its gregorian equivalent', function
     ])->assertRedirect();
 
     expect(Invoice::whereBelongsTo($user)->firstOrFail()->invoice_date->format('Y-m-d'))->toBe('2026-08-15');
+});
+
+it('stores mixed settlement and validates its cash portion', function () {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->for($user)->create();
+    $good = Good::factory()->for($user)->create();
+
+    $this->actingAs($user)->post(route('invoices.store'), [
+        'customer_id' => $customer->id,
+        'number' => 'INV-MIXED-0001',
+        'invoice_date' => today()->format('Y-m-d'),
+        'settlement_method' => SettlementMethod::Mixed->value,
+        'cash_amount' => 900_000,
+        'items' => [[
+            'good_id' => $good->id,
+            'quantity' => 2,
+            'unit_price' => 1_000_000,
+            'tax_rate' => 10,
+            'discount' => 200_000,
+        ]],
+    ])->assertRedirect();
+
+    $invoice = Invoice::query()->whereBelongsTo($user)->firstOrFail();
+    expect($invoice->settlement_method)->toBe(SettlementMethod::Mixed)
+        ->and((float) $invoice->cash_amount)->toBe(900_000.0);
+
+    $this->actingAs($user)->post(route('invoices.store'), [
+        'customer_id' => $customer->id,
+        'number' => 'INV-MIXED-INVALID',
+        'invoice_date' => today()->format('Y-m-d'),
+        'settlement_method' => SettlementMethod::Mixed->value,
+        'cash_amount' => 3_000_000,
+        'items' => [[
+            'good_id' => $good->id,
+            'quantity' => 1,
+            'unit_price' => 1_000_000,
+            'tax_rate' => 10,
+            'discount' => 0,
+        ]],
+    ])->assertSessionHasErrors('cash_amount');
+});
+
+it('searches invoices by their unique tax number', function () {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->for($user)->create();
+    Invoice::factory()->for($user)->for($customer)->create([
+        'number' => 'VISIBLE-INVOICE',
+        'tax_id' => 'ABC1230000000000000001',
+    ]);
+    Invoice::factory()->for($user)->for($customer)->create([
+        'number' => 'HIDDEN-INVOICE',
+        'tax_id' => 'ABC1230000000000000002',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('invoices.index', ['q' => 'ABC1230000000000000001']))
+        ->assertSuccessful()
+        ->assertSee('VISIBLE-INVOICE')
+        ->assertDontSee('HIDDEN-INVOICE');
 });
 
 it('moves selected invoices through send confirmation and buyer status', function () {

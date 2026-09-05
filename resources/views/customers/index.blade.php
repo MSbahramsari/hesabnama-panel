@@ -15,11 +15,15 @@
                 <button class="btn-secondary">جست‌وجو</button>
                 @if($search)<a href="{{ route('customers.index') }}" class="btn-secondary px-3" title="پاک کردن جست‌وجو">×</a>@endif
             </form>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
                 <div class="table-count"><span class="size-1.5 rounded-full bg-teal-500"></span><strong>{{ number_format($customers->total()) }}</strong> مشتری ثبت‌شده</div>
+                <a href="{{ route('customers.export', request()->query()) }}" class="btn-secondary">خروجی اکسل</a>
+                <button type="button" class="btn-secondary" data-import-toggle="customers-import">ورود اکسل</button>
                 <a href="{{ route('customers.create') }}" class="btn-primary"><x-icon name="plus" class="size-4" /><span>مشتری جدید</span></a>
             </div>
         </div>
+
+        <x-spreadsheet-import-panel id="customers-import" :action="route('customers.import')" :template="route('customers.template')" title="ورود گروهی مشتریان" />
 
         @if($customers->isEmpty())
             <x-empty-state title="مشتری‌ای پیدا نشد" description="برای شروع، اطلاعات مشتری را با کد اقتصادی استعلام و ذخیره کنید." :action="route('customers.create')" action-label="افزودن مشتری" />

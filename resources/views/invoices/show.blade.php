@@ -15,6 +15,16 @@
                 <button type="submit" class="btn-danger"><x-icon name="trash" class="size-4" />حذف</button>
             </form>
         @endcan
+        @can('adjust', $invoice)
+            <form method="POST" action="{{ route('invoices.correction', $invoice) }}">
+                @csrf
+                <button type="submit" class="btn-secondary"><x-icon name="edit" class="size-4" />ساخت صورتحساب اصلاحی</button>
+            </form>
+            <form method="POST" action="{{ route('invoices.cancellation', $invoice) }}" data-confirm="صورتحساب ابطالی برای این مرجع ساخته شود؟">
+                @csrf
+                <button type="submit" class="btn-danger"><x-icon name="warning" class="size-4" />ساخت صورتحساب ابطالی</button>
+            </form>
+        @endcan
     </div>
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div class="space-y-6">
@@ -25,7 +35,7 @@
                         <div class="mt-2 text-2xl font-black tracking-tight text-slate-950">{{ $invoice->number }}</div>
                         <div class="mt-2 text-sm text-slate-500">تاریخ صدور: {{ \App\Support\JalaliDate::format($invoice->invoice_date) }}</div>
                     </div>
-                    <x-status-badge :status="$invoice->status" />
+                    <div class="flex flex-wrap gap-2"><x-status-badge :status="$invoice->invoice_type" /><x-status-badge :status="$invoice->status" /></div>
                 </div>
                 <div class="mt-7 grid gap-4 border-t border-slate-100 pt-6 sm:grid-cols-2">
                     <div>
@@ -33,6 +43,20 @@
                         <div class="mt-2 font-extrabold">{{ $invoice->customer->name }}</div>
                         <div dir="ltr" class="mt-1 text-right text-sm text-slate-500">{{ $invoice->customer->economic_code }}</div>
                     </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-400">روش تسویه</div>
+                        <div class="mt-2 font-extrabold">{{ $invoice->settlement_method->label() }}</div>
+                        @if($invoice->settlement_method === \App\Enums\SettlementMethod::Mixed)
+                            <div class="mt-1 text-xs text-slate-500">پرداخت نقدی: {{ number_format($invoice->cash_amount) }} ریال</div>
+                        @endif
+                    </div>
+                    @if($invoice->referenceInvoice)
+                        <div>
+                            <div class="text-xs font-bold text-slate-400">صورتحساب مرجع</div>
+                            <a href="{{ route('invoices.show', $invoice->referenceInvoice) }}" class="mt-2 inline-flex font-extrabold text-teal-700">{{ $invoice->referenceInvoice->number }}</a>
+                            <div dir="ltr" class="mt-1 text-right font-mono text-xs text-slate-500">{{ $invoice->referenceInvoice->tax_id }}</div>
+                        </div>
+                    @endif
                     <div>
                         <div class="text-xs font-bold text-slate-400">شناسه ارسال</div>
                         <div dir="ltr" class="mt-2 break-all text-right font-mono text-xs text-slate-600">{{ $invoice->submission_uid ?? 'هنوز ارسال نشده' }}</div>
@@ -84,6 +108,20 @@
                     <div class="flex justify-between border-t border-slate-200 pt-3 text-base"><span class="font-bold">مبلغ نهایی</span><strong class="text-lg text-teal-700">{{ number_format($invoice->total) }} ریال</strong></div>
                 </div>
             </div>
+
+            @if($invoice->adjustments->isNotEmpty())
+                <div class="card">
+                    <div class="card-header"><div><h3 class="card-title">صورتحساب‌های ارجاعی</h3><p class="card-subtitle">اصلاح یا ابطال‌های صادرشده برای این صورتحساب</p></div></div>
+                    <div class="divide-y divide-slate-100">
+                        @foreach($invoice->adjustments as $adjustment)
+                            <a href="{{ route('invoices.show', $adjustment) }}" class="flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-slate-50 sm:px-6">
+                                <div><strong class="text-xs text-slate-900">{{ $adjustment->number }}</strong><div class="mt-1 text-[10px] text-slate-400">{{ \App\Support\JalaliDate::format($adjustment->invoice_date) }}</div></div>
+                                <div class="flex items-center gap-2"><x-status-badge :status="$adjustment->invoice_type" /><x-status-badge :status="$adjustment->status" /></div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
 
         <aside class="space-y-5">

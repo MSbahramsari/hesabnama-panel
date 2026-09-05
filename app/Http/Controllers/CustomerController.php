@@ -25,7 +25,8 @@ class CustomerController extends Controller
             ->when(! $user->isAdmin(), fn (Builder $query) => $query->whereBelongsTo($user))
             ->when($search, fn (Builder $query) => $query->where(fn (Builder $query) => $query
                 ->where('name', 'like', "%{$search}%")
-                ->orWhere('economic_code', 'like', "%{$search}%")))
+                ->orWhere('economic_code', 'like', "%{$search}%")
+                ->orWhere('national_id', 'like', "%{$search}%")))
             ->latest()
             ->paginate(12)
             ->withQueryString();

@@ -11,6 +11,7 @@
         $pendingCount = (int) ($statusCounts['pending_send'] ?? 0) + (int) ($statusCounts['awaiting_confirmation'] ?? 0);
         $errorCount = (int) ($statusCounts['moadian_error'] ?? 0);
         $draftCount = (int) ($statusCounts['draft'] ?? 0);
+        $maxPeriodSale = max((float) $periodSales->max('total'), 1);
     @endphp
 
     <section class="dashboard-hero mb-6">
@@ -66,6 +67,40 @@
         <div class="metric-card text-emerald-600">
             <div><div class="metric-label">مبلغ تأییدشده</div><div class="metric-value text-xl">{{ number_format($metrics['confirmed_total']) }}</div><div class="metric-caption">ریال تأییدشده توسط مودیان</div></div>
             <div class="metric-icon bg-emerald-50"><x-icon name="check" class="size-5" /></div>
+        </div>
+    </section>
+
+    <section class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,.85fr)]">
+        <div class="card p-5 sm:p-6">
+            <div class="flex items-start justify-between gap-4">
+                <div><h3 class="card-title">میزان فروش دوره</h3><p class="card-subtitle">فروش مؤثر شش ماه اخیر پس از اعمال اصلاح و ابطال</p></div>
+                <div class="rounded-xl bg-teal-50 px-3 py-2 text-left"><div class="text-[9px] font-bold text-teal-600">فروش ماه جاری</div><strong class="mt-1 block text-sm text-teal-900">{{ number_format($metrics['period_total']) }} ریال</strong></div>
+            </div>
+            <div class="mt-7 grid h-52 grid-cols-6 items-end gap-2 sm:gap-4">
+                @foreach($periodSales as $period)
+                    <div class="flex h-full flex-col justify-end gap-2 text-center">
+                        <div class="text-[9px] font-bold text-slate-500">{{ $period['total'] > 0 ? number_format($period['total']) : '۰' }}</div>
+                        <div class="mx-auto w-full max-w-12 rounded-t-xl bg-gradient-to-t from-teal-700 to-teal-400 transition hover:from-teal-800" style="height: {{ max(($period['total'] / $maxPeriodSale) * 145, 4) }}px"></div>
+                        <div dir="ltr" class="text-[9px] font-bold text-slate-400">{{ $period['label'] }}</div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><div><h3 class="card-title">گزارش فروش کالا و خدمات</h3><p class="card-subtitle">پرفروش‌ترین اقلام بر مبنای مبلغ نهایی</p></div></div>
+            @if($topGoods->isEmpty())
+                <x-empty-state title="هنوز فروش تأییدشده‌ای نیست" description="پس از تأیید صورتحساب، گزارش اقلام اینجا نمایش داده می‌شود." />
+            @else
+                <div class="divide-y divide-slate-100">
+                    @foreach($topGoods as $goodSale)
+                        <div class="flex items-center justify-between gap-4 px-5 py-4 sm:px-6">
+                            <div class="min-w-0"><div class="truncate text-xs font-black text-slate-900">{{ $goodSale->description }}</div><div class="mt-1 text-[10px] text-slate-400">{{ number_format($goodSale->quantity_sum, 3) }} واحد فروش</div></div>
+                            <strong class="shrink-0 text-xs text-teal-700">{{ number_format($goodSale->total_sum) }} ریال</strong>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
     </section>
 

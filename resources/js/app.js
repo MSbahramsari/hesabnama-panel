@@ -28,6 +28,15 @@ document.querySelectorAll('[data-confirm]').forEach((form) => {
     });
 });
 
+document.querySelectorAll('[data-import-toggle]').forEach((button) => {
+    button.addEventListener('click', () => {
+        const panel = document.getElementById(button.dataset.importToggle);
+
+        panel?.classList.toggle('hidden');
+        panel?.querySelector('input[type="file"]')?.focus();
+    });
+});
+
 const normalizeDateDigits = (value) => String(value || '').replace(/[۰-۹٠-٩]/g, (digit) => ({
     '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4', '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
     '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
@@ -475,9 +484,18 @@ if (invoiceForm) {
     const itemsContainer = invoiceForm.querySelector('[data-invoice-items]');
     const template = document.querySelector('#invoice-item-template');
     const formatter = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 });
+    const settlementMethod = invoiceForm.querySelector('[data-settlement-method]');
+    const cashAmountField = invoiceForm.querySelector('[data-cash-amount-field]');
     let nextIndex = itemsContainer.querySelectorAll('[data-invoice-item]').length;
 
     const money = (value) => `${formatter.format(Math.round(value || 0))} ریال`;
+
+    const syncSettlementFields = () => {
+        const isMixed = settlementMethod?.value === 'mixed';
+
+        cashAmountField?.classList.toggle('hidden', !isMixed);
+        cashAmountField?.querySelector('input')?.toggleAttribute('required', isMixed);
+    };
 
     const recalculate = () => {
         let subtotal = 0;
@@ -537,5 +555,7 @@ if (invoiceForm) {
         recalculate();
     });
 
+    settlementMethod?.addEventListener('change', syncSettlementFields);
+    syncSettlementFields();
     recalculate();
 }

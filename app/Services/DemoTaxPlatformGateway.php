@@ -42,7 +42,7 @@ class DemoTaxPlatformGateway implements TaxPlatformGateway
 
     public function submit(Invoice $invoice): SubmissionResult
     {
-        return new SubmissionResult((string) Str::uuid(), (string) Str::uuid());
+        return new SubmissionResult((string) Str::uuid(), (string) Str::uuid(), mb_strtoupper(Str::random(22)));
     }
 
     public function inquire(Invoice $invoice): InquiryResult

@@ -19,10 +19,10 @@
 
     <div class="card">
         <div class="table-toolbar">
-            <form method="GET" class="grid w-full gap-2 sm:max-w-3xl sm:grid-cols-[minmax(0,1fr)_190px_auto]">
+            <form method="GET" class="grid w-full gap-2 xl:max-w-4xl xl:grid-cols-[minmax(0,1fr)_160px_150px_auto]">
                 <div class="relative">
                     <x-icon name="search" class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                    <input name="q" value="{{ $search }}" class="form-control pr-10" placeholder="شماره فاکتور یا نام مشتری">
+                    <input name="q" value="{{ $search }}" class="form-control pr-10" placeholder="شماره داخلی، شماره مالیاتی یا نام مشتری">
                 </div>
                 <select name="status" class="form-control">
                     <option value="">همه وضعیت‌ها</option>
@@ -30,13 +30,23 @@
                         <option value="{{ $option->value }}" @selected($status === $option->value)>{{ $option->label() }}</option>
                     @endforeach
                 </select>
+                <select name="type" class="form-control">
+                    <option value="">همه انواع</option>
+                    @foreach($types as $option)
+                        <option value="{{ $option->value }}" @selected($type === $option->value)>{{ $option->label() }}</option>
+                    @endforeach
+                </select>
                 <button class="btn-secondary justify-center">اعمال فیلتر</button>
             </form>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
                 <div class="table-count"><span class="size-1.5 rounded-full bg-amber-500"></span><strong>{{ number_format($invoices->total()) }}</strong> صورتحساب</div>
+                <a href="{{ route('invoices.export', request()->query()) }}" class="btn-secondary">خروجی اکسل</a>
+                <button type="button" class="btn-secondary" data-import-toggle="invoices-import">ورود اکسل</button>
                 <a href="{{ route('invoices.create') }}" class="btn-primary"><x-icon name="plus" class="size-4" /><span>صورتحساب جدید</span></a>
             </div>
         </div>
+
+        <x-spreadsheet-import-panel id="invoices-import" :action="route('invoices.import')" :template="route('invoices.template')" title="ورود گروهی صورتحساب‌ها" />
 
         @if($invoices->isEmpty())
             <x-empty-state title="صورتحسابی پیدا نشد" description="فیلترها را تغییر دهید یا اولین صورتحساب را بسازید." :action="route('invoices.create')" action-label="ساخت صورتحساب" />
@@ -55,13 +65,14 @@
                 </div>
                 <div class="table-wrap">
                     <table class="data-table">
-                        <thead><tr><th class="w-10"></th><th>صورتحساب</th><th>مشتری</th><th>تاریخ صدور</th><th>مبلغ نهایی</th><th>وضعیت</th><th class="table-actions-cell">عملیات</th></tr></thead>
+                        <thead><tr><th class="w-10"></th><th>صورتحساب</th><th>نوع و تسویه</th><th>مشتری</th><th>تاریخ صدور</th><th>مبلغ نهایی</th><th>وضعیت</th><th class="table-actions-cell">عملیات</th></tr></thead>
                         <tbody>
                         @foreach($invoices as $invoice)
                             @php($canSend = $invoice->user_id === auth()->id() && in_array($invoice->status, [\App\Enums\InvoiceStatus::Draft, \App\Enums\InvoiceStatus::PendingSend, \App\Enums\InvoiceStatus::MoadianError], true))
                             <tr>
                                 <td><input type="checkbox" name="invoice_ids[]" value="{{ $invoice->id }}" @disabled(!$canSend) class="size-4 rounded border-slate-300 text-teal-600 disabled:opacity-30" data-invoice-checkbox></td>
-                                <td><a href="{{ route('invoices.show', $invoice) }}" class="table-primary hover:text-teal-700">{{ $invoice->number }}</a><div class="table-meta">ثبت‌شده در سامانه</div></td>
+                                <td><a href="{{ route('invoices.show', $invoice) }}" class="table-primary hover:text-teal-700">{{ $invoice->number }}</a><div dir="ltr" class="table-meta justify-end">{{ $invoice->tax_id ?: 'بدون شماره مالیاتی' }}</div></td>
+                                <td><x-status-badge :status="$invoice->invoice_type" /><div class="mt-1 text-[10px] font-bold text-slate-400">{{ $invoice->settlement_method->label() }}</div></td>
                                 <td><div class="table-primary font-extrabold">{{ $invoice->customer->name }}</div><div dir="ltr" class="table-meta justify-end">{{ $invoice->customer->economic_code }}</div></td>
                                 <td dir="ltr" class="table-number text-right">{{ \App\Support\JalaliDate::format($invoice->invoice_date) }}</td>
                                 <td class="table-number">{{ number_format($invoice->total) }}<small>ریال</small></td>

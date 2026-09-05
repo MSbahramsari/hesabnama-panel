@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\SaveInvoiceAction;
 use App\Enums\InvoiceStatus;
+use App\Enums\InvoiceType;
 use App\Http\Requests\SaveInvoiceRequest;
 use App\Models\Customer;
 use App\Models\Good;
@@ -25,16 +26,19 @@ class InvoiceController extends Controller
         $user = $request->user();
         $search = $request->string('q')->trim()->toString();
         $status = $request->string('status')->toString();
+        $type = $request->string('type')->toString();
         $moadianConfiguration = $clientFactory->configurationForUser($user);
 
         $invoices = Invoice::query()
-            ->select(['id', 'user_id', 'customer_id', 'number', 'invoice_date', 'status', 'buyer_status', 'total', 'created_at'])
+            ->select(['id', 'user_id', 'customer_id', 'reference_invoice_id', 'number', 'tax_id', 'invoice_date', 'invoice_type', 'settlement_method', 'status', 'buyer_status', 'total', 'created_at'])
             ->with('customer:id,name,economic_code')
             ->when(! $user->isAdmin(), fn (Builder $query) => $query->whereBelongsTo($user))
             ->when($search, fn (Builder $query) => $query->where(fn (Builder $query) => $query
                 ->where('number', 'like', "%{$search}%")
+                ->orWhere('tax_id', 'like', "%{$search}%")
                 ->orWhereHas('customer', fn (Builder $query) => $query->where('name', 'like', "%{$search}%"))))
             ->when(InvoiceStatus::tryFrom($status), fn (Builder $query) => $query->where('status', $status))
+            ->when(InvoiceType::tryFrom($type), fn (Builder $query) => $query->where('invoice_type', $type))
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -43,7 +47,9 @@ class InvoiceController extends Controller
             'invoices' => $invoices,
             'search' => $search,
             'status' => $status,
+            'type' => $type,
             'statuses' => InvoiceStatus::cases(),
+            'types' => InvoiceType::cases(),
             'moadianIsReal' => $moadianConfiguration->isReal(),
             'moadianIsReady' => $moadianConfiguration->isReady(),
         ]);
@@ -67,7 +73,7 @@ class InvoiceController extends Controller
     public function show(Invoice $invoice, MoadianClientFactory $clientFactory): View
     {
         Gate::authorize('view', $invoice);
-        $invoice->load(['customer', 'items.good']);
+        $invoice->load(['customer', 'items.good', 'referenceInvoice', 'adjustments']);
         $moadianConfiguration = $clientFactory->configurationForUser($invoice->user);
 
         return view('invoices.show', [
@@ -80,9 +86,9 @@ class InvoiceController extends Controller
     public function edit(Request $request, Invoice $invoice): View
     {
         Gate::authorize('update', $invoice);
-        $invoice->load('items');
+        $invoice->load(['items', 'referenceInvoice.items', 'referenceInvoice.customer']);
 
-        return view('invoices.edit', array_merge($this->formData($request), compact('invoice')));
+        return view('invoices.edit', array_merge($this->formData($request, $invoice), compact('invoice')));
     }
 
     public function update(SaveInvoiceRequest $request, Invoice $invoice, SaveInvoiceAction $action): RedirectResponse
@@ -102,11 +108,19 @@ class InvoiceController extends Controller
     }
 
     /** @return array{customers: Collection<int, Customer>, goods: Collection<int, Good>, suggestedNumber: string} */
-    private function formData(Request $request): array
+    private function formData(Request $request, ?Invoice $invoice = null): array
     {
         $user = $request->user();
         $customers = Customer::query()->whereBelongsTo($user)->where('is_active', true)->orderBy('name')->get();
-        $goods = Good::query()->whereBelongsTo($user)->where('is_active', true)->orderBy('name')->get();
+        $goods = Good::query()
+            ->whereBelongsTo($user)
+            ->where('is_active', true)
+            ->when(
+                $invoice?->invoice_type === InvoiceType::Correction,
+                fn (Builder $query) => $query->whereIn('id', $invoice->referenceInvoice?->items->pluck('good_id')->filter() ?? []),
+            )
+            ->orderBy('name')
+            ->get();
         $sequence = Invoice::query()->whereBelongsTo($user)->whereYear('created_at', now()->year)->count() + 1;
 
         return ['customers' => $customers, 'goods' => $goods, 'suggestedNumber' => 'INV-'.JalaliDate::format(now(), 'Ym').'-'.str_pad((string) $sequence, 4, '0', STR_PAD_LEFT)];

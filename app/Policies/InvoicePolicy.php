@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\InvoiceType;
 use App\Models\Invoice;
 use App\Models\User;
 
@@ -53,5 +54,14 @@ class InvoicePolicy
     public function updateBuyerStatus(User $user, Invoice $invoice): bool
     {
         return $this->view($user, $invoice) && $invoice->status === InvoiceStatus::Confirmed;
+    }
+
+    public function adjust(User $user, Invoice $invoice): bool
+    {
+        return $this->view($user, $invoice)
+            && $invoice->status === InvoiceStatus::Confirmed
+            && $invoice->invoice_type !== InvoiceType::Cancellation
+            && filled($invoice->tax_id)
+            && ! $invoice->adjustments()->where('status', InvoiceStatus::Confirmed)->exists();
     }
 }

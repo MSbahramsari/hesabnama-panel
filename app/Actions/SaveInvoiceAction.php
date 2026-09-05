@@ -3,20 +3,23 @@
 namespace App\Actions;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\SettlementMethod;
 use App\Models\Good;
 use App\Models\Invoice;
 use App\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class SaveInvoiceAction
 {
-    /** @param array{customer_id: int, number: string, invoice_date: string, description?: string|null, items: array<int, array{good_id: int, quantity: numeric-string|int|float, unit_price: numeric-string|int|float, tax_rate: numeric-string|int|float, discount?: numeric-string|int|float}>} $data */
+    /** @param array{customer_id: int, number: string, invoice_date: string, description?: string|null, settlement_method: string, cash_amount?: numeric-string|int|float|null, items: array<int, array{good_id: int, quantity: numeric-string|int|float, unit_price: numeric-string|int|float, tax_rate: numeric-string|int|float, discount?: numeric-string|int|float}>} $data */
     public function handle(User $user, array $data, ?Invoice $invoice = null): Invoice
     {
         return DB::transaction(function () use ($user, $data, $invoice): Invoice {
             $invoice ??= new Invoice(['user_id' => $user->id]);
-            $invoice->fill(Arr::only($data, ['customer_id', 'number', 'invoice_date', 'description']));
+            $data['settlement_method'] ??= $invoice->settlement_method?->value ?? SettlementMethod::Cash->value;
+            $invoice->fill(Arr::only($data, ['customer_id', 'number', 'invoice_date', 'description', 'settlement_method']));
             $invoice->status = InvoiceStatus::Draft;
             $invoice->save();
 
@@ -61,11 +64,26 @@ class SaveInvoiceAction
                 $taxTotal += $taxAmount;
             }
 
+            $netAmount = $subtotal - $discountTotal;
+            $settlementMethod = SettlementMethod::from($data['settlement_method']);
+            $cashAmount = match ($settlementMethod) {
+                SettlementMethod::Cash => $netAmount,
+                SettlementMethod::Credit => 0,
+                SettlementMethod::Mixed => round((float) ($data['cash_amount'] ?? 0), 2),
+            };
+
+            if ($settlementMethod === SettlementMethod::Mixed && ($cashAmount <= 0 || $cashAmount >= $netAmount)) {
+                throw ValidationException::withMessages([
+                    'cash_amount' => 'مبلغ نقدی در روش ترکیبی باید بزرگ‌تر از صفر و کم‌تر از مبلغ قبل از مالیات باشد.',
+                ]);
+            }
+
             $invoice->update([
                 'subtotal' => $subtotal,
                 'discount_total' => $discountTotal,
                 'tax_total' => $taxTotal,
-                'total' => $subtotal - $discountTotal + $taxTotal,
+                'total' => $netAmount + $taxTotal,
+                'cash_amount' => $cashAmount,
             ]);
 
             return $invoice->load(['customer', 'items.good']);

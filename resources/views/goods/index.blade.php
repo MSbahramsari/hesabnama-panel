@@ -15,11 +15,15 @@
                 <button class="btn-secondary">جست‌وجو</button>
                 @if($search)<a href="{{ route('goods.index') }}" class="btn-secondary px-3" title="پاک کردن جست‌وجو">×</a>@endif
             </form>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
                 <div class="table-count"><span class="size-1.5 rounded-full bg-violet-500"></span><strong>{{ number_format($goods->total()) }}</strong> قلم ثبت‌شده</div>
+                <a href="{{ route('goods.export', request()->query()) }}" class="btn-secondary">خروجی اکسل</a>
+                <button type="button" class="btn-secondary" data-import-toggle="goods-import">ورود اکسل</button>
                 <a href="{{ route('goods.create') }}" class="btn-primary"><x-icon name="plus" class="size-4" /><span>قلم جدید</span></a>
             </div>
         </div>
+
+        <x-spreadsheet-import-panel id="goods-import" :action="route('goods.import')" :template="route('goods.template')" title="ورود گروهی کالا و خدمات" />
 
         @if($goods->isEmpty())
             <x-empty-state title="کالا یا خدمتی پیدا نشد" description="شناسه کالا را استعلام کنید و اولین قلم را بسازید." :action="route('goods.create')" action-label="افزودن قلم" />
