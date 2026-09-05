@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Models\Good;
 use App\Models\Invoice;
 use App\Models\User;
+use App\Services\Moadian\SubmissionResult;
 use Mockery\MockInterface;
 
 use function Pest\Laravel\mock;
@@ -140,6 +141,30 @@ it('moves selected invoices through send confirmation and buyer status', functio
     ])->assertSessionHas('success');
 
     expect($invoice->refresh()->buyer_status)->toBe(BuyerStatus::Accepted);
+});
+
+it('stores reference numbers returned by moadian that are longer than a uuid', function () {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->for($user)->create();
+    $invoice = Invoice::factory()->for($user)->for($customer)->create(['status' => InvoiceStatus::Draft]);
+    $referenceNumber = 'cSLFe66gE0TjE7SPowPt3z_7YUK_PEcTCEQvHw';
+
+    mock(TaxPlatformGateway::class, function (MockInterface $mock) use ($referenceNumber): void {
+        $mock->shouldReceive('submit')->once()->andReturn(new SubmissionResult(
+            'f4431dd9-fbaa-46a3-a0ca-171101ec4fbd',
+            $referenceNumber,
+            'A2W5X6050D100000000065',
+        ));
+        $mock->shouldReceive('isDemo')->once()->andReturnFalse();
+    });
+
+    $this->actingAs($user)
+        ->post(route('invoices.send'), ['invoice_ids' => [$invoice->id]])
+        ->assertRedirect()
+        ->assertSessionHas('success');
+
+    expect($invoice->refresh()->reference_number)->toBe($referenceNumber)
+        ->and($invoice->status)->toBe(InvoiceStatus::AwaitingConfirmation);
 });
 
 it('shows an integration error instead of returning a server error during inquiry', function () {
