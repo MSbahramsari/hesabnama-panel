@@ -9,6 +9,7 @@ use App\Http\Requests\SaveGoodRequest;
 use App\Models\Good;
 use App\Models\StuffCatalogItem;
 use App\Services\StuffCatalogMetadata;
+use App\Support\MeasurementUnitCode;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -138,7 +139,7 @@ class GoodController extends Controller
         return redirect()->route('goods.index')->with('success', 'کالا یا خدمت با موفقیت حذف شد.');
     }
 
-    /** @return array{name: string, unit: string, unit_price: int, tax_rate: float, measurement_unit_code: null} */
+    /** @return array{name: string, unit: string, unit_price: int, tax_rate: float, measurement_unit_code: string} */
     private function catalogLookupResult(StuffCatalogItem $item): array
     {
         return [
@@ -146,7 +147,7 @@ class GoodController extends Controller
             'unit' => str_contains((string) $item->type, 'خدمت') ? 'خدمت' : 'عدد',
             'unit_price' => 0,
             'tax_rate' => (float) $item->vat,
-            'measurement_unit_code' => null,
+            'measurement_unit_code' => MeasurementUnitCode::resolve(),
         ];
     }
 

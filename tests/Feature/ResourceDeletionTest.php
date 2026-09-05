@@ -99,6 +99,8 @@ it('shows navigation deletion and logout controls in the panel', function () {
         ->assertOk()
         ->assertSee('بازگشت')
         ->assertSee('data-jalali-date', false)
+        ->assertSee('data-invoice-items-empty', false)
+        ->assertDontSee('name="items[0][good_id]"', false)
         ->assertDontSee('type="date"', false);
 
     $this->actingAs($user)

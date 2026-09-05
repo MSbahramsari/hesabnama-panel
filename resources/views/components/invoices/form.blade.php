@@ -12,7 +12,7 @@
             'discount' => $item->discount,
         ])->all();
     }
-    $initialItems ??= [['good_id' => $goods->first()?->id, 'quantity' => 1, 'unit_price' => $goods->first()?->unit_price ?? 0, 'tax_rate' => $goods->first()?->tax_rate ?? 10, 'discount' => 0]];
+    $initialItems ??= [];
 @endphp
 
 @if($invoice && $invoice->invoice_type !== \App\Enums\InvoiceType::Original)
@@ -62,6 +62,10 @@
 
 @error('items')<p class="mt-3 text-sm font-semibold text-rose-600">{{ $message }}</p>@enderror
 <div class="mt-5 space-y-3" data-invoice-items>
+    <div data-invoice-items-empty @class(['rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-8 text-center', 'hidden' => count($initialItems) > 0])>
+        <div class="font-extrabold text-slate-700">هنوز قلمی به صورتحساب اضافه نشده است.</div>
+        <p class="mt-1 text-xs leading-6 text-slate-500">برای انتخاب کالا یا خدمت، روی «افزودن ردیف» بزنید.</p>
+    </div>
     @foreach($initialItems as $index => $item)
         <div class="invoice-item-row" data-invoice-item>
             <div class="invoice-item-number">{{ $loop->iteration }}</div>

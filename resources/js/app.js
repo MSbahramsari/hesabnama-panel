@@ -482,6 +482,7 @@ const invoiceForm = document.querySelector('[data-invoice-form]');
 
 if (invoiceForm) {
     const itemsContainer = invoiceForm.querySelector('[data-invoice-items]');
+    const itemsEmptyState = invoiceForm.querySelector('[data-invoice-items-empty]');
     const template = document.querySelector('#invoice-item-template');
     const formatter = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 });
     const settlementMethod = invoiceForm.querySelector('[data-settlement-method]');
@@ -502,7 +503,10 @@ if (invoiceForm) {
         let discountTotal = 0;
         let taxTotal = 0;
 
-        itemsContainer.querySelectorAll('[data-invoice-item]').forEach((row, position) => {
+        const rows = itemsContainer.querySelectorAll('[data-invoice-item]');
+        itemsEmptyState?.classList.toggle('hidden', rows.length > 0);
+
+        rows.forEach((row, position) => {
             row.querySelector('.invoice-item-number').textContent = String(position + 1);
             const quantity = Number(row.querySelector('[data-quantity]')?.value || 0);
             const unitPrice = Number(row.querySelector('[data-unit-price]')?.value || 0);
@@ -534,10 +538,8 @@ if (invoiceForm) {
 
         row.querySelectorAll('input').forEach((input) => input.addEventListener('input', recalculate));
         row.querySelector('[data-remove-invoice-item]')?.addEventListener('click', () => {
-            if (itemsContainer.querySelectorAll('[data-invoice-item]').length > 1) {
-                row.remove();
-                recalculate();
-            }
+            row.remove();
+            recalculate();
         });
     };
 

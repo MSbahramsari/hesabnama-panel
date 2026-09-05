@@ -3,11 +3,19 @@
 namespace App\Http\Requests;
 
 use App\Models\Good;
+use App\Support\MeasurementUnitCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class SaveGoodRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'measurement_unit_code' => MeasurementUnitCode::resolve($this->input('measurement_unit_code')),
+        ]);
+    }
+
     public function authorize(): bool
     {
         return $this->user()?->hasPermission('goods') ?? false;
@@ -22,7 +30,7 @@ class SaveGoodRequest extends FormRequest
             'commodity_code' => ['required', 'digits_between:8,20', Rule::unique((new Good)->getTable())->where('user_id', $this->user()->id)->ignore($good)],
             'name' => ['required', 'string', 'max:255'],
             'unit' => ['required', 'string', 'max:40'],
-            'measurement_unit_code' => ['nullable', 'digits_between:1,10'],
+            'measurement_unit_code' => ['required', 'digits_between:1,10'],
             'unit_price' => ['required', 'numeric', 'min:0', 'max:9999999999999999'],
             'tax_rate' => ['required', 'numeric', 'min:0', 'max:100'],
             'is_active' => ['required', 'boolean'],

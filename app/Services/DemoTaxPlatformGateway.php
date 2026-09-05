@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\User;
 use App\Services\Moadian\InquiryResult;
 use App\Services\Moadian\SubmissionResult;
+use App\Support\MeasurementUnitCode;
 use Illuminate\Support\Str;
 
 class DemoTaxPlatformGateway implements TaxPlatformGateway
@@ -34,9 +35,9 @@ class DemoTaxPlatformGateway implements TaxPlatformGateway
     public function lookupGood(User $user, string $commodityCode): ?array
     {
         return [
-            '10000001' => ['name' => 'خدمات مشاوره مالیاتی', 'unit' => 'ساعت', 'unit_price' => 25000000, 'tax_rate' => 10],
-            '10000002' => ['name' => 'نرم‌افزار حسابداری ابری', 'unit' => 'اشتراک', 'unit_price' => 85000000, 'tax_rate' => 10],
-            '10000003' => ['name' => 'خدمات پشتیبانی سامانه', 'unit' => 'ماه', 'unit_price' => 18000000, 'tax_rate' => 10],
+            '10000001' => ['name' => 'خدمات مشاوره مالیاتی', 'unit' => 'ساعت', 'unit_price' => 25000000, 'tax_rate' => 10, 'measurement_unit_code' => MeasurementUnitCode::resolve()],
+            '10000002' => ['name' => 'نرم‌افزار حسابداری ابری', 'unit' => 'اشتراک', 'unit_price' => 85000000, 'tax_rate' => 10, 'measurement_unit_code' => MeasurementUnitCode::resolve()],
+            '10000003' => ['name' => 'خدمات پشتیبانی سامانه', 'unit' => 'ماه', 'unit_price' => 18000000, 'tax_rate' => 10, 'measurement_unit_code' => MeasurementUnitCode::resolve()],
         ][$commodityCode] ?? null;
     }
 

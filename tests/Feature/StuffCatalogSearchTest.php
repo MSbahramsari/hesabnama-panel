@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Good;
 use App\Models\StuffCatalogItem;
 use App\Models\User;
 
@@ -62,7 +63,27 @@ it('prefills the good form from the selected catalog row', function () {
         ->assertSee('اختصاصی خدمت')
         ->assertSee('data-selected-catalog-form', false)
         ->assertSee('قلم از کاتالوگ رسمی انتخاب شد')
+        ->assertDontSee('کد واحد اندازه‌گیری مودیان')
+        ->assertSee('name="measurement_unit_code" value="1627"', false)
         ->assertSee('value="10"', false);
+});
+
+it('assigns the measurement unit code automatically when a good is saved', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('goods.store'), [
+        'commodity_code' => '2330000000005',
+        'name' => 'خدمات حسابداری آزمایشی',
+        'unit' => 'خدمت',
+        'unit_price' => 1_000_000,
+        'tax_rate' => 10,
+        'is_active' => true,
+    ])->assertRedirect();
+
+    expect(Good::query()
+        ->whereBelongsTo($user)
+        ->where('commodity_code', '2330000000005')
+        ->value('measurement_unit_code'))->toBe('1627');
 });
 
 it('shows numbered pagination for catalog search results', function () {

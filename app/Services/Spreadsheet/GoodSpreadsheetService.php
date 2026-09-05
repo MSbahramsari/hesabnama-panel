@@ -4,6 +4,7 @@ namespace App\Services\Spreadsheet;
 
 use App\Models\Good;
 use App\Models\User;
+use App\Support\MeasurementUnitCode;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
@@ -11,7 +12,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class GoodSpreadsheetService
 {
-    private const HEADERS = ['شناسه کالا/خدمت', 'عنوان', 'واحد', 'کد واحد اندازه‌گیری', 'قیمت واحد', 'نرخ مالیات', 'وضعیت'];
+    private const HEADERS = ['شناسه کالا/خدمت', 'عنوان', 'واحد', 'قیمت واحد', 'نرخ مالیات', 'وضعیت'];
 
     public function __construct(private SpreadsheetFile $spreadsheet) {}
 
@@ -28,7 +29,6 @@ class GoodSpreadsheetService
                 (string) $good->commodity_code,
                 $good->name,
                 $good->unit,
-                (string) $good->measurement_unit_code,
                 (float) $good->unit_price,
                 (float) $good->tax_rate,
                 $good->is_active ? 'فعال' : 'غیرفعال',
@@ -55,7 +55,9 @@ class GoodSpreadsheetService
                 'commodity_code' => $this->spreadsheet->normalizeDigits($row['شناسه کالا/خدمت'] ?? ''),
                 'name' => trim((string) ($row['عنوان'] ?? '')),
                 'unit' => trim((string) ($row['واحد'] ?? 'عدد')) ?: 'عدد',
-                'measurement_unit_code' => $this->spreadsheet->normalizeDigits($row['کد واحد اندازه‌گیری'] ?? ''),
+                'measurement_unit_code' => MeasurementUnitCode::resolve(
+                    $this->spreadsheet->normalizeDigits($row['کد واحد اندازه‌گیری'] ?? ''),
+                ),
                 'unit_price' => $this->numeric($row['قیمت واحد'] ?? 0),
                 'tax_rate' => $this->numeric($row['نرخ مالیات'] ?? 0),
                 'is_active' => $this->isActive($row['وضعیت'] ?? 'فعال'),
@@ -64,7 +66,7 @@ class GoodSpreadsheetService
                 'commodity_code' => ['required', 'digits_between:8,20'],
                 'name' => ['required', 'string', 'max:255'],
                 'unit' => ['required', 'string', 'max:40'],
-                'measurement_unit_code' => ['nullable', 'digits_between:1,10'],
+                'measurement_unit_code' => ['required', 'digits_between:1,10'],
                 'unit_price' => ['required', 'numeric', 'min:0', 'max:9999999999999999'],
                 'tax_rate' => ['required', 'numeric', 'min:0', 'max:100'],
                 'is_active' => ['boolean'],
