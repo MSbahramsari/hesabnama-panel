@@ -251,7 +251,10 @@ class MoadianClient
         }
 
         if (! $response->successful()) {
-            throw new MoadianApiException("سامانه مودیان با کد HTTP {$response->status()} پاسخ ناموفق داد.");
+            $detail = $this->responseErrorDetail($response);
+            $message = "سامانه مودیان درخواست را نپذیرفت (HTTP {$response->status()})";
+
+            throw new MoadianApiException($detail === null ? "{$message}." : "{$message}: {$detail}");
         }
 
         return $response;
@@ -305,6 +308,69 @@ class MoadianClient
         }
 
         return $json;
+    }
+
+    private function responseErrorDetail(Response $response): ?string
+    {
+        $json = $response->json();
+
+        if (! is_array($json)) {
+            return null;
+        }
+
+        $details = collect(Arr::wrap($json['errors'] ?? []))
+            ->map(fn (mixed $error): ?string => $this->formatError($error))
+            ->filter()
+            ->values();
+
+        if ($details->isEmpty()) {
+            $details = collect(Arr::wrap($json['result'] ?? []))
+                ->map(fn (mixed $error): ?string => $this->formatError($error))
+                ->filter()
+                ->values();
+        }
+
+        if ($details->isEmpty()) {
+            $details = collect([
+                $json['message'] ?? null,
+                $json['error_description'] ?? null,
+                is_string($json['error'] ?? null) ? $json['error'] : null,
+            ])->filter(fn (mixed $detail): bool => is_string($detail) && filled($detail));
+        }
+
+        if ($details->isEmpty()) {
+            return null;
+        }
+
+        return Str::limit($details->unique()->implode(' | '), 1000, '…');
+    }
+
+    private function formatError(mixed $error): ?string
+    {
+        if (is_string($error)) {
+            return filled($error) ? $error : null;
+        }
+
+        if (! is_array($error)) {
+            return null;
+        }
+
+        $code = $error['code'] ?? $error['errorCode'] ?? null;
+        $detail = $error['message']
+            ?? $error['errorDetail']
+            ?? $error['detail']
+            ?? $error['description']
+            ?? null;
+
+        if (blank($code) && blank($detail)) {
+            return null;
+        }
+
+        if (filled($code) && filled($detail)) {
+            return "کد {$code}: {$detail}";
+        }
+
+        return (string) ($detail ?? "کد {$code}");
     }
 
     private function timestamp(): int

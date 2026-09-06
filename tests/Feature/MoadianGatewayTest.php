@@ -233,6 +233,35 @@ it('authenticates, encrypts and submits an invoice packet', function () {
     });
 });
 
+it('shows the error code and detail returned with an unsuccessful HTTP response', function () {
+    Http::preventStrayRequests();
+    Http::fake(function (Request $request) {
+        if (str_ends_with($request->url(), '/sync/GET_TOKEN')) {
+            return Http::response([
+                'result' => [
+                    'data' => [
+                        'token' => 'test-token',
+                        'expiresIn' => (int) floor(microtime(true) * 1000) + 600_000,
+                    ],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'errors' => [[
+                'errorCode' => '5004',
+                'errorDetail' => 'invalid.json.structure',
+            ]],
+        ], 400);
+    });
+
+    expect(fn () => $this->client->economicCodeInformation('41111111111'))
+        ->toThrow(
+            MoadianApiException::class,
+            'سامانه مودیان درخواست را نپذیرفت (HTTP 400): کد 5004: invalid.json.structure',
+        );
+});
+
 it('inquires the official status by reference number', function () {
     Http::preventStrayRequests();
     Http::fake(function (Request $request) {
