@@ -136,6 +136,36 @@ it('looks up a good from the official service and stuff endpoint', function () {
         ]);
 });
 
+it('does not accept a different item returned by the official stuff endpoint', function () {
+    Http::preventStrayRequests();
+    Http::fake(function (Request $request) {
+        if (str_ends_with($request->url(), '/sync/GET_TOKEN')) {
+            return Http::response([
+                'result' => [
+                    'data' => [
+                        'token' => 'good-lookup-token',
+                        'expiresIn' => (int) floor(microtime(true) * 1000) + 600_000,
+                    ],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'result' => [
+                'data' => [
+                    'result' => [[
+                        'itemId' => '2330000000000',
+                        'tax' => 10,
+                    ]],
+                ],
+            ],
+        ]);
+    });
+
+    expect(app(MoadianTaxPlatformGateway::class)
+        ->lookupGood($this->user, '2330002582524'))->toBeNull();
+});
+
 it('authenticates, encrypts and submits an invoice packet', function () {
     Http::preventStrayRequests();
     Http::fake(function (Request $request) {

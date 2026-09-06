@@ -61,7 +61,9 @@ class MoadianClient
             'size' => 1,
         ]);
 
-        $item = Arr::get($data, 'result.0');
+        $item = collect(Arr::get($data, 'result', []))
+            ->first(fn (mixed $item): bool => is_array($item)
+                && (string) ($item['itemId'] ?? '') === $commodityCode);
 
         return is_array($item) ? $item : null;
     }

@@ -58,8 +58,11 @@ class GoodController extends Controller
         $selectedCatalogItem = $request->integer('catalog_item') > 0
             ? StuffCatalogItem::query()->find($request->integer('catalog_item'))
             : null;
+        $requestedCommodityCode = $this->normalizeCatalogSearch($request->string('commodity_code')->trim()->toString());
         $commodityCode = $selectedCatalogItem?->item_id
-            ?? $request->string('commodity_code')->trim()->toString();
+            ?? ($requestedCommodityCode !== ''
+                ? $requestedCommodityCode
+                : (preg_match('/^\d{13}$/', $catalogSearch) === 1 ? $catalogSearch : ''));
         $lookupResult = null;
         $lookupError = null;
         $lookupNeedsConfiguration = false;
@@ -153,7 +156,12 @@ class GoodController extends Controller
 
     private function normalizeCatalogSearch(string $value): string
     {
-        return str_replace(['ي', 'ك'], ['ی', 'ک'], $value);
+        return strtr(str_replace(['ي', 'ك'], ['ی', 'ک'], $value), [
+            '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
+            '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+            '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+        ]);
     }
 
     private function applyCatalogSearch(Builder $query, string $catalogSearch): void

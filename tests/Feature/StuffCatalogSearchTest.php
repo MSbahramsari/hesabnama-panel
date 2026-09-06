@@ -1,8 +1,10 @@
 <?php
 
+use App\Contracts\TaxPlatformGateway;
 use App\Models\Good;
 use App\Models\StuffCatalogItem;
 use App\Models\User;
+use Mockery\MockInterface;
 
 it('searches the catalog by description and filters the results', function () {
     $user = User::factory()->create();
@@ -97,6 +99,32 @@ it('shows numbered pagination for catalog search results', function () {
         ->assertOk()
         ->assertSee('aria-label="صفحه 2"', false)
         ->assertSee('از <strong>26</strong> مورد', false);
+});
+
+it('uses an exact catalog search as a direct official lookup', function () {
+    $user = User::factory()->create();
+
+    $gateway = mock(TaxPlatformGateway::class, function (MockInterface $mock) use ($user): void {
+        $mock->shouldReceive('lookupGood')
+            ->once()
+            ->withArgs(fn (User $lookupUser, string $code): bool => $lookupUser->is($user) && $code === '2330002582524')
+            ->andReturn([
+                'name' => 'خدمات مشاوره حسابداری مالی',
+                'unit' => 'خدمت',
+                'unit_price' => 0,
+                'tax_rate' => 10,
+                'measurement_unit_code' => '1627',
+            ]);
+        $mock->shouldReceive('isDemo')->once()->andReturnFalse();
+    });
+    $this->app->instance(TaxPlatformGateway::class, $gateway);
+
+    $this->actingAs($user)
+        ->get(route('goods.create', ['catalog_query' => '۲۳۳۰۰۰۲۵۸۲۵۲۴']))
+        ->assertOk()
+        ->assertSee('2330002582524')
+        ->assertSee('خدمات مشاوره حسابداری مالی')
+        ->assertSee('name="commodity_code"', false);
 });
 
 it('imports an official-style csv and keeps repeated imports idempotent', function () {
