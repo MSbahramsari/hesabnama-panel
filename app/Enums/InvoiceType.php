@@ -17,7 +17,7 @@ enum InvoiceType: string
         };
     }
 
-    public function moadianCode(): int
+    public function subjectCode(): int
     {
         return match ($this) {
             self::Original => 1,

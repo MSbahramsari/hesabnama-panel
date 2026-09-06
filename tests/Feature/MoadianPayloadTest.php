@@ -124,7 +124,8 @@ it('maps mixed settlement and corrective references to official payload fields',
     $payload = app(InvoicePayloadFactory::class)->make($invoice, $configuration);
 
     expect($payload['header'])->toMatchArray([
-        'inty' => 2,
+        'inty' => 1,
+        'ins' => 2,
         'irtaxid' => $reference->tax_id,
         'setm' => 3,
         'cap' => 900_000,
@@ -133,5 +134,14 @@ it('maps mixed settlement and corrective references to official payload fields',
     ])->and($payload['body'][0])->toMatchArray([
         'cop' => 900_000,
         'vop' => 90_000,
+    ]);
+
+    $invoice->update(['invoice_type' => InvoiceType::Cancellation]);
+    $cancellationPayload = app(InvoicePayloadFactory::class)->make($invoice->refresh(), $configuration);
+
+    expect($cancellationPayload['header'])->toMatchArray([
+        'inty' => 1,
+        'ins' => 3,
+        'irtaxid' => $reference->tax_id,
     ]);
 });
