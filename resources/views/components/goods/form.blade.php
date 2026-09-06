@@ -5,7 +5,6 @@
     <x-form.input name="name" label="عنوان کالا / خدمت" :value="$good?->name ?? ($data['name'] ?? null)" required />
     <x-form.input name="unit" label="واحد اندازه‌گیری" :value="$good?->unit ?? ($data['unit'] ?? 'عدد')" required />
     <input type="hidden" name="measurement_unit_code" value="{{ \App\Support\MeasurementUnitCode::resolve($good?->measurement_unit_code ?? ($data['measurement_unit_code'] ?? null)) }}">
-    <x-form.input name="unit_price" label="قیمت واحد (ریال)" type="number" :value="$good?->unit_price ?? ($data['unit_price'] ?? null)" min="0" required />
     <x-form.input name="tax_rate" label="نرخ مالیات (درصد)" type="number" :value="$good?->tax_rate ?? ($data['tax_rate'] ?? 10)" min="0" max="100" step="0.01" required />
     <div class="flex items-end pb-3">
         <input type="hidden" name="is_active" value="0">

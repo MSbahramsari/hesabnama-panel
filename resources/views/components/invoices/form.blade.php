@@ -69,7 +69,7 @@
     @foreach($initialItems as $index => $item)
         <div class="invoice-item-row" data-invoice-item>
             <div class="invoice-item-number">{{ $loop->iteration }}</div>
-            <div class="min-w-0 sm:col-span-2 lg:col-span-3"><label class="form-label">کالا / خدمت</label><select name="items[{{ $index }}][good_id]" class="form-control" data-good-select required><option value="">انتخاب قلم</option>@foreach($goods as $good)<option value="{{ $good->id }}" data-price="{{ $good->unit_price }}" data-tax="{{ $good->tax_rate }}" @selected((string) ($item['good_id'] ?? '') === (string) $good->id)>{{ $good->name }} — {{ $good->commodity_code }}</option>@endforeach</select></div>
+            <div class="min-w-0 sm:col-span-2 lg:col-span-3"><label class="form-label">کالا / خدمت</label><select name="items[{{ $index }}][good_id]" class="form-control" data-good-select required><option value="">انتخاب قلم</option>@foreach($goods as $good)<option value="{{ $good->id }}" data-tax="{{ $good->tax_rate }}" @selected((string) ($item['good_id'] ?? '') === (string) $good->id)>{{ $good->name }} — {{ $good->commodity_code }}</option>@endforeach</select></div>
             <div><label class="form-label">تعداد</label><input name="items[{{ $index }}][quantity]" type="number" min="0.001" step="0.001" value="{{ $item['quantity'] ?? 1 }}" class="form-control" data-quantity required></div>
             <div class="lg:col-span-2"><label class="form-label">قیمت واحد</label><input name="items[{{ $index }}][unit_price]" type="text" inputmode="numeric" value="{{ number_format((float) ($item['unit_price'] ?? 0), 0, '.', ',') }}" class="form-control" data-money-input data-unit-price required></div>
             <div><label class="form-label">مالیات ٪</label><input name="items[{{ $index }}][tax_rate]" type="number" min="0" max="100" step="0.01" value="{{ $item['tax_rate'] ?? 10 }}" class="form-control" data-tax-rate required></div>
@@ -82,7 +82,7 @@
 <template id="invoice-item-template">
     <div class="invoice-item-row" data-invoice-item>
         <div class="invoice-item-number">#</div>
-        <div class="min-w-0 sm:col-span-2 lg:col-span-3"><label class="form-label">کالا / خدمت</label><select class="form-control" data-field="good_id" data-good-select required><option value="">انتخاب قلم</option>@foreach($goods as $good)<option value="{{ $good->id }}" data-price="{{ $good->unit_price }}" data-tax="{{ $good->tax_rate }}">{{ $good->name }} — {{ $good->commodity_code }}</option>@endforeach</select></div>
+        <div class="min-w-0 sm:col-span-2 lg:col-span-3"><label class="form-label">کالا / خدمت</label><select class="form-control" data-field="good_id" data-good-select required><option value="">انتخاب قلم</option>@foreach($goods as $good)<option value="{{ $good->id }}" data-tax="{{ $good->tax_rate }}">{{ $good->name }} — {{ $good->commodity_code }}</option>@endforeach</select></div>
         <div><label class="form-label">تعداد</label><input type="number" min="0.001" step="0.001" value="1" class="form-control" data-field="quantity" data-quantity required></div>
         <div class="lg:col-span-2"><label class="form-label">قیمت واحد</label><input type="text" inputmode="numeric" value="0" class="form-control" data-field="unit_price" data-money-input data-unit-price required></div>
         <div><label class="form-label">مالیات ٪</label><input type="number" min="0" max="100" step="0.01" value="10" class="form-control" data-field="tax_rate" data-tax-rate required></div>

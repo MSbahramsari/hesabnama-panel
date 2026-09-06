@@ -122,7 +122,6 @@ it('looks up a good from the official service and stuff endpoint', function () {
     expect($good)->toMatchArray([
         'name' => 'خدمات مشاوره مالیاتی',
         'unit' => 'ساعت',
-        'unit_price' => 0,
         'tax_rate' => 10,
         'measurement_unit_code' => '1627',
     ]);

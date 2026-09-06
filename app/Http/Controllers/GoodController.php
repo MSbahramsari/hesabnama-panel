@@ -108,7 +108,10 @@ class GoodController extends Controller
     public function store(SaveGoodRequest $request): RedirectResponse
     {
         Gate::authorize('create', Good::class);
-        $good = $request->user()->goods()->create($request->validated());
+        $good = $request->user()->goods()->create([
+            ...$request->validated(),
+            'unit_price' => 0,
+        ]);
 
         return redirect()->route('goods.edit', $good)->with('success', 'کالا یا خدمت با موفقیت ذخیره شد.');
     }
@@ -123,7 +126,10 @@ class GoodController extends Controller
     public function update(SaveGoodRequest $request, Good $good): RedirectResponse
     {
         Gate::authorize('update', $good);
-        $good->update($request->validated());
+        $good->update([
+            ...$request->validated(),
+            'unit_price' => 0,
+        ]);
 
         return redirect()->route('goods.index')->with('success', 'اطلاعات کالا به‌روزرسانی شد.');
     }
@@ -142,13 +148,12 @@ class GoodController extends Controller
         return redirect()->route('goods.index')->with('success', 'کالا یا خدمت با موفقیت حذف شد.');
     }
 
-    /** @return array{name: string, unit: string, unit_price: int, tax_rate: float, measurement_unit_code: string} */
+    /** @return array{name: string, unit: string, tax_rate: float, measurement_unit_code: string} */
     private function catalogLookupResult(StuffCatalogItem $item): array
     {
         return [
             'name' => $item->description,
             'unit' => str_contains((string) $item->type, 'خدمت') ? 'خدمت' : 'عدد',
-            'unit_price' => 0,
             'tax_rate' => (float) $item->vat,
             'measurement_unit_code' => MeasurementUnitCode::resolve(),
         ];

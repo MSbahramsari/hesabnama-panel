@@ -161,14 +161,14 @@
                         <span class="grid size-8 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white"><x-icon name="check" class="size-4" /></span>
                         <div>
                             <div class="font-extrabold">قلم از کاتالوگ رسمی انتخاب شد.</div>
-                            <p class="mt-1 text-xs leading-6 text-emerald-700">اطلاعات استعلام‌شده را بررسی کنید، قیمت واحد را وارد کنید و برای افزودن به کالاهای خود دکمه ذخیره را بزنید.</p>
+                            <p class="mt-1 text-xs leading-6 text-emerald-700">اطلاعات استعلام‌شده را بررسی کنید و برای افزودن به کالاهای خود دکمه ذخیره را بزنید.</p>
                         </div>
                     </div>
                 @endif
                 <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                         <h3 class="card-title">{{ $lookupResult ? 'اطلاعات قلم انتخاب‌شده' : 'ثبت دستی قلم' }}</h3>
-                        <p class="card-subtitle">اطلاعات و نرخ مالیات را بررسی کنید، قیمت واحد را وارد کنید و سپس قلم را ذخیره کنید.</p>
+                        <p class="card-subtitle">اطلاعات، واحد اندازه‌گیری و نرخ مالیات را بررسی کنید و سپس قلم را ذخیره کنید.</p>
                     </div>
                     @if($selectedCatalogItem)
                         <div class="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold leading-6 text-emerald-800">

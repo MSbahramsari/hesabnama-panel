@@ -67,6 +67,7 @@ it('prefills the good form from the selected catalog row', function () {
         ->assertSee('قلم از کاتالوگ رسمی انتخاب شد')
         ->assertDontSee('کد واحد اندازه‌گیری مودیان')
         ->assertSee('name="measurement_unit_code" value="1627"', false)
+        ->assertDontSee('name="unit_price"', false)
         ->assertSee('value="10"', false);
 });
 
@@ -77,15 +78,17 @@ it('assigns the measurement unit code automatically when a good is saved', funct
         'commodity_code' => '2330000000005',
         'name' => 'خدمات حسابداری آزمایشی',
         'unit' => 'خدمت',
-        'unit_price' => 1_000_000,
         'tax_rate' => 10,
         'is_active' => true,
     ])->assertRedirect();
 
-    expect(Good::query()
+    $good = Good::query()
         ->whereBelongsTo($user)
         ->where('commodity_code', '2330000000005')
-        ->value('measurement_unit_code'))->toBe('1627');
+        ->firstOrFail();
+
+    expect($good->measurement_unit_code)->toBe('1627')
+        ->and((float) $good->unit_price)->toBe(0.0);
 });
 
 it('shows numbered pagination for catalog search results', function () {

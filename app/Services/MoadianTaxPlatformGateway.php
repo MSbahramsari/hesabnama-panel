@@ -48,7 +48,6 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
         return [
             'name' => (string) ($good['descriptionOfId'] ?? $good['description'] ?? $good['itemTitle'] ?? $good['title'] ?? $good['name'] ?? $commodityCode),
             'unit' => (string) ($good['unitTitle'] ?? $good['measurementUnit'] ?? (str_starts_with($itemId, '233') ? 'خدمت' : 'عدد')),
-            'unit_price' => 0,
             'tax_rate' => (int) round((float) ($good['tax'] ?? $good['vat'] ?? $good['taxRate'] ?? 0)),
             'measurement_unit_code' => (string) ($good['unitCode'] ?? ''),
         ];

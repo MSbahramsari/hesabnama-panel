@@ -35,9 +35,9 @@ class DemoTaxPlatformGateway implements TaxPlatformGateway
     public function lookupGood(User $user, string $commodityCode): ?array
     {
         return [
-            '10000001' => ['name' => 'خدمات مشاوره مالیاتی', 'unit' => 'ساعت', 'unit_price' => 25000000, 'tax_rate' => 10, 'measurement_unit_code' => MeasurementUnitCode::resolve()],
-            '10000002' => ['name' => 'نرم‌افزار حسابداری ابری', 'unit' => 'اشتراک', 'unit_price' => 85000000, 'tax_rate' => 10, 'measurement_unit_code' => MeasurementUnitCode::resolve()],
-            '10000003' => ['name' => 'خدمات پشتیبانی سامانه', 'unit' => 'ماه', 'unit_price' => 18000000, 'tax_rate' => 10, 'measurement_unit_code' => MeasurementUnitCode::resolve()],
+            '10000001' => ['name' => 'خدمات مشاوره مالیاتی', 'unit' => 'ساعت', 'tax_rate' => 10, 'measurement_unit_code' => MeasurementUnitCode::resolve()],
+            '10000002' => ['name' => 'نرم‌افزار حسابداری ابری', 'unit' => 'اشتراک', 'tax_rate' => 10, 'measurement_unit_code' => MeasurementUnitCode::resolve()],
+            '10000003' => ['name' => 'خدمات پشتیبانی سامانه', 'unit' => 'ماه', 'tax_rate' => 10, 'measurement_unit_code' => MeasurementUnitCode::resolve()],
         ][$commodityCode] ?? null;
     }
 

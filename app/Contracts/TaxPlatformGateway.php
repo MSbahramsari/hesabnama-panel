@@ -12,7 +12,7 @@ interface TaxPlatformGateway
     /** @return array{name: string, national_id: string, type: string, address: string, postal_code: string}|null */
     public function lookupCustomer(User $user, string $economicCode): ?array;
 
-    /** @return array{name: string, unit: string, unit_price: int, tax_rate: int}|null */
+    /** @return array{name: string, unit: string, tax_rate: int}|null */
     public function lookupGood(User $user, string $commodityCode): ?array;
 
     public function submit(Invoice $invoice): SubmissionResult;

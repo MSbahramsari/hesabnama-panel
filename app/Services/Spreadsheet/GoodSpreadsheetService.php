@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class GoodSpreadsheetService
 {
-    private const HEADERS = ['شناسه کالا/خدمت', 'عنوان', 'واحد', 'قیمت واحد', 'نرخ مالیات', 'وضعیت'];
+    private const HEADERS = ['شناسه کالا/خدمت', 'عنوان', 'واحد', 'نرخ مالیات', 'وضعیت'];
 
     public function __construct(private SpreadsheetFile $spreadsheet) {}
 
@@ -29,7 +29,6 @@ class GoodSpreadsheetService
                 (string) $good->commodity_code,
                 $good->name,
                 $good->unit,
-                (float) $good->unit_price,
                 (float) $good->tax_rate,
                 $good->is_active ? 'فعال' : 'غیرفعال',
             ]);
@@ -58,7 +57,6 @@ class GoodSpreadsheetService
                 'measurement_unit_code' => MeasurementUnitCode::resolve(
                     $this->spreadsheet->normalizeDigits($row['کد واحد اندازه‌گیری'] ?? ''),
                 ),
-                'unit_price' => $this->numeric($row['قیمت واحد'] ?? 0),
                 'tax_rate' => $this->numeric($row['نرخ مالیات'] ?? 0),
                 'is_active' => $this->isActive($row['وضعیت'] ?? 'فعال'),
             ];
@@ -67,7 +65,6 @@ class GoodSpreadsheetService
                 'name' => ['required', 'string', 'max:255'],
                 'unit' => ['required', 'string', 'max:40'],
                 'measurement_unit_code' => ['required', 'digits_between:1,8'],
-                'unit_price' => ['required', 'numeric', 'gt:0', 'max:9999999999999999'],
                 'tax_rate' => ['required', 'numeric', 'min:0', 'max:100'],
                 'is_active' => ['boolean'],
             ]);
@@ -84,6 +81,7 @@ class GoodSpreadsheetService
             ]);
             $good->fill($validator->validated());
             $good->user_id = $user->id;
+            $good->unit_price = 0;
             $good->save();
             $good->wasRecentlyCreated ? $created++ : $updated++;
         }

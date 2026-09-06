@@ -120,7 +120,7 @@ class InvoiceSpreadsheetService
                     $items[] = [
                         'good_id' => $good->id,
                         'quantity' => $this->numeric($row['تعداد'] ?? 0),
-                        'unit_price' => $this->numeric($row['قیمت واحد'] ?? $good->unit_price),
+                        'unit_price' => $this->numeric($row['قیمت واحد'] ?? 0),
                         'tax_rate' => $this->numeric($row['نرخ مالیات'] ?? $good->tax_rate),
                         'discount' => $this->numeric($row['تخفیف'] ?? 0),
                     ];

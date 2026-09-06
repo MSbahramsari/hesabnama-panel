@@ -80,6 +80,17 @@ it('hides unit prices from the goods list', function () {
         ->assertDontSee('7,654,321');
 });
 
+it('does not render a unit price field in the goods editor', function () {
+    $user = User::factory()->create();
+    $good = Good::factory()->for($user)->create(['unit_price' => 7_654_321]);
+
+    $this->actingAs($user)
+        ->get(route('goods.edit', $good))
+        ->assertOk()
+        ->assertDontSee('name="unit_price"', false)
+        ->assertDontSee('قیمت واحد');
+});
+
 it('accepts a jalali invoice date and stores its gregorian equivalent', function () {
     $user = User::factory()->create();
     $customer = Customer::factory()->for($user)->create();

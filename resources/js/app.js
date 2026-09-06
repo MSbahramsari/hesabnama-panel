@@ -301,7 +301,7 @@ if (selectedCatalogForm) {
             behavior: prefersReducedMotion ? 'auto' : 'smooth',
             block: 'start',
         });
-        selectedCatalogForm.querySelector('input[name="unit_price"]')?.focus({ preventScroll: true });
+        selectedCatalogForm.querySelector('input[name="name"]')?.focus({ preventScroll: true });
     });
 }
 
@@ -542,7 +542,7 @@ if (invoiceForm) {
     const bindRow = (row) => {
         row.querySelector('[data-good-select]')?.addEventListener('change', (event) => {
             const option = event.target.selectedOptions[0];
-            row.querySelector('[data-unit-price]').value = option?.dataset.price || 0;
+            row.querySelector('[data-unit-price]').value = 0;
             row.querySelector('[data-tax-rate]').value = option?.dataset.tax || 0;
             formatMoneyInput(row.querySelector('[data-unit-price]'));
             recalculate();
