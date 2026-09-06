@@ -42,6 +42,44 @@ it('creates an invoice and calculates its totals on the server', function () {
         ->and($invoice->items)->toHaveCount(1);
 });
 
+it('accepts visually grouped invoice amounts', function () {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->for($user)->create();
+    $good = Good::factory()->for($user)->create();
+
+    $this->actingAs($user)->post(route('invoices.store'), [
+        'customer_id' => $customer->id,
+        'number' => 'INV-GROUPED-AMOUNTS',
+        'invoice_date' => today()->format('Y-m-d'),
+        'settlement_method' => SettlementMethod::Mixed->value,
+        'cash_amount' => '۹۰۰٬۰۰۰',
+        'items' => [[
+            'good_id' => $good->id,
+            'quantity' => 2,
+            'unit_price' => '1,000,000',
+            'tax_rate' => 10,
+            'discount' => '۲۰۰٬۰۰۰',
+        ]],
+    ])->assertRedirect();
+
+    $invoice = Invoice::query()->whereBelongsTo($user)->firstOrFail();
+
+    expect((float) $invoice->cash_amount)->toBe(900_000.0)
+        ->and((float) $invoice->subtotal)->toBe(2_000_000.0)
+        ->and((float) $invoice->discount_total)->toBe(200_000.0);
+});
+
+it('hides unit prices from the goods list', function () {
+    $user = User::factory()->create();
+    Good::factory()->for($user)->create(['unit_price' => 7_654_321]);
+
+    $this->actingAs($user)
+        ->get(route('goods.index'))
+        ->assertOk()
+        ->assertDontSee('قیمت واحد')
+        ->assertDontSee('7,654,321');
+});
+
 it('accepts a jalali invoice date and stores its gregorian equivalent', function () {
     $user = User::factory()->create();
     $customer = Customer::factory()->for($user)->create();

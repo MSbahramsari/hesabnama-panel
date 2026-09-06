@@ -490,6 +490,17 @@ if (invoiceForm) {
     let nextIndex = itemsContainer.querySelectorAll('[data-invoice-item]').length;
 
     const money = (value) => `${formatter.format(Math.round(value || 0))} ریال`;
+    const normalizedMoney = (value) => String(value ?? '')
+        .replace(/[۰-۹]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)))
+        .replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
+        .replace(/[,٬\s]/g, '')
+        .replace(/[^0-9]/g, '');
+    const moneyValue = (value) => Number(normalizedMoney(value)) || 0;
+    const formatMoneyInput = (input) => {
+        const value = normalizedMoney(input.value);
+
+        input.value = value === '' ? '' : new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Number(value));
+    };
 
     const syncSettlementFields = () => {
         const isMixed = settlementMethod?.value === 'mixed';
@@ -509,10 +520,10 @@ if (invoiceForm) {
         rows.forEach((row, position) => {
             row.querySelector('.invoice-item-number').textContent = String(position + 1);
             const quantity = Number(row.querySelector('[data-quantity]')?.value || 0);
-            const unitPrice = Number(row.querySelector('[data-unit-price]')?.value || 0);
+            const unitPrice = moneyValue(row.querySelector('[data-unit-price]')?.value);
             const taxRate = Number(row.querySelector('[data-tax-rate]')?.value || 0);
             const lineSubtotal = quantity * unitPrice;
-            const discount = Math.min(Number(row.querySelector('[data-discount]')?.value || 0), lineSubtotal);
+            const discount = Math.min(moneyValue(row.querySelector('[data-discount]')?.value), lineSubtotal);
             const tax = (lineSubtotal - discount) * taxRate / 100;
             const total = lineSubtotal - discount + tax;
 
@@ -533,9 +544,14 @@ if (invoiceForm) {
             const option = event.target.selectedOptions[0];
             row.querySelector('[data-unit-price]').value = option?.dataset.price || 0;
             row.querySelector('[data-tax-rate]').value = option?.dataset.tax || 0;
+            formatMoneyInput(row.querySelector('[data-unit-price]'));
             recalculate();
         });
 
+        row.querySelectorAll('[data-money-input]').forEach((input) => {
+            formatMoneyInput(input);
+            input.addEventListener('input', () => formatMoneyInput(input));
+        });
         row.querySelectorAll('input').forEach((input) => input.addEventListener('input', recalculate));
         row.querySelector('[data-remove-invoice-item]')?.addEventListener('click', () => {
             row.remove();
@@ -558,6 +574,12 @@ if (invoiceForm) {
     });
 
     settlementMethod?.addEventListener('change', syncSettlementFields);
+    cashAmountField?.querySelector('[data-money-input]')?.addEventListener('input', (event) => formatMoneyInput(event.target));
+    invoiceForm.addEventListener('submit', () => {
+        invoiceForm.querySelectorAll('[data-money-input]').forEach((input) => {
+            input.value = String(moneyValue(input.value));
+        });
+    });
     syncSettlementFields();
     recalculate();
 }

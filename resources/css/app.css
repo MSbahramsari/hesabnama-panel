@@ -176,8 +176,6 @@
     .goods-caption { @apply mt-1 text-[9px] font-semibold text-slate-400; }
     .goods-code { @apply inline-flex max-w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-1.5 font-mono text-[11px] font-black tracking-wide text-blue-700; }
     .goods-unit { @apply inline-flex rounded-full border border-violet-100 bg-violet-50 px-3 py-1.5 text-[10px] font-extrabold text-violet-700; }
-    .goods-price { @apply whitespace-nowrap text-[12px] font-black text-slate-900; }
-    .goods-price-unit { @apply mr-1 text-[9px] font-semibold text-slate-400; }
     .goods-tax { @apply inline-flex min-w-14 items-center justify-center rounded-full border px-2.5 py-1.5 text-[10px] font-black; }
     .goods-taxable { @apply border-amber-200 bg-amber-50 text-amber-700; }
     .goods-tax-exempt { @apply border-emerald-200 bg-emerald-50 text-emerald-700; }
@@ -283,8 +281,7 @@
     .goods-table td:nth-child(4) { @apply row-start-2; }
     .goods-table td:nth-child(3) { @apply row-start-3; }
     .goods-table td:nth-child(5) { @apply row-start-3; }
-    .goods-table td:nth-child(6) { @apply col-span-2 row-start-4 border-t border-slate-100 pt-3; }
-    .goods-table .table-actions-cell { position: static; @apply col-span-2 row-start-5 w-full bg-transparent px-0 pt-1 shadow-none; }
+    .goods-table .table-actions-cell { position: static; @apply col-span-2 row-start-4 w-full border-t border-slate-100 bg-transparent px-0 pt-3 shadow-none; }
     .goods-table .table-row-actions { @apply grid w-full grid-cols-2 gap-2; }
     .goods-table .table-row-actions form { @apply w-full; }
     .goods-table .table-action { @apply w-full; }

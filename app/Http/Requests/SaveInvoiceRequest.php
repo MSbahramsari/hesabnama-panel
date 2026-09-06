@@ -21,6 +21,24 @@ class SaveInvoiceRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $items = $this->input('items');
+
+        if (is_array($items)) {
+            foreach ($items as &$item) {
+                if (is_array($item)) {
+                    $item['unit_price'] = $this->normalizeMoney($item['unit_price'] ?? null);
+                    $item['discount'] = $this->normalizeMoney($item['discount'] ?? null);
+                }
+            }
+            unset($item);
+
+            $this->merge(['items' => $items]);
+        }
+
+        if ($this->has('cash_amount')) {
+            $this->merge(['cash_amount' => $this->normalizeMoney($this->input('cash_amount'))]);
+        }
+
         if (! $this->filled('settlement_method')) {
             $this->merge(['settlement_method' => SettlementMethod::Cash->value]);
         }
@@ -30,6 +48,20 @@ class SaveInvoiceRequest extends FormRequest
                 'invoice_date' => JalaliDate::toGregorianDate($this->string('invoice_date_jalali')->toString()),
             ]);
         }
+    }
+
+    private function normalizeMoney(mixed $value): mixed
+    {
+        if (! is_string($value)) {
+            return $value;
+        }
+
+        return str_replace([',', '٬', ' '], '', strtr($value, [
+            '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
+            '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+            '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+        ]));
     }
 
     /** @return array<string, array<int, mixed>> */

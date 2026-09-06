@@ -31,15 +31,14 @@
             <div class="table-wrap goods-table-wrap">
                 <table class="data-table goods-table">
                     <colgroup>
-                        <col class="w-[25%]">
-                        <col class="w-[17%]">
+                        <col class="w-[31%]">
+                        <col class="w-[20%]">
+                        <col class="w-[11%]">
+                        <col class="w-[12%]">
                         <col class="w-[10%]">
-                        <col class="w-[14%]">
-                        <col class="w-[10%]">
-                        <col class="w-[9%]">
-                        <col class="w-[15%]">
+                        <col class="w-[16%]">
                     </colgroup>
-                    <thead><tr><th>عنوان قلم</th><th>شناسه کالا/خدمت</th><th>واحد</th><th>قیمت واحد</th><th>نرخ مالیات</th><th>وضعیت</th><th class="table-actions-cell">عملیات</th></tr></thead>
+                    <thead><tr><th>عنوان قلم</th><th>شناسه کالا/خدمت</th><th>واحد</th><th>نرخ مالیات</th><th>وضعیت</th><th class="table-actions-cell">عملیات</th></tr></thead>
                     <tbody>
                         @foreach($goods as $good)
                             <tr>
@@ -54,7 +53,6 @@
                                 </td>
                                 <td data-label="شناسه کالا/خدمت" dir="ltr" class="text-right"><span class="goods-code">{{ $good->commodity_code }}</span></td>
                                 <td data-label="واحد"><span class="goods-unit">{{ $good->unit }}</span></td>
-                                <td data-label="قیمت واحد"><span class="goods-price">{{ number_format($good->unit_price) }}</span><small class="goods-price-unit">ریال</small></td>
                                 <td data-label="نرخ مالیات"><span @class(['goods-tax', 'goods-tax-exempt' => (float) $good->tax_rate === 0.0, 'goods-taxable' => (float) $good->tax_rate > 0])>{{ number_format($good->tax_rate, 0) }}٪</span></td>
                                 <td data-label="وضعیت"><span @class(['status-badge', 'status-emerald' => $good->is_active, 'status-slate' => ! $good->is_active])>{{ $good->is_active ? 'فعال' : 'غیرفعال' }}</span></td>
                                 <td data-label="عملیات" class="table-actions-cell">
