@@ -64,7 +64,7 @@ class CustomerSpreadsheetService
                 'is_active' => $this->isActive($row['وضعیت'] ?? 'فعال'),
             ];
             $validator = Validator::make($values, [
-                'economic_code' => ['required', 'digits_between:10,14'],
+                'economic_code' => ['required', 'regex:/^(?:\d{11}|\d{14})$/'],
                 'national_id' => ['nullable', 'digits_between:10,14'],
                 'name' => ['required', 'string', 'max:255'],
                 'type' => ['required', 'in:legal,individual'],

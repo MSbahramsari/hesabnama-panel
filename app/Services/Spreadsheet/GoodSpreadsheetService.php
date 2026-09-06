@@ -63,11 +63,11 @@ class GoodSpreadsheetService
                 'is_active' => $this->isActive($row['وضعیت'] ?? 'فعال'),
             ];
             $validator = Validator::make($values, [
-                'commodity_code' => ['required', 'digits_between:8,20'],
+                'commodity_code' => ['required', 'digits:13'],
                 'name' => ['required', 'string', 'max:255'],
                 'unit' => ['required', 'string', 'max:40'],
-                'measurement_unit_code' => ['required', 'digits_between:1,10'],
-                'unit_price' => ['required', 'numeric', 'min:0', 'max:9999999999999999'],
+                'measurement_unit_code' => ['required', 'digits_between:1,8'],
+                'unit_price' => ['required', 'numeric', 'gt:0', 'max:9999999999999999'],
                 'tax_rate' => ['required', 'numeric', 'min:0', 'max:100'],
                 'is_active' => ['boolean'],
             ]);

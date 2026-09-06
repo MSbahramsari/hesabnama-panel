@@ -10,6 +10,7 @@ use App\Models\Good;
 use App\Models\Invoice;
 use App\Models\User;
 use App\Services\Moadian\SubmissionResult;
+use App\Support\JalaliDate;
 use Mockery\MockInterface;
 
 use function Pest\Laravel\mock;
@@ -49,7 +50,7 @@ it('accepts a jalali invoice date and stores its gregorian equivalent', function
     $this->actingAs($user)->post(route('invoices.store'), [
         'customer_id' => $customer->id,
         'number' => 'INV-JALALI-0001',
-        'invoice_date_jalali' => '۱۴۰۵/۰۵/۲۴',
+        'invoice_date_jalali' => JalaliDate::format(today('Asia/Tehran')),
         'items' => [[
             'good_id' => $good->id,
             'quantity' => 1,
@@ -59,7 +60,7 @@ it('accepts a jalali invoice date and stores its gregorian equivalent', function
         ]],
     ])->assertRedirect();
 
-    expect(Invoice::whereBelongsTo($user)->firstOrFail()->invoice_date->format('Y-m-d'))->toBe('2026-08-15');
+    expect(Invoice::whereBelongsTo($user)->firstOrFail()->invoice_date->format('Y-m-d'))->toBe(today('Asia/Tehran')->format('Y-m-d'));
 });
 
 it('stores mixed settlement and validates its cash portion', function () {

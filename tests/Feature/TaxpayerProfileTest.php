@@ -42,7 +42,7 @@ it('lets an admin create its own taxpayer connection profile', function () {
         'taxpayer_name' => 'شرکت مدیر سامانه',
         'taxpayer_type' => 'legal',
         'national_id' => '14001234567',
-        'economic_code' => '411111111111',
+        'economic_code' => '41111111111',
         'fiscal_id' => 'adm123',
         'branch_code' => '1',
         'private_key' => UploadedFile::fake()->createWithContent('private.pem', $this->privateKey),
@@ -71,7 +71,7 @@ it('lets a member complete and safely update its taxpayer profile', function () 
         'taxpayer_name' => 'شرکت آزمون مودیان',
         'taxpayer_type' => 'legal',
         'national_id' => '14001234567',
-        'economic_code' => '411111111111',
+        'economic_code' => '41111111111',
         'fiscal_id' => 'abc123',
         'branch_code' => '1',
         'private_key' => UploadedFile::fake()->createWithContent('private.pem', $this->privateKey),
@@ -117,7 +117,7 @@ it('tests the authenticated connection with the signed-in taxpayer credentials',
     $user = User::factory()->create();
     $profile = TaxpayerProfile::factory()->for($user)->create([
         'fiscal_id' => 'ABC123',
-        'economic_code' => '411111111111',
+        'economic_code' => '41111111111',
         'private_key' => $this->privateKey,
     ]);
 
@@ -152,13 +152,13 @@ it('keeps access tokens isolated between taxpayer accounts', function () {
     $firstUser = User::factory()->create();
     TaxpayerProfile::factory()->for($firstUser)->create([
         'fiscal_id' => 'ABC123',
-        'economic_code' => '411111111111',
+        'economic_code' => '41111111111',
         'private_key' => $this->privateKey,
     ]);
     $secondUser = User::factory()->create();
     TaxpayerProfile::factory()->for($secondUser)->create([
         'fiscal_id' => 'DEF456',
-        'economic_code' => '422222222222',
+        'economic_code' => '42222222222',
         'private_key' => $this->privateKey,
     ]);
     $clientFactory = app(MoadianClientFactory::class);

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\SettlementMethod;
 use App\Models\Customer;
@@ -73,6 +74,7 @@ it('builds a version one invoice payload from persisted invoice data', function 
             'tvop' => 180_000,
         ])
         ->and($payload['header']['taxid'])->toStartWith('ABC123')->toHaveLength(22)
+        ->and($payload['header']['indati2m'])->toBeNull()
         ->and($payload['body'][0])
         ->toMatchArray([
             'sstid' => $good->commodity_code,
@@ -96,7 +98,22 @@ it('maps mixed settlement and corrective references to official payload fields',
     ]);
     $customer = Customer::factory()->for($user)->create();
     $good = Good::factory()->for($user)->create(['measurement_unit_code' => '1627']);
-    $reference = Invoice::factory()->for($user)->for($customer)->create(['tax_id' => 'ABC1230000000000000001']);
+    $reference = Invoice::factory()->for($user)->for($customer)->create([
+        'status' => InvoiceStatus::Confirmed,
+        'tax_id' => 'ABC1230000000000000001',
+    ]);
+    $reference->items()->create([
+        'good_id' => $good->id,
+        'description' => $good->name,
+        'commodity_code' => $good->commodity_code,
+        'quantity' => 2,
+        'unit_price' => 1_000_000,
+        'tax_rate' => 10,
+        'discount' => 200_000,
+        'subtotal' => 2_000_000,
+        'tax_amount' => 180_000,
+        'total' => 1_980_000,
+    ]);
     $invoice = Invoice::factory()->for($user)->for($customer)->create([
         'invoice_type' => InvoiceType::Correction,
         'reference_invoice_id' => $reference->id,

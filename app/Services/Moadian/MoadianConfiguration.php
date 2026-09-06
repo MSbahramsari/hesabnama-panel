@@ -89,8 +89,12 @@ class MoadianConfiguration
     {
         $this->assertReadyForAuthenticatedRequests();
 
-        if (! preg_match('/^\d{10,14}$/', $this->sellerEconomicCode())) {
-            throw new MoadianConfigurationException('شماره اقتصادی فروشنده در تنظیمات اتصال وارد نشده یا معتبر نیست.');
+        if (! preg_match('/^(?:\d{11}|\d{14})$/', $this->sellerEconomicCode())) {
+            throw new MoadianConfigurationException('شماره اقتصادی فروشنده باید مطابق قالب رسمی، ۱۱ یا ۱۴ رقم باشد.');
+        }
+
+        if ($this->sellerBranchCode() !== null && preg_match('/^\d{1,4}$/', $this->sellerBranchCode()) !== 1) {
+            throw new MoadianConfigurationException('کد شعبه فروشنده باید عددی و حداکثر ۴ رقم باشد.');
         }
     }
 

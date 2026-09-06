@@ -59,7 +59,7 @@ it('looks up a customer from the official economic code endpoint', function () {
         return Http::response([
             'result' => [
                 'data' => [
-                    'economicCode' => '411111111111',
+                    'economicCode' => '41111111111',
                     'nameTrade' => 'شرکت استعلام‌شده',
                     'nationalId' => '14001234567',
                     'taxpayerType' => 'LEGAL',
@@ -71,7 +71,7 @@ it('looks up a customer from the official economic code endpoint', function () {
     });
 
     $customer = app(MoadianTaxPlatformGateway::class)
-        ->lookupCustomer($this->user, '411111111111');
+        ->lookupCustomer($this->user, '41111111111');
 
     expect($customer)->toMatchArray([
         'name' => 'شرکت استعلام‌شده',
@@ -84,7 +84,7 @@ it('looks up a customer from the official economic code endpoint', function () {
     Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/sync/GET_ECONOMIC_CODE_INFORMATION')
         && $request->hasHeader('Authorization', 'Bearer customer-lookup-token')
         && ($request->data()['packet']['fiscalId'] ?? null) === 'ABC123'
-        && ($request->data()['packet']['data']['economicCode'] ?? null) === '411111111111');
+        && ($request->data()['packet']['data']['economicCode'] ?? null) === '41111111111');
 });
 
 it('looks up a good from the official service and stuff endpoint', function () {

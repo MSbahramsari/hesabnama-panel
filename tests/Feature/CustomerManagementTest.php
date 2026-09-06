@@ -7,7 +7,7 @@ it('allows a permitted user to create a customer', function () {
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)->post(route('customers.store'), [
-        'economic_code' => '411111111111',
+        'economic_code' => '41111111111',
         'national_id' => '14001234567',
         'name' => 'شرکت آزمون',
         'type' => 'legal',

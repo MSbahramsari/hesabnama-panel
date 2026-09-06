@@ -13,6 +13,7 @@ class InvoicePayloadFactory
 {
     public function __construct(
         private TaxIdGenerator $taxIdGenerator,
+        private InvoiceSubmissionValidator $submissionValidator,
     ) {}
 
     /** @return array{header: array<string, mixed>, body: array<int, array<string, mixed>>, payments: array<int, array<string, mixed>>, extension: null} */
@@ -20,14 +21,7 @@ class InvoicePayloadFactory
     {
         $configuration->assertReadyForSubmission();
         $invoice->loadMissing(['customer', 'items.good', 'referenceInvoice']);
-
-        if ($invoice->items->isEmpty()) {
-            throw new MoadianConfigurationException('صورتحساب بدون قلم قابل ارسال به سامانه مودیان نیست.');
-        }
-
-        if ($invoice->invoice_type !== InvoiceType::Original && blank($invoice->referenceInvoice?->tax_id)) {
-            throw new MoadianConfigurationException('شماره مالیاتی صورتحساب مرجع برای ارسال صورتحساب اصلاحی یا ابطالی موجود نیست.');
-        }
+        $this->submissionValidator->assertValid($invoice);
 
         $issuedAt = $this->issuedAt($invoice);
         $taxId = $this->taxIdGenerator->generate($configuration->fiscalId(), $issuedAt, (int) $invoice->getKey());
@@ -45,7 +39,7 @@ class InvoicePayloadFactory
             'header' => [
                 'taxid' => $taxId,
                 'indatim' => $issuedAt->getTimestampMs(),
-                'indati2m' => $issuedAt->getTimestampMs(),
+                'indati2m' => null,
                 'inty' => 1,
                 'inno' => mb_strtoupper(str_pad(dechex((int) $invoice->getKey()), 10, '0', STR_PAD_LEFT)),
                 'irtaxid' => $invoice->invoice_type === InvoiceType::Original ? null : $invoice->referenceInvoice?->tax_id,
@@ -133,8 +127,9 @@ class InvoicePayloadFactory
     private function issuedAt(Invoice $invoice): CarbonImmutable
     {
         $date = CarbonImmutable::parse($invoice->invoice_date->format('Y-m-d'), 'Asia/Tehran');
+        $now = CarbonImmutable::now('Asia/Tehran');
 
-        return $date->isToday() ? CarbonImmutable::now('Asia/Tehran') : $date->startOfDay();
+        return $date->setTime($now->hour, $now->minute, $now->second, $now->microsecond);
     }
 
     private function money(int|float|string|null $value): int

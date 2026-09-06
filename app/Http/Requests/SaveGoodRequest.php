@@ -27,11 +27,11 @@ class SaveGoodRequest extends FormRequest
         $good = $this->route('good');
 
         return [
-            'commodity_code' => ['required', 'digits_between:8,20', Rule::unique((new Good)->getTable())->where('user_id', $this->user()->id)->ignore($good)],
+            'commodity_code' => ['required', 'digits:13', Rule::unique((new Good)->getTable())->where('user_id', $this->user()->id)->ignore($good)],
             'name' => ['required', 'string', 'max:255'],
             'unit' => ['required', 'string', 'max:40'],
-            'measurement_unit_code' => ['required', 'digits_between:1,10'],
-            'unit_price' => ['required', 'numeric', 'min:0', 'max:9999999999999999'],
+            'measurement_unit_code' => ['required', 'digits_between:1,8'],
+            'unit_price' => ['required', 'numeric', 'gt:0', 'max:9999999999999999'],
             'tax_rate' => ['required', 'numeric', 'min:0', 'max:100'],
             'is_active' => ['required', 'boolean'],
         ];

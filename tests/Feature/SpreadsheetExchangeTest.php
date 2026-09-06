@@ -12,7 +12,7 @@ it('imports customers and invoices from csv files', function () {
     $user = User::factory()->create();
     $customerCsv = implode("\n", [
         'کد اقتصادی,شناسه ملی,نام مشتری,نوع شخصیت,نشانی,کد پستی,شماره تماس,وضعیت',
-        '411111111111,14001234567,شرکت آزمون اکسل,حقوقی,تهران,1234567890,02112345678,فعال',
+        '41111111111,14001234567,شرکت آزمون اکسل,حقوقی,تهران,1234567890,02112345678,فعال',
     ]);
 
     $this->actingAs($user)->post(route('customers.import'), [
@@ -23,7 +23,7 @@ it('imports customers and invoices from csv files', function () {
     expect($customer->name)->toBe('شرکت آزمون اکسل');
 
     $good = Good::factory()->for($user)->create([
-        'commodity_code' => '12345678',
+        'commodity_code' => '1234567890123',
         'unit_price' => 1_000_000,
         'tax_rate' => 10,
     ]);
@@ -47,7 +47,7 @@ it('writes and reads a real xlsx file without retaining the upload', function ()
     $sourceUser = User::factory()->create();
     $targetUser = User::factory()->create();
     $good = Good::factory()->for($sourceUser)->create([
-        'commodity_code' => '87654321',
+        'commodity_code' => '8765432101234',
         'name' => 'قلم انتقالی اکسل',
     ]);
     $service = app(GoodSpreadsheetService::class);

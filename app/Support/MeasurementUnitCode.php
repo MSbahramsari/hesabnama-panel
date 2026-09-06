@@ -28,6 +28,6 @@ class MeasurementUnitCode
             '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
         ]);
 
-        return preg_match('/^\d{1,10}$/', $latinValue) === 1 ? $latinValue : '';
+        return preg_match('/^\d{1,8}$/', $latinValue) === 1 ? $latinValue : '';
     }
 }

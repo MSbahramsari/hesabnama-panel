@@ -40,6 +40,7 @@ return [
         'base_url' => env('MOADIAN_BASE_URL', 'https://tp.tax.gov.ir/req/api/self-tsp'),
         'ca_bundle_path' => env('MOADIAN_CA_BUNDLE_PATH'),
         'default_measurement_unit_code' => env('MOADIAN_DEFAULT_MEASUREMENT_UNIT_CODE'),
+        'normal_submission_window_days' => (int) env('MOADIAN_NORMAL_SUBMISSION_WINDOW_DAYS', 12),
         'connect_timeout' => (int) env('MOADIAN_CONNECT_TIMEOUT', 5),
         'timeout' => (int) env('MOADIAN_TIMEOUT', 20),
     ],

@@ -19,7 +19,7 @@ class SaveCustomerRequest extends FormRequest
         $customer = $this->route('customer');
 
         return [
-            'economic_code' => ['required', 'digits_between:10,14', Rule::unique((new Customer)->getTable())->where('user_id', $this->user()->id)->ignore($customer)],
+            'economic_code' => ['required', 'regex:/^(?:\d{11}|\d{14})$/', Rule::unique((new Customer)->getTable())->where('user_id', $this->user()->id)->ignore($customer)],
             'national_id' => ['nullable', 'digits_between:10,14'],
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::in(['legal', 'individual'])],

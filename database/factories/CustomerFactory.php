@@ -13,7 +13,7 @@ class CustomerFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'economic_code' => fake()->unique()->numerify('4###########'),
+            'economic_code' => fake()->unique()->numerify('4##########'),
             'national_id' => fake()->numerify('1##########'),
             'name' => fake()->company(),
             'type' => 'legal',

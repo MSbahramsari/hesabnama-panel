@@ -13,7 +13,7 @@ class GoodFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'commodity_code' => fake()->unique()->numerify('1#######'),
+            'commodity_code' => fake()->unique()->numerify('1############'),
             'name' => fake()->words(3, true),
             'unit' => 'عدد',
             'measurement_unit_code' => '1627',

@@ -24,7 +24,7 @@ it('allows an admin to provision a licensed user', function () {
         'taxpayer_name' => 'شرکت کاربر تازه',
         'taxpayer_type' => 'legal',
         'national_id' => '14001234567',
-        'economic_code' => '411111111111',
+        'economic_code' => '41111111111',
         'fiscal_id' => 'ABC123',
         'branch_code' => '1',
         'private_key' => UploadedFile::fake()->createWithContent('private.pem', $privateKey),

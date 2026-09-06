@@ -3,11 +3,13 @@
 namespace App\Services\Spreadsheet;
 
 use App\Actions\SaveInvoiceAction;
+use App\Enums\InvoiceType;
 use App\Enums\SettlementMethod;
 use App\Models\Customer;
 use App\Models\Good;
 use App\Models\Invoice;
 use App\Models\User;
+use App\Services\Moadian\InvoiceSubmissionValidator;
 use App\Support\JalaliDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -133,17 +135,23 @@ class InvoiceSpreadsheetService
                     'cash_amount' => $this->numeric($firstRow['مبلغ نقدی'] ?? 0),
                     'items' => $items,
                 ];
+                $submissionWindowDays = (int) config('services.moadian.normal_submission_window_days', InvoiceSubmissionValidator::NORMAL_SUBMISSION_WINDOW_DAYS);
                 $validator = Validator::make($values, [
                     'customer_id' => ['required', 'integer'],
                     'number' => ['required', 'string', 'max:50'],
-                    'invoice_date' => ['required', 'date_format:Y-m-d'],
+                    'invoice_date' => [
+                        'required',
+                        'date_format:Y-m-d',
+                        'before_or_equal:today',
+                        'after_or_equal:'.today('Asia/Tehran')->subDays($submissionWindowDays)->format('Y-m-d'),
+                    ],
                     'description' => ['nullable', 'string', 'max:1000'],
                     'settlement_method' => ['required', 'in:cash,credit,mixed'],
                     'cash_amount' => ['nullable', 'numeric', 'min:0'],
                     'items' => ['required', 'array', 'min:1', 'max:100'],
                     'items.*.good_id' => ['required', 'integer'],
                     'items.*.quantity' => ['required', 'numeric', 'gt:0'],
-                    'items.*.unit_price' => ['required', 'numeric', 'min:0'],
+                    'items.*.unit_price' => ['required', 'numeric', 'gt:0'],
                     'items.*.tax_rate' => ['required', 'numeric', 'between:0,100'],
                     'items.*.discount' => ['nullable', 'numeric', 'min:0'],
                 ]);
