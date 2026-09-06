@@ -72,9 +72,13 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
 
     public function inquire(Invoice $invoice): InquiryResult
     {
-        return $this->clientFactory
-            ->forUser($invoice->user)
-            ->inquiryByReferenceNumber((string) $invoice->reference_number);
+        $client = $this->clientFactory->forUser($invoice->user);
+
+        if (filled($invoice->submission_uid)) {
+            return $client->inquiryByUid((string) $invoice->submission_uid);
+        }
+
+        return $client->inquiryByReferenceNumber((string) $invoice->reference_number);
     }
 
     public function isDemo(): bool

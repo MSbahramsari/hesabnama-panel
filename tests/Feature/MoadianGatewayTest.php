@@ -243,6 +243,49 @@ it('inquires the official status by reference number', function () {
     ) && $request->hasHeader('Authorization', 'Bearer test-token'));
 });
 
+it('inquires the official status by submission uid and fiscal id', function () {
+    Http::preventStrayRequests();
+    Http::fake(function (Request $request) {
+        if (str_ends_with($request->url(), '/sync/GET_TOKEN')) {
+            return Http::response([
+                'result' => [
+                    'data' => [
+                        'token' => 'test-token',
+                        'expiresIn' => (int) floor(microtime(true) * 1000) + 600_000,
+                    ],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'result' => [
+                'data' => [[
+                    'uid' => '8a00f17a-bd35-46bc-ae52-3f61fab868c2',
+                    'status' => 'SUCCESS',
+                    'data' => [
+                        'taxResult' => 'SUCCESS',
+                        'confirmationReferenceId' => 'official-confirmation-id',
+                    ],
+                    'packetType' => 'RECEIVE_INVOICE_CONFIRM',
+                    'fiscalId' => 'ABC123',
+                ]],
+            ],
+        ]);
+    });
+
+    $result = $this->client->inquiryByUid('8a00f17a-bd35-46bc-ae52-3f61fab868c2');
+
+    expect($result->isSuccessful())->toBeTrue()
+        ->and($result->confirmationReferenceId)->toBe('official-confirmation-id')
+        ->and($result->packetType)->toBe('RECEIVE_INVOICE_CONFIRM');
+
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/sync/INQUIRY_BY_UID')
+        && ($request->data()['packet']['data'][0] ?? null) === [
+            'uid' => '8a00f17a-bd35-46bc-ae52-3f61fab868c2',
+            'fiscalId' => 'ABC123',
+        ]);
+});
+
 it('preserves the uid and marks a repeated submission as retry', function () {
     $asyncAttempts = 0;
     Http::preventStrayRequests();

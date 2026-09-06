@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\BuyerStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
+use App\Enums\MoadianStatus;
 use App\Enums\SettlementMethod;
 use Database\Factories\InvoiceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['user_id', 'customer_id', 'number', 'invoice_date', 'description', 'invoice_type', 'settlement_method', 'cash_amount', 'reference_invoice_id', 'status', 'buyer_status', 'subtotal', 'tax_total', 'discount_total', 'total', 'submission_uid', 'tax_id', 'reference_number', 'sent_at', 'last_inquired_at', 'confirmed_at', 'error_message'])]
+#[Fillable(['user_id', 'customer_id', 'number', 'invoice_date', 'description', 'invoice_type', 'settlement_method', 'cash_amount', 'reference_invoice_id', 'status', 'moadian_status', 'moadian_tax_result', 'moadian_confirmation_reference_id', 'moadian_packet_type', 'buyer_status', 'buyer_status_source', 'buyer_status_updated_at', 'subtotal', 'tax_total', 'discount_total', 'total', 'submission_uid', 'tax_id', 'reference_number', 'sent_at', 'last_inquired_at', 'confirmed_at', 'error_message'])]
 class Invoice extends Model
 {
     /** @use HasFactory<InvoiceFactory> */
@@ -55,11 +56,11 @@ class Invoice extends Model
     protected function casts(): array
     {
         return [
-            'invoice_date' => 'date', 'status' => InvoiceStatus::class, 'buyer_status' => BuyerStatus::class,
+            'invoice_date' => 'date', 'status' => InvoiceStatus::class, 'moadian_status' => MoadianStatus::class, 'buyer_status' => BuyerStatus::class,
             'invoice_type' => InvoiceType::class, 'settlement_method' => SettlementMethod::class,
             'cash_amount' => 'decimal:2',
             'subtotal' => 'decimal:2', 'tax_total' => 'decimal:2', 'discount_total' => 'decimal:2',
-            'total' => 'decimal:2', 'sent_at' => 'datetime', 'last_inquired_at' => 'datetime', 'confirmed_at' => 'datetime',
+            'total' => 'decimal:2', 'sent_at' => 'datetime', 'last_inquired_at' => 'datetime', 'confirmed_at' => 'datetime', 'buyer_status_updated_at' => 'datetime',
         ];
     }
 }

@@ -42,11 +42,20 @@
                 <div class="table-count"><span class="size-1.5 rounded-full bg-amber-500"></span><strong>{{ number_format($invoices->total()) }}</strong> صورتحساب</div>
                 <a href="{{ route('invoices.export', request()->query()) }}" class="btn-secondary">خروجی اکسل</a>
                 <button type="button" class="btn-secondary" data-import-toggle="invoices-import">ورود اکسل</button>
+                @if($moadianIsReal)
+                    <button type="button" class="btn-secondary" data-import-toggle="moadian-sales-report">همگام‌سازی واکنش خریداران</button>
+                @endif
                 <a href="{{ route('invoices.create') }}" class="btn-primary"><x-icon name="plus" class="size-4" /><span>صورتحساب جدید</span></a>
             </div>
         </div>
 
         <x-spreadsheet-import-panel id="invoices-import" :action="route('invoices.import')" :template="route('invoices.template')" title="ورود گروهی صورتحساب‌ها" />
+        @if($moadianIsReal)
+            <x-spreadsheet-import-panel id="moadian-sales-report" :action="route('invoices.moadian-sales-report.import')" title="فایل خروجی فروش داخلی کارپوشه مودیان" />
+            <div class="border-b border-slate-100 bg-blue-50/70 px-5 py-3 text-xs leading-6 text-blue-900">
+                برای دریافت واکنش واقعی خریدار، فایل xlsx یا csv بخش «مدیریت صورتحساب ← فایل‌های خروجی ← فروش داخلی» را بدون تغییر بارگذاری کنید.
+            </div>
+        @endif
 
         @if($invoices->isEmpty())
             <x-empty-state title="صورتحسابی پیدا نشد" description="فیلترها را تغییر دهید یا اولین صورتحساب را بسازید." :action="route('invoices.create')" action-label="ساخت صورتحساب" />
@@ -76,7 +85,12 @@
                                 <td><div class="table-primary font-extrabold">{{ $invoice->customer->name }}</div><div dir="ltr" class="table-meta justify-end">{{ $invoice->customer->economic_code }}</div></td>
                                 <td dir="ltr" class="table-number text-right">{{ \App\Support\JalaliDate::format($invoice->invoice_date) }}</td>
                                 <td class="table-number">{{ number_format($invoice->total) }}<small>ریال</small></td>
-                                <td><x-status-badge :status="$invoice->status" /></td>
+                                <td>
+                                    <x-status-badge :status="$invoice->moadian_status ?? $invoice->status" />
+                                    @if($invoice->buyer_status)
+                                        <div class="mt-1"><x-status-badge :status="$invoice->buyer_status" /></div>
+                                    @endif
+                                </td>
                                 <td class="table-actions-cell"><a href="{{ route('invoices.show', $invoice) }}" class="table-action"><x-icon name="eye" />جزئیات</a></td>
                             </tr>
                         @endforeach

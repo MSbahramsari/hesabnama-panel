@@ -6,10 +6,10 @@ use App\Actions\InquireInvoiceAction;
 use App\Actions\SubmitInvoicesAction;
 use App\Contracts\TaxPlatformGateway;
 use App\Enums\InvoiceStatus;
+use App\Enums\MoadianStatus;
 use App\Exceptions\MoadianApiException;
 use App\Exceptions\MoadianConfigurationException;
 use App\Http\Requests\SendInvoicesRequest;
-use App\Http\Requests\UpdateBuyerStatusRequest;
 use App\Models\Invoice;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
@@ -49,7 +49,12 @@ class InvoiceWorkflowController extends Controller
     {
         abort_unless($gateway->isDemo(), 404);
         Gate::authorize('confirm', $invoice);
-        $invoice->update(['status' => InvoiceStatus::Confirmed, 'confirmed_at' => now()]);
+        $invoice->update([
+            'status' => InvoiceStatus::Confirmed,
+            'moadian_status' => MoadianStatus::Success,
+            'moadian_tax_result' => 'SUCCESS',
+            'confirmed_at' => now(),
+        ]);
 
         return back()->with('success', 'پاسخ تأیید آزمایشی مودیان ثبت شد.');
     }
@@ -66,22 +71,13 @@ class InvoiceWorkflowController extends Controller
             $action->handle($invoice);
         } catch (MoadianConfigurationException|MoadianApiException $exception) {
             $invoice->update([
-                'status' => InvoiceStatus::MoadianError,
                 'last_inquired_at' => now(),
-                'error_message' => $exception->getMessage(),
+                'error_message' => 'آخرین تلاش همگام‌سازی: '.$exception->getMessage(),
             ]);
 
             return back()->with('error', $exception->getMessage());
         }
 
         return back()->with('success', 'آخرین وضعیت صورتحساب از سامانه مودیان دریافت شد.');
-    }
-
-    public function buyerStatus(UpdateBuyerStatusRequest $request, Invoice $invoice): RedirectResponse
-    {
-        Gate::authorize('updateBuyerStatus', $invoice);
-        $invoice->update($request->validated());
-
-        return back()->with('success', 'وضعیت خریدار به‌روزرسانی شد.');
     }
 }

@@ -35,7 +35,10 @@
                         <div class="mt-2 text-2xl font-black tracking-tight text-slate-950">{{ $invoice->number }}</div>
                         <div class="mt-2 text-sm text-slate-500">تاریخ صدور: {{ \App\Support\JalaliDate::format($invoice->invoice_date) }}</div>
                     </div>
-                    <div class="flex flex-wrap gap-2"><x-status-badge :status="$invoice->invoice_type" /><x-status-badge :status="$invoice->status" /></div>
+                    <div class="flex flex-wrap gap-2">
+                        <x-status-badge :status="$invoice->invoice_type" />
+                        <x-status-badge :status="$invoice->moadian_status ?? $invoice->status" />
+                    </div>
                 </div>
                 <div class="mt-7 grid gap-4 border-t border-slate-100 pt-6 sm:grid-cols-2">
                     <div>
@@ -71,6 +74,12 @@
                         <div>
                             <div class="text-xs font-bold text-slate-400">کد رهگیری سامانه مودیان</div>
                             <div dir="ltr" class="mt-2 break-all text-right font-mono text-xs text-slate-700">{{ $invoice->reference_number }}</div>
+                        </div>
+                    @endif
+                    @if($invoice->moadian_confirmation_reference_id)
+                        <div>
+                            <div class="text-xs font-bold text-slate-400">شناسه تأیید پردازش مودیان</div>
+                            <div dir="ltr" class="mt-2 break-all text-right font-mono text-xs text-slate-700">{{ $invoice->moadian_confirmation_reference_id }}</div>
                         </div>
                     @endif
                 </div>
@@ -162,27 +171,21 @@
                 @endif
             </div>
 
-            @can('updateBuyerStatus', $invoice)
-                <div class="card p-5">
-                    <h3 class="card-title">واکنش خریدار</h3>
-                    <p class="card-subtitle">پس از تأیید مودیان، وضعیت اعلامی خریدار را ثبت کنید.</p>
-                    <form method="POST" action="{{ route('invoices.buyer_status', $invoice) }}" class="mt-4 space-y-3">
-                        @csrf
-                        @method('PATCH')
-                        <select name="buyer_status" class="form-control" required>
-                            <option value="">انتخاب وضعیت</option>
-                            @foreach(\App\Enums\BuyerStatus::cases() as $buyerStatus)
-                                <option value="{{ $buyerStatus->value }}" @selected($invoice->buyer_status === $buyerStatus)>{{ $buyerStatus->label() }}</option>
-                            @endforeach
-                        </select>
-                        <button class="btn-primary w-full justify-center">ثبت وضعیت</button>
-                    </form>
-                </div>
-            @endcan
-
-            @if($invoice->buyer_status)
-                <div class="card p-5"><div class="text-xs font-bold text-slate-400">آخرین واکنش خریدار</div><div class="mt-3"><x-status-badge :status="$invoice->buyer_status" /></div></div>
-            @endif
+            <div class="card p-5">
+                <h3 class="card-title">واکنش رسمی خریدار</h3>
+                @if($invoice->buyer_status)
+                    <div class="mt-4"><x-status-badge :status="$invoice->buyer_status" /></div>
+                    <p class="mt-3 text-xs leading-6 text-slate-500">
+                        منبع: فایل رسمی فروش داخلی کارپوشه مودیان
+                        @if($invoice->buyer_status_updated_at)
+                            — {{ \App\Support\JalaliDate::format($invoice->buyer_status_updated_at, 'Y/m/d H:i') }}
+                        @endif
+                    </p>
+                @else
+                    <p class="mt-3 text-xs leading-6 text-slate-500">هنوز از فایل رسمی کارپوشه، واکنشی برای این شماره مالیاتی دریافت نشده است.</p>
+                    <a href="{{ route('invoices.index') }}" class="btn-secondary mt-4 w-full justify-center">ورود فایل رسمی کارپوشه</a>
+                @endif
+            </div>
         </aside>
     </div>
 @endsection

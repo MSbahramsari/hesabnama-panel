@@ -51,11 +51,6 @@ class InvoicePolicy
             && in_array($invoice->status, [InvoiceStatus::AwaitingConfirmation, InvoiceStatus::MoadianError], true);
     }
 
-    public function updateBuyerStatus(User $user, Invoice $invoice): bool
-    {
-        return $this->view($user, $invoice) && $invoice->status === InvoiceStatus::Confirmed;
-    }
-
     public function adjust(User $user, Invoice $invoice): bool
     {
         return $this->view($user, $invoice)

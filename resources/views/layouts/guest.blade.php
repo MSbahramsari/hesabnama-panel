@@ -26,7 +26,7 @@
                     <span class="size-2 rounded-full bg-teal-300"></span> یک مسیر روشن تا سامانه مودیان
                 </div>
                 <h1 class="text-5xl font-black leading-[1.35] tracking-tight text-white">صورتحساب‌ها را<br><span class="text-teal-300">دقیق و بدون دغدغه</span><br>مدیریت کنید.</h1>
-                <p class="mt-7 max-w-lg text-base leading-8 text-slate-400">از تعریف مشتری و کالا تا ارسال، پیگیری تأیید و ثبت واکنش خریدار؛ همه مراحل در یک فضای یکپارچه.</p>
+                <p class="mt-7 max-w-lg text-base leading-8 text-slate-400">از تعریف مشتری و کالا تا ارسال، پیگیری تأیید مودیان و مشاهده واکنش رسمی خریدار؛ همه مراحل در یک فضای یکپارچه.</p>
             </div>
             <div class="relative z-10 grid grid-cols-3 gap-4 text-white">
                 <div class="guest-stat"><strong>سریع</strong><span>استعلام کدها</span></div>

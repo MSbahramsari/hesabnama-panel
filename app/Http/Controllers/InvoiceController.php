@@ -30,7 +30,7 @@ class InvoiceController extends Controller
         $moadianConfiguration = $clientFactory->configurationForUser($user);
 
         $invoices = Invoice::query()
-            ->select(['id', 'user_id', 'customer_id', 'reference_invoice_id', 'number', 'tax_id', 'invoice_date', 'invoice_type', 'settlement_method', 'status', 'buyer_status', 'total', 'created_at'])
+            ->select(['id', 'user_id', 'customer_id', 'reference_invoice_id', 'number', 'tax_id', 'invoice_date', 'invoice_type', 'settlement_method', 'status', 'moadian_status', 'buyer_status', 'total', 'created_at'])
             ->with('customer:id,name,economic_code')
             ->when(! $user->isAdmin(), fn (Builder $query) => $query->whereBelongsTo($user))
             ->when($search, fn (Builder $query) => $query->where(fn (Builder $query) => $query

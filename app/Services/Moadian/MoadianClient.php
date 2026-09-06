@@ -119,10 +119,21 @@ class MoadianClient
             throw new MoadianApiException('پاسخ استعلام سامانه مودیان قابل پردازش نیست.');
         }
 
-        return new InquiryResult(
-            mb_strtoupper((string) ($result['status'] ?? 'PENDING')),
-            filled(Arr::get($result, 'data.taxResult')) ? (string) Arr::get($result, 'data.taxResult') : null,
-        );
+        return $this->inquiryResult($result);
+    }
+
+    public function inquiryByUid(string $uid): InquiryResult
+    {
+        $data = $this->authenticatedSync('INQUIRY_BY_UID', [
+            ['uid' => $uid, 'fiscalId' => $this->configuration->fiscalId()],
+        ]);
+        $result = $data[0] ?? null;
+
+        if (! is_array($result)) {
+            throw new MoadianApiException('پاسخ استعلام شناسه ارسال سامانه مودیان قابل پردازش نیست.');
+        }
+
+        return $this->inquiryResult($result);
     }
 
     public function token(): string
@@ -297,5 +308,24 @@ class MoadianClient
     private function timestamp(): int
     {
         return (int) floor(microtime(true) * 1000);
+    }
+
+    /** @param array<string, mixed> $result */
+    private function inquiryResult(array $result): InquiryResult
+    {
+        $taxResult = Arr::get($result, 'data.taxResult');
+
+        if (is_array($taxResult)) {
+            $taxResult = json_encode($taxResult, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+
+        return new InquiryResult(
+            mb_strtoupper((string) ($result['status'] ?? 'PENDING')),
+            filled($taxResult) ? (string) $taxResult : null,
+            filled(Arr::get($result, 'data.confirmationReferenceId'))
+                ? (string) Arr::get($result, 'data.confirmationReferenceId')
+                : null,
+            filled($result['packetType'] ?? null) ? (string) $result['packetType'] : null,
+        );
     }
 }

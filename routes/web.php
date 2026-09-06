@@ -38,13 +38,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/invoices/export', [DataExchangeController::class, 'exportInvoices'])->name('invoices.export');
         Route::get('/invoices/import-template', [DataExchangeController::class, 'invoiceTemplate'])->name('invoices.template');
         Route::post('/invoices/import', [DataExchangeController::class, 'importInvoices'])->name('invoices.import');
+        Route::post('/invoices/moadian-sales-report', [DataExchangeController::class, 'importMoadianSalesReport'])->name('invoices.moadian-sales-report.import');
         Route::resource('invoices', InvoiceController::class);
         Route::post('/invoices/{invoice}/correction', [InvoiceAdjustmentController::class, 'correction'])->name('invoices.correction');
         Route::post('/invoices/{invoice}/cancellation', [InvoiceAdjustmentController::class, 'cancellation'])->name('invoices.cancellation');
         Route::post('/invoices/send', [InvoiceWorkflowController::class, 'send'])->middleware('throttle:10,1')->name('invoices.send');
         Route::post('/invoices/{invoice}/confirm-demo', [InvoiceWorkflowController::class, 'confirm'])->name('invoices.confirm_demo');
         Route::post('/invoices/{invoice}/inquire', [InvoiceWorkflowController::class, 'inquire'])->middleware('throttle:20,1')->name('invoices.inquire');
-        Route::patch('/invoices/{invoice}/buyer-status', [InvoiceWorkflowController::class, 'buyerStatus'])->name('invoices.buyer_status');
 
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

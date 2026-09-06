@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Contracts\TaxPlatformGateway;
 use App\Enums\InvoiceStatus;
+use App\Enums\MoadianStatus;
 use App\Exceptions\MoadianApiException;
 use App\Exceptions\MoadianConfigurationException;
 use App\Models\Invoice;
@@ -31,6 +32,10 @@ class SubmitInvoicesAction
                     $result = $this->gateway->submit($invoice);
                     $invoice->update([
                         'status' => InvoiceStatus::AwaitingConfirmation,
+                        'moadian_status' => MoadianStatus::Pending,
+                        'moadian_tax_result' => null,
+                        'moadian_confirmation_reference_id' => null,
+                        'moadian_packet_type' => null,
                         'submission_uid' => $result->uid,
                         'reference_number' => $result->referenceNumber,
                         'tax_id' => $result->taxId,
@@ -42,6 +47,7 @@ class SubmitInvoicesAction
                 } catch (MoadianConfigurationException|MoadianApiException $exception) {
                     $invoice->update([
                         'status' => InvoiceStatus::MoadianError,
+                        'moadian_status' => MoadianStatus::Failed,
                         'error_message' => $exception->getMessage(),
                     ]);
 

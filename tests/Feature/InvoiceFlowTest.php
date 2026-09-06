@@ -1,8 +1,8 @@
 <?php
 
 use App\Contracts\TaxPlatformGateway;
-use App\Enums\BuyerStatus;
 use App\Enums\InvoiceStatus;
+use App\Enums\MoadianStatus;
 use App\Enums\SettlementMethod;
 use App\Exceptions\MoadianApiException;
 use App\Models\Customer;
@@ -122,7 +122,7 @@ it('searches invoices by their unique tax number', function () {
         ->assertDontSee('HIDDEN-INVOICE');
 });
 
-it('moves selected invoices through send confirmation and buyer status', function () {
+it('moves selected invoices through send confirmation', function () {
     $user = User::factory()->create();
     $customer = Customer::factory()->for($user)->create();
     $invoice = Invoice::factory()->for($user)->for($customer)->create(['status' => InvoiceStatus::Draft]);
@@ -136,12 +136,6 @@ it('moves selected invoices through send confirmation and buyer status', functio
 
     $this->actingAs($user)->post(route('invoices.confirm_demo', $invoice))->assertSessionHas('success');
     expect($invoice->refresh()->status)->toBe(InvoiceStatus::Confirmed);
-
-    $this->actingAs($user)->patch(route('invoices.buyer_status', $invoice), [
-        'buyer_status' => BuyerStatus::Accepted->value,
-    ])->assertSessionHas('success');
-
-    expect($invoice->refresh()->buyer_status)->toBe(BuyerStatus::Accepted);
 });
 
 it('stores reference numbers returned by moadian that are longer than a uuid', function () {
@@ -165,7 +159,8 @@ it('stores reference numbers returned by moadian that are longer than a uuid', f
         ->assertSessionHas('success');
 
     expect($invoice->refresh()->reference_number)->toBe($referenceNumber)
-        ->and($invoice->status)->toBe(InvoiceStatus::AwaitingConfirmation);
+        ->and($invoice->status)->toBe(InvoiceStatus::AwaitingConfirmation)
+        ->and($invoice->moadian_status)->toBe(MoadianStatus::Pending);
 });
 
 it('shows an integration error instead of returning a server error during inquiry', function () {
@@ -186,7 +181,7 @@ it('shows an integration error instead of returning a server error during inquir
         ->assertRedirect()
         ->assertSessionHas('error', 'خطای موقت سامانه مودیان');
 
-    expect($invoice->refresh()->status)->toBe(InvoiceStatus::MoadianError)
+    expect($invoice->refresh()->status)->toBe(InvoiceStatus::AwaitingConfirmation)
         ->and($invoice->last_inquired_at)->not->toBeNull()
-        ->and($invoice->error_message)->toBe('خطای موقت سامانه مودیان');
+        ->and($invoice->error_message)->toContain('خطای موقت سامانه مودیان');
 });
