@@ -2,9 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Contracts\TaxPlatformGateway;
-use App\Exceptions\MoadianApiException;
-use App\Exceptions\MoadianConfigurationException;
 use App\Http\Requests\SaveGoodRequest;
 use App\Models\Good;
 use App\Models\StuffCatalogItem;
@@ -40,7 +37,6 @@ class GoodController extends Controller
 
     public function create(
         Request $request,
-        TaxPlatformGateway $gateway,
         StuffCatalogMetadata $metadata,
         OfficialStuffCatalogClient $officialCatalog,
     ): View {
@@ -69,8 +65,6 @@ class GoodController extends Controller
                 ? $requestedCommodityCode
                 : (preg_match('/^\d{13}$/', $catalogSearch) === 1 ? $catalogSearch : ''));
         $lookupResult = null;
-        $lookupError = null;
-        $lookupNeedsConfiguration = false;
 
         if ($selectedCatalogItem !== null) {
             $lookupResult = $this->catalogLookupResult($selectedCatalogItem);
@@ -89,24 +83,16 @@ class GoodController extends Controller
                 }
             }
 
-            try {
-                $lookupResult = $catalogItem !== null
-                    ? $this->catalogLookupResult($catalogItem)
-                    : $gateway->lookupGood($request->user(), $commodityCode);
-            } catch (MoadianConfigurationException $exception) {
-                $lookupNeedsConfiguration = true;
-                $lookupError = $exception->getMessage();
-            } catch (MoadianApiException $exception) {
-                $lookupError = $exception->getMessage();
-            }
+            $lookupResult = $catalogItem !== null
+                ? $this->catalogLookupResult($catalogItem)
+                : null;
         }
 
         return view('goods.create', [
             'commodityCode' => $commodityCode,
             'lookupResult' => $lookupResult,
-            'lookupError' => $lookupError,
-            'lookupNeedsConfiguration' => $lookupNeedsConfiguration,
-            'isDemo' => $gateway->isDemo(),
+            'lookupError' => null,
+            'lookupNeedsConfiguration' => false,
             'catalogSearch' => $catalogSearch,
             'catalogType' => $catalogType,
             'catalogVat' => $catalogVat,

@@ -1,6 +1,5 @@
 <?php
 
-use App\Contracts\TaxPlatformGateway;
 use App\Models\Good;
 use App\Models\StuffCatalogItem;
 use App\Models\User;
@@ -102,7 +101,7 @@ it('shows numbered pagination for catalog search results', function () {
         ->assertSee('از <strong>26</strong> مورد', false);
 });
 
-it('uses an exact catalog search as a direct official lookup', function () {
+it('allows manual completion when an exact identifier is unavailable in the official portal', function () {
     $user = User::factory()->create();
 
     $officialCatalog = mock(OfficialStuffCatalogClient::class, function (MockInterface $mock): void {
@@ -110,26 +109,11 @@ it('uses an exact catalog search as a direct official lookup', function () {
     });
     $this->app->instance(OfficialStuffCatalogClient::class, $officialCatalog);
 
-    $gateway = mock(TaxPlatformGateway::class, function (MockInterface $mock) use ($user): void {
-        $mock->shouldReceive('lookupGood')
-            ->once()
-            ->withArgs(fn (User $lookupUser, string $code): bool => $lookupUser->is($user) && $code === '2330002582524')
-            ->andReturn([
-                'name' => 'خدمات مشاوره حسابداری مالی',
-                'unit' => 'خدمت',
-                'unit_price' => 0,
-                'tax_rate' => 10,
-                'measurement_unit_code' => '1627',
-            ]);
-        $mock->shouldReceive('isDemo')->once()->andReturnFalse();
-    });
-    $this->app->instance(TaxPlatformGateway::class, $gateway);
-
     $this->actingAs($user)
         ->get(route('goods.create', ['catalog_query' => '۲۳۳۰۰۰۲۵۸۲۵۲۴']))
         ->assertOk()
         ->assertSee('2330002582524')
-        ->assertSee('خدمات مشاوره حسابداری مالی')
+        ->assertSee('اطلاعاتی برای این شناسه دریافت نشد')
         ->assertSee('name="commodity_code"', false);
 });
 
@@ -150,12 +134,6 @@ it('stores and displays an exact result received from the official stuff portal'
         ]);
     });
     $this->app->instance(OfficialStuffCatalogClient::class, $officialCatalog);
-
-    $gateway = mock(TaxPlatformGateway::class, function (MockInterface $mock): void {
-        $mock->shouldNotReceive('lookupGood');
-        $mock->shouldReceive('isDemo')->once()->andReturnFalse();
-    });
-    $this->app->instance(TaxPlatformGateway::class, $gateway);
 
     $this->actingAs($user)
         ->get(route('goods.create', ['catalog_query' => '2330002582524']))
