@@ -381,7 +381,8 @@ class MoadianClient
     /** @param array<string, mixed> $result */
     private function inquiryResult(array $result): InquiryResult
     {
-        $taxResult = Arr::get($result, 'data.taxResult');
+        $data = $this->decodeInquiryData($result['data'] ?? null);
+        $taxResult = $this->inquiryFailureDetail($result, $data);
 
         if (is_array($taxResult)) {
             $taxResult = json_encode($taxResult, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -390,10 +391,56 @@ class MoadianClient
         return new InquiryResult(
             mb_strtoupper((string) ($result['status'] ?? 'PENDING')),
             filled($taxResult) ? (string) $taxResult : null,
-            filled(Arr::get($result, 'data.confirmationReferenceId'))
-                ? (string) Arr::get($result, 'data.confirmationReferenceId')
+            is_array($data) && filled($data['confirmationReferenceId'] ?? null)
+                ? (string) $data['confirmationReferenceId']
                 : null,
             filled($result['packetType'] ?? null) ? (string) $result['packetType'] : null,
         );
+    }
+
+    private function decodeInquiryData(mixed $data): mixed
+    {
+        if (! is_string($data)) {
+            return $data;
+        }
+
+        $decoded = json_decode($data, true);
+
+        return json_last_error() === JSON_ERROR_NONE ? $decoded : $data;
+    }
+
+    /** @param array<string, mixed> $result */
+    private function inquiryFailureDetail(array $result, mixed $data): mixed
+    {
+        if (is_string($data) && filled($data)) {
+            return $data;
+        }
+
+        $candidates = [
+            is_array($data) ? ($data['taxResult'] ?? null) : null,
+            is_array($data) ? ($data['errorDetail'] ?? null) : null,
+            is_array($data) ? ($data['message'] ?? null) : null,
+            is_array($data) ? ($data['errors'] ?? null) : null,
+            $result['taxResult'] ?? null,
+            $result['errorDetail'] ?? null,
+            $result['message'] ?? null,
+            $result['errors'] ?? null,
+        ];
+
+        foreach ($candidates as $candidate) {
+            if (filled($candidate)) {
+                return $candidate;
+            }
+        }
+
+        if (mb_strtoupper((string) ($result['status'] ?? '')) !== 'FAILED') {
+            return null;
+        }
+
+        return [
+            'message' => 'سامانه مودیان صورتحساب را بدون شرح خطای مشخص رد کرد.',
+            'packetType' => $result['packetType'] ?? null,
+            'data' => $data,
+        ];
     }
 }
