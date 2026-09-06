@@ -13,11 +13,11 @@ it('signs data with an RSA private key', function () {
     expect(openssl_verify('signed-content', base64_decode($signature), $publicKey, OPENSSL_ALGO_SHA256))->toBe(1);
 });
 
-it('encrypts invoice payload with AES GCM and RSA OAEP SHA256', function () {
+it('encrypts the exact JSON representation used by the invoice signature normalizer', function () {
     $key = RSA::createKey(2048);
     $privateKey = $key->toString('PKCS8');
     $publicKey = $key->getPublicKey()->toString('PKCS8');
-    $payload = ['header' => ['taxid' => 'ABC123'], 'body' => [['fee' => 1000]]];
+    $payload = ['header' => ['taxid' => 'ABC123'], 'body' => [['am' => 1.0, 'fee' => 1000]]];
 
     $encrypted = (new MoadianCrypto)->encryptPayload($payload, $publicKey, 'key-id');
     $rsa = RSA::loadPrivateKey($privateKey)
@@ -43,5 +43,10 @@ it('encrypts invoice payload with AES GCM and RSA OAEP SHA256', function () {
     expect($encrypted)
         ->toHaveKeys(['data', 'encryptionKeyId', 'symmetricKey', 'iv'])
         ->and($encrypted['encryptionKeyId'])->toBe('key-id')
-        ->and(json_decode($json, true))->toBe($payload);
+        ->and($json)->toContain('"am":1')
+        ->and($json)->not->toContain('"am":1.0')
+        ->and(json_decode($json, true))->toBe([
+            'header' => ['taxid' => 'ABC123'],
+            'body' => [['am' => 1, 'fee' => 1000]],
+        ]);
 });

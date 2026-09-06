@@ -416,11 +416,24 @@ class MoadianClient
             return $data;
         }
 
+        $errors = is_array($data) ? ($data['error'] ?? $data['errors'] ?? null) : null;
+
+        if (filled($errors)) {
+            $details = collect(Arr::wrap($errors))
+                ->map(fn (mixed $error): ?string => $this->formatError($error))
+                ->filter()
+                ->unique()
+                ->implode(' | ');
+
+            if (filled($details)) {
+                return $details;
+            }
+        }
+
         $candidates = [
             is_array($data) ? ($data['taxResult'] ?? null) : null,
             is_array($data) ? ($data['errorDetail'] ?? null) : null,
             is_array($data) ? ($data['message'] ?? null) : null,
-            is_array($data) ? ($data['errors'] ?? null) : null,
             $result['taxResult'] ?? null,
             $result['errorDetail'] ?? null,
             $result['message'] ?? null,

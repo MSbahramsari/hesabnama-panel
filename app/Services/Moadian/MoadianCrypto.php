@@ -20,7 +20,7 @@ class MoadianCrypto
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array{data: string, encryptionKeyId: string, symmetricKey: string, iv: string}
      *
      * @throws JsonException
@@ -29,7 +29,7 @@ class MoadianCrypto
     {
         $aesKey = random_bytes(32);
         $iv = random_bytes(16);
-        $json = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION);
+        $json = json_encode($payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $xorPayload = $this->xorWithRepeatingKey($json, $aesKey);
         $encrypted = openssl_encrypt($xorPayload, 'aes-256-gcm', $aesKey, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
 

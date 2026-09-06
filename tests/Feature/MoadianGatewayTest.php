@@ -413,6 +413,46 @@ it('preserves available failed inquiry data when tax result is absent', function
         ->and($result->taxResult)->toContain('invalid service stuff id');
 });
 
+it('formats the singular error list returned by a failed invoice inquiry', function () {
+    Http::preventStrayRequests();
+    Http::fake(function (Request $request) {
+        if (str_ends_with($request->url(), '/sync/GET_TOKEN')) {
+            return Http::response([
+                'result' => [
+                    'data' => [
+                        'token' => 'test-token',
+                        'expiresIn' => (int) floor(microtime(true) * 1000) + 600_000,
+                    ],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'result' => [
+                'data' => [[
+                    'uid' => '8a00f17a-bd35-46bc-ae52-3f61fab868c2',
+                    'status' => 'FAILED',
+                    'data' => [
+                        'error' => [[
+                            'code' => '4212',
+                            'message' => 'امضا بسته صحیح نمی باشد.',
+                        ]],
+                        'warning' => [],
+                        'success' => false,
+                    ],
+                    'packetType' => 'RECEIVE_INVOICE_CONFIRM',
+                ]],
+            ],
+        ]);
+    });
+
+    $result = $this->client->inquiryByUid('8a00f17a-bd35-46bc-ae52-3f61fab868c2');
+
+    expect($result->isFailed())->toBeTrue()
+        ->and($result->taxResult)->toBe('کد 4212: امضا بسته صحیح نمی باشد.')
+        ->and($result->packetType)->toBe('RECEIVE_INVOICE_CONFIRM');
+});
+
 it('preserves the uid and marks a repeated submission as retry', function () {
     $asyncAttempts = 0;
     Http::preventStrayRequests();
