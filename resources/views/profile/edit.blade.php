@@ -2,10 +2,10 @@
 
 @section('title', 'پروفایل')
 @section('page-title', 'پروفایل')
-@section('page-subtitle', 'اطلاعات حساب، اشتراک و اتصال اختصاصی شما به سامانه مودیان')
+@section('page-subtitle', auth()->user()->isAdmin() ? 'اطلاعات حساب مدیریت سامانه' : 'اطلاعات حساب، اشتراک و اتصال اختصاصی شما به سامانه مودیان')
 
 @section('content')
-    @php($taxpayerProfile = auth()->user()->taxpayerProfile)
+    @php($taxpayerProfile = auth()->user()->isAdmin() ? null : auth()->user()->taxpayerProfile)
     <div class="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
         <aside class="card p-6">
             <div class="grid size-16 place-items-center rounded-2xl bg-slate-900 text-2xl font-black text-teal-300">{{ mb_substr(auth()->user()->name, 0, 1) }}</div>
@@ -18,6 +18,7 @@
                 <div class="flex justify-between text-sm"><span class="text-slate-500">اعتبار تا</span><strong>{{ \App\Support\JalaliDate::format(auth()->user()->license_expires_at) ?? 'بدون انقضا' }}</strong></div>
             </div>
 
+            @if(!auth()->user()->isAdmin())
             <div class="mt-6 border-t border-slate-100 pt-5">
                 <div class="flex items-center justify-between gap-3 text-sm">
                     <span class="text-slate-500">اتصال مودیان</span>
@@ -38,6 +39,7 @@
                     <a href="#taxpayer-connection" class="btn-secondary mt-4 w-full">تکمیل اطلاعات اتصال</a>
                 @endif
             </div>
+            @endif
         </aside>
 
         <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="card p-5 sm:p-7">
@@ -58,7 +60,9 @@
                 </div>
             </div>
 
-            <x-taxpayer-profile.form :profile="$taxpayerProfile" :required="!auth()->user()->isAdmin() || $taxpayerProfile !== null" />
+            @if(!auth()->user()->isAdmin())
+                <x-taxpayer-profile.form :profile="$taxpayerProfile" required />
+            @endif
 
             <div class="mt-7 flex justify-end"><button class="btn-primary">ذخیره تغییرات</button></div>
         </form>

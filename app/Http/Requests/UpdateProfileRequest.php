@@ -27,25 +27,25 @@ class UpdateProfileRequest extends FormRequest
     public function rules(): array
     {
         $taxpayerProfile = $this->user()->taxpayerProfile;
-        $requiresTaxpayerProfile = $this->requiresTaxpayerProfile($taxpayerProfile);
+        $isAdmin = $this->user()->isAdmin();
 
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', Rule::unique((new User)->getTable())->ignore($this->user())],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-            'taxpayer_name' => [Rule::requiredIf($requiresTaxpayerProfile), 'nullable', 'string', 'max:255'],
-            'taxpayer_type' => [Rule::requiredIf($requiresTaxpayerProfile), 'nullable', Rule::in(['legal', 'individual'])],
-            'national_id' => [Rule::requiredIf($requiresTaxpayerProfile), 'nullable', 'digits_between:10,14'],
-            'economic_code' => [Rule::requiredIf($requiresTaxpayerProfile), 'nullable', 'regex:/^(?:\d{11}|\d{14})$/'],
+            'taxpayer_name' => [$isAdmin ? 'prohibited' : 'required', 'nullable', 'string', 'max:255'],
+            'taxpayer_type' => [$isAdmin ? 'prohibited' : 'required', 'nullable', Rule::in(['legal', 'individual'])],
+            'national_id' => [$isAdmin ? 'prohibited' : 'required', 'nullable', 'digits_between:10,14'],
+            'economic_code' => [$isAdmin ? 'prohibited' : 'required', 'nullable', 'regex:/^(?:\d{11}|\d{14})$/'],
             'fiscal_id' => [
-                Rule::requiredIf($requiresTaxpayerProfile),
+                $isAdmin ? 'prohibited' : 'required',
                 'nullable',
                 'regex:/^[A-Z0-9]{6}$/',
                 Rule::unique((new TaxpayerProfile)->getTable())->ignore($taxpayerProfile),
             ],
             'branch_code' => ['nullable', 'digits_between:1,4'],
             'private_key' => [
-                Rule::requiredIf($requiresTaxpayerProfile && $taxpayerProfile === null),
+                $isAdmin ? 'prohibited' : Rule::requiredIf($taxpayerProfile === null),
                 'nullable',
                 'file',
                 'extensions:pem,key,txt',
@@ -53,20 +53,5 @@ class UpdateProfileRequest extends FormRequest
                 new ValidPrivateKey,
             ],
         ];
-    }
-
-    private function requiresTaxpayerProfile(?TaxpayerProfile $taxpayerProfile): bool
-    {
-        if (! $this->user()->isAdmin() || $taxpayerProfile !== null || $this->hasFile('private_key')) {
-            return true;
-        }
-
-        foreach (['taxpayer_name', 'national_id', 'economic_code', 'fiscal_id'] as $field) {
-            if (filled($this->input($field))) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

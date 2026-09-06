@@ -22,18 +22,17 @@ it('renders the taxpayer setup on a member profile', function () {
         ->assertSee('اطلاعات اتصال به سامانه مودیان');
 });
 
-it('renders the taxpayer setup on an admin profile', function () {
+it('keeps taxpayer operations out of the admin profile', function () {
     $user = User::factory()->admin()->create();
 
     $this->actingAs($user)
         ->get(route('profile.edit'))
         ->assertSuccessful()
-        ->assertSee('اطلاعات اتصال به سامانه مودیان')
-        ->assertSee('name="fiscal_id"', false)
-        ->assertSee('شناسه یکتای حافظه مالیاتی');
+        ->assertDontSee('اطلاعات اتصال به سامانه مودیان')
+        ->assertDontSee('name="fiscal_id"', false);
 });
 
-it('lets an admin create its own taxpayer connection profile', function () {
+it('does not let an admin create a taxpayer connection profile', function () {
     $user = User::factory()->admin()->create();
 
     $this->actingAs($user)->patch(route('profile.update'), [
@@ -46,14 +45,14 @@ it('lets an admin create its own taxpayer connection profile', function () {
         'fiscal_id' => 'adm123',
         'branch_code' => '1',
         'private_key' => UploadedFile::fake()->createWithContent('private.pem', $this->privateKey),
-    ])->assertSessionHas('success');
+    ])->assertInvalid(['taxpayer_name', 'taxpayer_type', 'national_id', 'economic_code', 'fiscal_id', 'private_key']);
 
-    expect($user->taxpayerProfile()->firstOrFail()->fiscal_id)->toBe('ADM123');
+    expect($user->taxpayerProfile)->toBeNull();
 });
 
 it('directs an unconfigured account from customer lookup to connection settings', function () {
     config()->set('services.moadian.driver', 'real');
-    $user = User::factory()->admin()->create();
+    $user = User::factory()->create();
 
     $this->actingAs($user)
         ->get(route('customers.create', ['economic_code' => '4113668461713']))

@@ -46,8 +46,9 @@
                         </a>
                     </div>
 
-                    <div>
-                        <div class="nav-label">عملیات مالیاتی</div>
+                    @if(!auth()->user()->isAdmin())
+                        <div>
+                            <div class="nav-label">عملیات مالیاتی</div>
                         <div class="space-y-1">
                             @if(auth()->user()->hasPermission('customers'))
                                 <a href="{{ route('customers.index') }}" @class(['nav-link', 'active' => request()->routeIs('customers.*')])>
@@ -68,7 +69,8 @@
                                 </a>
                             @endif
                         </div>
-                    </div>
+                        </div>
+                    @endif
 
                     @if(auth()->user()->isAdmin())
                         <div>

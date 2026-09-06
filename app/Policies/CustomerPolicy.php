@@ -14,7 +14,7 @@ class CustomerPolicy
 
     public function view(User $user, Customer $customer): bool
     {
-        return $user->isAdmin() || ($user->hasPermission('customers') && $customer->user_id === $user->id);
+        return $user->hasPermission('customers') && $customer->user_id === $user->id;
     }
 
     public function create(User $user): bool

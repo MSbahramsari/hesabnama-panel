@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
+use App\Enums\UserRole;
 use App\Models\Customer;
 use App\Models\Good;
 use App\Models\Invoice;
@@ -19,6 +20,23 @@ class DashboardController extends Controller
     public function __invoke(Request $request): View
     {
         $user = $request->user();
+
+        if ($user->isAdmin()) {
+            $members = User::query()->where('role', UserRole::Member);
+
+            return view('admin.dashboard', [
+                'metrics' => [
+                    'members' => (clone $members)->count(),
+                    'active' => (clone $members)->where('is_active', true)->where('license_expires_at', '>', now())->count(),
+                    'expiring' => (clone $members)->whereBetween('license_expires_at', [now(), now()->addDays(30)])->count(),
+                    'inactive' => (clone $members)->where(fn (Builder $query) => $query
+                        ->where('is_active', false)
+                        ->orWhere('license_expires_at', '<=', now()))->count(),
+                ],
+                'recentUsers' => (clone $members)->latest()->limit(8)->get(),
+            ]);
+        }
+
         $owned = fn (Builder $query): Builder => $query->when(! $user->isAdmin(), fn (Builder $query) => $query->where('user_id', $user->id));
 
         $metrics = [

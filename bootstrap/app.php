@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureLicenseIsActive;
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\EnsureUserIsTaxOperator;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'license' => EnsureLicenseIsActive::class,
             'admin' => EnsureUserIsAdmin::class,
+            'tax-operator' => EnsureUserIsTaxOperator::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

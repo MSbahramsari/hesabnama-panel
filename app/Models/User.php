@@ -49,7 +49,7 @@ class User extends Authenticatable
 
     public function hasPermission(string $permission): bool
     {
-        return $this->isAdmin() || in_array($permission, $this->permissions ?? [], true);
+        return ! $this->isAdmin() && in_array($permission, $this->permissions ?? [], true);
     }
 
     public function hasActiveLicense(): bool

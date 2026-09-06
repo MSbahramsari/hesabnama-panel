@@ -19,24 +19,15 @@
 
     <div class="card">
         <div class="table-toolbar">
-            <form method="GET" class="grid w-full gap-2 xl:max-w-4xl xl:grid-cols-[minmax(0,1fr)_160px_150px_auto]">
-                <div class="relative">
+            <form method="GET" class="flex w-full max-w-2xl gap-2">
+                @if($status)<input type="hidden" name="status" value="{{ $status }}">@endif
+                @if($type)<input type="hidden" name="type" value="{{ $type }}">@endif
+                <div class="relative flex-1">
                     <x-icon name="search" class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
                     <input name="q" value="{{ $search }}" class="form-control pr-10" placeholder="شماره داخلی، شماره مالیاتی یا نام مشتری">
                 </div>
-                <select name="status" class="form-control">
-                    <option value="">همه وضعیت‌ها</option>
-                    @foreach($statuses as $option)
-                        <option value="{{ $option->value }}" @selected($status === $option->value)>{{ $option->label() }}</option>
-                    @endforeach
-                </select>
-                <select name="type" class="form-control">
-                    <option value="">همه انواع</option>
-                    @foreach($types as $option)
-                        <option value="{{ $option->value }}" @selected($type === $option->value)>{{ $option->label() }}</option>
-                    @endforeach
-                </select>
-                <button class="btn-secondary justify-center">اعمال فیلتر</button>
+                <button class="btn-secondary justify-center">جست‌وجو</button>
+                @if($search)<a href="{{ route('invoices.index', array_filter(['status' => $status, 'type' => $type])) }}" class="btn-secondary px-3" title="پاک کردن جست‌وجو">×</a>@endif
             </form>
             <div class="flex flex-wrap items-center gap-2">
                 <div class="table-count"><span class="size-1.5 rounded-full bg-amber-500"></span><strong>{{ number_format($invoices->total()) }}</strong> صورتحساب</div>
@@ -47,6 +38,25 @@
                 @endif
                 <a href="{{ route('invoices.create') }}" class="btn-primary"><x-icon name="plus" class="size-4" /><span>صورتحساب جدید</span></a>
             </div>
+        </div>
+
+        @php($invoiceFilterQuery = request()->except(['page', 'status', 'type']))
+        <div class="border-b border-slate-100 bg-slate-50/65 px-4 pt-4 sm:px-6">
+            <div class="overflow-x-auto">
+                <nav class="flex min-w-max gap-1" aria-label="فیلتر وضعیت صورتحساب">
+                    <a href="{{ route('invoices.index', array_filter(array_merge($invoiceFilterQuery, ['type' => $type]))) }}" @class(['rounded-t-xl px-4 py-3 text-xs font-extrabold transition', 'bg-white text-teal-700 shadow-[0_-1px_0_0_#e2e8f0,1px_0_0_0_#e2e8f0,-1px_0_0_0_#e2e8f0]' => $status === '', 'text-slate-500 hover:bg-white/70 hover:text-slate-800' => $status !== ''])>همه وضعیت‌ها</a>
+                    @foreach($statuses as $option)
+                        <a href="{{ route('invoices.index', array_filter(array_merge($invoiceFilterQuery, ['status' => $option->value, 'type' => $type]))) }}" @class(['rounded-t-xl px-4 py-3 text-xs font-extrabold transition', 'bg-white text-teal-700 shadow-[0_-1px_0_0_#e2e8f0,1px_0_0_0_#e2e8f0,-1px_0_0_0_#e2e8f0]' => $status === $option->value, 'text-slate-500 hover:bg-white/70 hover:text-slate-800' => $status !== $option->value])>{{ $option->label() }}</a>
+                    @endforeach
+                </nav>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-white px-5 py-3 sm:px-6">
+            <span class="ml-1 text-[10px] font-black text-slate-400">نوع صورتحساب:</span>
+            <a href="{{ route('invoices.index', array_filter(array_merge($invoiceFilterQuery, ['status' => $status]))) }}" @class(['rounded-full px-3 py-1.5 text-[10px] font-extrabold ring-1 ring-inset transition', 'bg-slate-900 text-white ring-slate-900' => $type === '', 'bg-slate-50 text-slate-500 ring-slate-200 hover:bg-slate-100' => $type !== ''])>همه</a>
+            @foreach($types as $option)
+                <a href="{{ route('invoices.index', array_filter(array_merge($invoiceFilterQuery, ['status' => $status, 'type' => $option->value]))) }}" @class(['rounded-full px-3 py-1.5 text-[10px] font-extrabold ring-1 ring-inset transition', 'bg-slate-900 text-white ring-slate-900' => $type === $option->value, 'bg-slate-50 text-slate-500 ring-slate-200 hover:bg-slate-100' => $type !== $option->value])>{{ $option->label() }}</a>
+            @endforeach
         </div>
 
         <x-spreadsheet-import-panel id="invoices-import" :action="route('invoices.import')" :template="route('invoices.template')" title="ورود گروهی صورتحساب‌ها" />

@@ -16,7 +16,7 @@ class InvoicePolicy
 
     public function view(User $user, Invoice $invoice): bool
     {
-        return $user->isAdmin() || ($user->hasPermission('invoices') && $invoice->user_id === $user->id);
+        return $user->hasPermission('invoices') && $invoice->user_id === $user->id;
     }
 
     public function create(User $user): bool

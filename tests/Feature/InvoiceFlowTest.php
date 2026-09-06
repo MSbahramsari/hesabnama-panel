@@ -122,6 +122,24 @@ it('searches invoices by their unique tax number', function () {
         ->assertDontSee('HIDDEN-INVOICE');
 });
 
+it('renders invoice status and type filters as tabs and preserves filtering', function () {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->for($user)->create();
+    Invoice::factory()->for($user)->for($customer)->create(['number' => 'DRAFT-TAB', 'status' => InvoiceStatus::Draft]);
+    Invoice::factory()->for($user)->for($customer)->create(['number' => 'CONFIRMED-TAB', 'status' => InvoiceStatus::Confirmed]);
+
+    $this->actingAs($user)
+        ->get(route('invoices.index', ['status' => InvoiceStatus::Confirmed->value]))
+        ->assertOk()
+        ->assertSee('فیلتر وضعیت صورتحساب', false)
+        ->assertSee('همه وضعیت‌ها')
+        ->assertSee('نوع صورتحساب:')
+        ->assertDontSee('<select name="status"', false)
+        ->assertDontSee('<select name="type"', false)
+        ->assertSee('CONFIRMED-TAB')
+        ->assertDontSee('DRAFT-TAB');
+});
+
 it('moves selected invoices through send confirmation', function () {
     $user = User::factory()->create();
     $customer = Customer::factory()->for($user)->create();

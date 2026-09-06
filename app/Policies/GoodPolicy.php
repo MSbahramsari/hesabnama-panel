@@ -14,7 +14,7 @@ class GoodPolicy
 
     public function view(User $user, Good $good): bool
     {
-        return $user->isAdmin() || ($user->hasPermission('goods') && $good->user_id === $user->id);
+        return $user->hasPermission('goods') && $good->user_id === $user->id;
     }
 
     public function create(User $user): bool

@@ -5,7 +5,6 @@
 @section('content')
     <div class="space-y-6">
         <div class="page-content-actions">
-            <a href="{{ route('goods.create') }}" class="btn-secondary">مشاهده جست‌وجوی کالا</a>
         </div>
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div class="metric-card">
