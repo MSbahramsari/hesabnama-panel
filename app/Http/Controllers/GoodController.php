@@ -8,6 +8,7 @@ use App\Exceptions\MoadianConfigurationException;
 use App\Http\Requests\SaveGoodRequest;
 use App\Models\Good;
 use App\Models\StuffCatalogItem;
+use App\Services\OfficialStuffCatalogClient;
 use App\Services\StuffCatalogMetadata;
 use App\Support\MeasurementUnitCode;
 use Illuminate\Database\Eloquent\Builder;
@@ -37,8 +38,12 @@ class GoodController extends Controller
         return view('goods.index', compact('goods', 'search'));
     }
 
-    public function create(Request $request, TaxPlatformGateway $gateway, StuffCatalogMetadata $metadata): View
-    {
+    public function create(
+        Request $request,
+        TaxPlatformGateway $gateway,
+        StuffCatalogMetadata $metadata,
+        OfficialStuffCatalogClient $officialCatalog,
+    ): View {
         Gate::authorize('create', Good::class);
         $catalogSearch = mb_substr($this->normalizeCatalogSearch($request->string('catalog_query')->trim()->toString()), 0, 120);
         $catalogType = mb_substr($request->string('catalog_type')->trim()->toString(), 0, 80);
@@ -74,6 +79,15 @@ class GoodController extends Controller
                 ->where('item_id', $commodityCode)
                 ->orderByDesc('effective_date')
                 ->first();
+
+            if ($catalogItem === null) {
+                $officialItem = $officialCatalog->lookup($commodityCode);
+
+                if ($officialItem !== null) {
+                    $catalogItem = $this->storeOfficialCatalogItem($officialItem);
+                    $metadata->forget();
+                }
+            }
 
             try {
                 $lookupResult = $catalogItem !== null
@@ -185,5 +199,20 @@ class GoodController extends Controller
         }
 
         $query->where('description', 'like', "%{$catalogSearch}%");
+    }
+
+    /** @param array<string, mixed> $item */
+    private function storeOfficialCatalogItem(array $item): StuffCatalogItem
+    {
+        $sourceHash = hash('sha256', implode('|', [
+            $item['item_id'],
+            $item['effective_date'] ?? '',
+            $item['expiration_date'] ?? '',
+        ]));
+
+        return StuffCatalogItem::query()->updateOrCreate(
+            ['source_hash' => $sourceHash],
+            $item,
+        );
     }
 }

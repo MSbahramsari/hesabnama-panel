@@ -45,4 +45,9 @@ return [
         'timeout' => (int) env('MOADIAN_TIMEOUT', 20),
     ],
 
+    'stuff_catalog' => [
+        'portal_url' => env('STUFF_CATALOG_PORTAL_URL', 'https://stuffid.tax.gov.ir/portal-gateway'),
+        'ca_bundle_path' => env('STUFF_CATALOG_CA_BUNDLE_PATH', env('MOADIAN_CA_BUNDLE_PATH')),
+    ],
+
 ];

@@ -4,6 +4,7 @@ use App\Contracts\TaxPlatformGateway;
 use App\Models\Good;
 use App\Models\StuffCatalogItem;
 use App\Models\User;
+use App\Services\OfficialStuffCatalogClient;
 use Mockery\MockInterface;
 
 it('searches the catalog by description and filters the results', function () {
@@ -104,6 +105,11 @@ it('shows numbered pagination for catalog search results', function () {
 it('uses an exact catalog search as a direct official lookup', function () {
     $user = User::factory()->create();
 
+    $officialCatalog = mock(OfficialStuffCatalogClient::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('lookup')->once()->with('2330002582524')->andReturnNull();
+    });
+    $this->app->instance(OfficialStuffCatalogClient::class, $officialCatalog);
+
     $gateway = mock(TaxPlatformGateway::class, function (MockInterface $mock) use ($user): void {
         $mock->shouldReceive('lookupGood')
             ->once()
@@ -125,6 +131,43 @@ it('uses an exact catalog search as a direct official lookup', function () {
         ->assertSee('2330002582524')
         ->assertSee('خدمات مشاوره حسابداری مالی')
         ->assertSee('name="commodity_code"', false);
+});
+
+it('stores and displays an exact result received from the official stuff portal', function () {
+    $user = User::factory()->create();
+
+    $officialCatalog = mock(OfficialStuffCatalogClient::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('lookup')->once()->with('2330002582524')->andReturn([
+            'item_id' => '2330002582524',
+            'description' => 'خدمات مشاوره حسابداری مالی در زمینه خزانه داری',
+            'type' => 'شناسه اختصاصی خدمت',
+            'vat' => 10.0,
+            'taxable' => 'مشمول',
+            'source_created_date' => '1404-06-05',
+            'effective_date' => '1403-02-02',
+            'expiration_date' => null,
+            'source_updated_date' => '1403-02-02',
+        ]);
+    });
+    $this->app->instance(OfficialStuffCatalogClient::class, $officialCatalog);
+
+    $gateway = mock(TaxPlatformGateway::class, function (MockInterface $mock): void {
+        $mock->shouldNotReceive('lookupGood');
+        $mock->shouldReceive('isDemo')->once()->andReturnFalse();
+    });
+    $this->app->instance(TaxPlatformGateway::class, $gateway);
+
+    $this->actingAs($user)
+        ->get(route('goods.create', ['catalog_query' => '2330002582524']))
+        ->assertOk()
+        ->assertSee('خدمات مشاوره حسابداری مالی در زمینه خزانه داری')
+        ->assertSee('value="10"', false);
+
+    $this->assertDatabaseHas('stuff_catalog_items', [
+        'item_id' => '2330002582524',
+        'type' => 'شناسه اختصاصی خدمت',
+        'vat' => 10,
+    ]);
 });
 
 it('imports an official-style csv and keeps repeated imports idempotent', function () {
