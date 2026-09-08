@@ -7,6 +7,7 @@ use App\Models\Good;
 use App\Models\Invoice;
 use App\Models\TaxpayerProfile;
 use App\Models\User;
+use App\Services\Moadian\InvoiceSerialAllocator;
 use App\Services\Moadian\MoadianClientFactory;
 use App\Services\MoadianTaxPlatformGateway;
 use Illuminate\Http\Client\Request;
@@ -41,6 +42,20 @@ beforeEach(function () {
         'private_key' => $this->privateKey,
     ]);
     $this->client = app(MoadianClientFactory::class)->forUser($this->user);
+});
+
+it('allocates high monotonically increasing serials for a fiscal memory', function () {
+    $customer = Customer::factory()->for($this->user)->create();
+    $firstInvoice = Invoice::factory()->for($this->user)->for($customer)->create();
+    $secondInvoice = Invoice::factory()->for($this->user)->for($customer)->create();
+    $allocator = app(InvoiceSerialAllocator::class);
+
+    $firstSerial = $allocator->allocate($firstInvoice);
+    $firstInvoice->update(['moadian_serial' => $firstSerial]);
+    $secondSerial = $allocator->allocate($secondInvoice);
+
+    expect($firstSerial)->toBeGreaterThan(1_000_000_000)
+        ->and($secondSerial)->toBe($firstSerial + 1);
 });
 
 it('looks up a customer from the official economic code endpoint', function () {
@@ -618,7 +633,7 @@ it('uses a new uid after a previously accepted packet receives a definitive fail
         ->and($packet['uid'])->toBe($result->uid)
         ->and($packet['retry'])->toBeFalse()
         ->and($invoice->reference_number)->toBeNull()
-        ->and($invoice->moadian_serial)->toBeGreaterThan(7)
+        ->and($invoice->moadian_serial)->toBeGreaterThan(1_000_000_000)
         ->and($result->taxId)->not->toBe('ABC1230481F00000000072')
         ->and(substr($result->taxId, 11, 10))->toBe(strtoupper(str_pad(dechex($invoice->moadian_serial), 10, '0', STR_PAD_LEFT)));
 });

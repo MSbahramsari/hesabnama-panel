@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 
 class InvoiceSerialAllocator
 {
+    private const SERIAL_EPOCH_MILLISECONDS = 1_577_836_800_000;
+
     private const MAXIMUM_SERIAL = 0xFFFFFFFFFF;
 
     public function allocate(Invoice $invoice): int
@@ -34,6 +36,7 @@ class InvoiceSerialAllocator
                 (int) $profile->next_invoice_serial,
                 $maximumInvoiceId + 1,
                 $maximumAssignedSerial + 1,
+                $this->currentSerialFloor(),
             );
 
             if ($serial > self::MAXIMUM_SERIAL) {
@@ -45,5 +48,10 @@ class InvoiceSerialAllocator
 
             return $serial;
         }, 3);
+    }
+
+    private function currentSerialFloor(): int
+    {
+        return (int) floor(microtime(true) * 1000) - self::SERIAL_EPOCH_MILLISECONDS;
     }
 }
