@@ -529,6 +529,7 @@ it('preserves the uid and marks a repeated submission as retry', function () {
 
     $firstUid = $invoice->refresh()->submission_uid;
     $firstTaxId = $invoice->tax_id;
+    $firstSerial = $invoice->moadian_serial;
     $result = $gateway->submit($invoice);
     $asyncRequests = Http::recorded(
         fn (Request $request) => str_ends_with($request->url(), '/async/normal-enqueue'),
@@ -538,7 +539,9 @@ it('preserves the uid and marks a repeated submission as retry', function () {
 
     expect($firstUid)->not->toBeNull()
         ->and($firstTaxId)->not->toBeNull()
+        ->and($firstSerial)->not->toBeNull()
         ->and($result->uid)->toBe($firstUid)
+        ->and($result->taxId)->toBe($firstTaxId)
         ->and($firstPacket['uid'])->toBe($firstUid)
         ->and($firstPacket['retry'])->toBeFalse()
         ->and($secondPacket['uid'])->toBe($firstUid)
@@ -588,6 +591,8 @@ it('uses a new uid after a previously accepted packet receives a definitive fail
     $invoice = Invoice::factory()->for($this->user)->for($customer)->create([
         'status' => InvoiceStatus::MoadianError,
         'submission_uid' => '8a00f17a-bd35-46bc-ae52-3f61fab868c2',
+        'moadian_serial' => 7,
+        'tax_id' => 'ABC1230481F00000000072',
         'reference_number' => 'failed-reference-number',
     ]);
     $invoice->items()->create([
@@ -604,6 +609,7 @@ it('uses a new uid after a previously accepted packet receives a definitive fail
     ]);
 
     $result = app(MoadianTaxPlatformGateway::class)->submit($invoice);
+    $invoice->refresh();
     $packet = Http::recorded(
         fn (Request $request) => str_ends_with($request->url(), '/async/normal-enqueue'),
     )->first()[0]->data()['packets'][0];
@@ -611,5 +617,8 @@ it('uses a new uid after a previously accepted packet receives a definitive fail
     expect($result->uid)->not->toBe('8a00f17a-bd35-46bc-ae52-3f61fab868c2')
         ->and($packet['uid'])->toBe($result->uid)
         ->and($packet['retry'])->toBeFalse()
-        ->and($invoice->refresh()->reference_number)->toBeNull();
+        ->and($invoice->reference_number)->toBeNull()
+        ->and($invoice->moadian_serial)->toBeGreaterThan(7)
+        ->and($result->taxId)->not->toBe('ABC1230481F00000000072')
+        ->and(substr($result->taxId, 11, 10))->toBe(strtoupper(str_pad(dechex($invoice->moadian_serial), 10, '0', STR_PAD_LEFT)));
 });

@@ -24,7 +24,8 @@ class InvoicePayloadFactory
         $this->submissionValidator->assertValid($invoice);
 
         $issuedAt = $this->issuedAt($invoice);
-        $taxId = $this->taxIdGenerator->generate($configuration->fiscalId(), $issuedAt, (int) $invoice->getKey());
+        $internalSerial = $invoice->moadian_serial ?? (int) $invoice->getKey();
+        $taxId = $this->taxIdGenerator->generate($configuration->fiscalId(), $issuedAt, $internalSerial);
         $netAmount = max((float) $invoice->subtotal - (float) $invoice->discount_total, 0);
         $cashAmount = match ($invoice->settlement_method) {
             SettlementMethod::Cash => $netAmount,
@@ -41,7 +42,7 @@ class InvoicePayloadFactory
                 'indatim' => $issuedAt->getTimestampMs(),
                 'indati2m' => null,
                 'inty' => 1,
-                'inno' => mb_strtoupper(str_pad(dechex((int) $invoice->getKey()), 10, '0', STR_PAD_LEFT)),
+                'inno' => mb_strtoupper(str_pad(dechex($internalSerial), 10, '0', STR_PAD_LEFT)),
                 'irtaxid' => $invoice->invoice_type === InvoiceType::Original ? null : $invoice->referenceInvoice?->tax_id,
                 'inp' => 1,
                 'ins' => $invoice->invoice_type->subjectCode(),

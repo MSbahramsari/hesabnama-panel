@@ -35,6 +35,7 @@ it('builds a version one invoice payload from persisted invoice data', function 
     $customer = Customer::factory()->for($user)->create(['type' => 'legal']);
     $good = Good::factory()->for($user)->create(['measurement_unit_code' => '1627']);
     $invoice = Invoice::factory()->for($user)->for($customer)->create([
+        'moadian_serial' => 42,
         'subtotal' => 2_000_000,
         'discount_total' => 200_000,
         'tax_total' => 180_000,
@@ -74,6 +75,8 @@ it('builds a version one invoice payload from persisted invoice data', function 
             'tvop' => 180_000,
         ])
         ->and($payload['header']['taxid'])->toStartWith('ABC123')->toHaveLength(22)
+        ->and(substr($payload['header']['taxid'], 11, 10))->toBe('000000002A')
+        ->and($payload['header']['inno'])->toBe('000000002A')
         ->and($payload['header']['indati2m'])->toBeNull()
         ->and($payload['body'][0])
         ->toMatchArray([

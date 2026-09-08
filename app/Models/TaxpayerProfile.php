@@ -25,6 +25,7 @@ class TaxpayerProfile extends Model
     {
         return [
             'private_key' => 'encrypted',
+            'next_invoice_serial' => 'integer',
             'connection_verified_at' => 'datetime',
         ];
     }

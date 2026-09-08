@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\User;
 use App\Services\Moadian\InquiryResult;
 use App\Services\Moadian\InvoicePayloadFactory;
+use App\Services\Moadian\InvoiceSerialAllocator;
 use App\Services\Moadian\MoadianClientFactory;
 use App\Services\Moadian\SubmissionResult;
 use Illuminate\Support\Str;
@@ -16,6 +17,7 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
     public function __construct(
         private MoadianClientFactory $clientFactory,
         private InvoicePayloadFactory $payloadFactory,
+        private InvoiceSerialAllocator $serialAllocator,
     ) {}
 
     public function lookupCustomer(User $user, string $economicCode): ?array
@@ -57,15 +59,16 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
     {
         $configuration = $this->clientFactory->configurationForUser($invoice->user);
         $client = $this->clientFactory->forUser($invoice->user);
-        $payload = $this->payloadFactory->make($invoice, $configuration);
         $isRetry = filled($invoice->submission_uid) && blank($invoice->reference_number);
         $uid = $invoice->submission_uid ?? (string) Str::uuid();
 
         if (! $isRetry) {
             $uid = (string) Str::uuid();
+            $serial = $this->serialAllocator->allocate($invoice);
             $invoice->update([
                 'submission_uid' => $uid,
-                'tax_id' => $payload['header']['taxid'],
+                'moadian_serial' => $serial,
+                'tax_id' => null,
                 'reference_number' => null,
                 'moadian_tax_result' => null,
                 'moadian_confirmation_reference_id' => null,
@@ -73,6 +76,10 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
                 'last_inquired_at' => null,
             ]);
         }
+
+        $invoice->refresh();
+        $payload = $this->payloadFactory->make($invoice, $configuration);
+        $invoice->update(['tax_id' => $payload['header']['taxid']]);
 
         return $client->submitInvoice($payload, $uid, $isRetry);
     }
