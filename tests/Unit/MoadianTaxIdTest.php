@@ -24,6 +24,7 @@ it('generates tax identifiers compatible with the official algorithm', function 
 it('normalizes nested request data before signing', function () {
     $normalized = (new MoadianNormalizer)->normalize([
         'KD' => 12.94,
+        'KC' => 12.0,
         'KB' => 'ABC',
         'KA' => [
             ['B' => 2, 'A' => 1],
@@ -31,5 +32,5 @@ it('normalizes nested request data before signing', function () {
         ],
     ]);
 
-    expect($normalized)->toBe('1#2#3#4#ABC#12.94');
+    expect($normalized)->toBe('1#2#3#4#ABC#12.0#12.94');
 });

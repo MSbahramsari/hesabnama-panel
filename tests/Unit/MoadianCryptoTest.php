@@ -43,10 +43,6 @@ it('encrypts the exact JSON representation used by the invoice signature normali
     expect($encrypted)
         ->toHaveKeys(['data', 'encryptionKeyId', 'symmetricKey', 'iv'])
         ->and($encrypted['encryptionKeyId'])->toBe('key-id')
-        ->and($json)->toContain('"am":1')
-        ->and($json)->not->toContain('"am":1.0')
-        ->and(json_decode($json, true))->toBe([
-            'header' => ['taxid' => 'ABC123'],
-            'body' => [['am' => 1, 'fee' => 1000]],
-        ]);
+        ->and($json)->toContain('"am":1.0')
+        ->and(json_decode($json, true))->toBe($payload);
 });

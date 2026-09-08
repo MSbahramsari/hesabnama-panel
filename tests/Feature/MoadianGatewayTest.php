@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\InvoiceStatus;
 use App\Exceptions\MoadianApiException;
 use App\Models\Customer;
 use App\Models\Good;
@@ -542,4 +543,73 @@ it('preserves the uid and marks a repeated submission as retry', function () {
         ->and($firstPacket['retry'])->toBeFalse()
         ->and($secondPacket['uid'])->toBe($firstUid)
         ->and($secondPacket['retry'])->toBeTrue();
+});
+
+it('uses a new uid after a previously accepted packet receives a definitive failure', function () {
+    Http::preventStrayRequests();
+    Http::fake(function (Request $request) {
+        if (str_ends_with($request->url(), '/sync/GET_TOKEN')) {
+            return Http::response([
+                'result' => [
+                    'data' => [
+                        'token' => 'test-token',
+                        'expiresIn' => (int) floor(microtime(true) * 1000) + 600_000,
+                    ],
+                ],
+            ]);
+        }
+
+        if (str_ends_with($request->url(), '/sync/GET_SERVER_INFORMATION')) {
+            return Http::response([
+                'result' => [
+                    'data' => [
+                        'publicKeys' => [[
+                            'id' => 'organization-key-id',
+                            'key' => $this->organizationPublicKey,
+                            'purpose' => 1,
+                        ]],
+                    ],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'result' => [[
+                'uid' => 'server-uid',
+                'referenceNumber' => 'new-reference-number',
+                'errorCode' => null,
+                'errorDetail' => null,
+            ]],
+        ]);
+    });
+
+    $customer = Customer::factory()->for($this->user)->create();
+    $good = Good::factory()->for($this->user)->create(['measurement_unit_code' => '1627']);
+    $invoice = Invoice::factory()->for($this->user)->for($customer)->create([
+        'status' => InvoiceStatus::MoadianError,
+        'submission_uid' => '8a00f17a-bd35-46bc-ae52-3f61fab868c2',
+        'reference_number' => 'failed-reference-number',
+    ]);
+    $invoice->items()->create([
+        'good_id' => $good->id,
+        'description' => $good->name,
+        'commodity_code' => $good->commodity_code,
+        'quantity' => 1,
+        'unit_price' => 10_000_000,
+        'tax_rate' => 10,
+        'discount' => 0,
+        'subtotal' => 10_000_000,
+        'tax_amount' => 1_000_000,
+        'total' => 11_000_000,
+    ]);
+
+    $result = app(MoadianTaxPlatformGateway::class)->submit($invoice);
+    $packet = Http::recorded(
+        fn (Request $request) => str_ends_with($request->url(), '/async/normal-enqueue'),
+    )->first()[0]->data()['packets'][0];
+
+    expect($result->uid)->not->toBe('8a00f17a-bd35-46bc-ae52-3f61fab868c2')
+        ->and($packet['uid'])->toBe($result->uid)
+        ->and($packet['retry'])->toBeFalse()
+        ->and($invoice->refresh()->reference_number)->toBeNull();
 });
