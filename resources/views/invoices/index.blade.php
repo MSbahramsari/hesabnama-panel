@@ -12,51 +12,60 @@
             <strong>اتصال واقعی هنوز کامل نیست:</strong> کلید خصوصی شناسایی شده، اما شناسه حافظه مالیاتی و شماره اقتصادی فروشنده باید در تنظیمات وارد شوند. تا آن زمان ارسال واقعی انجام نمی‌شود.
         </div>
     @else
-        <div class="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm leading-7 text-emerald-900">
-            <strong>اتصال مستقیم فعال است:</strong> صورتحساب‌های انتخاب‌شده به سرور رسمی سامانه مودیان ارسال خواهند شد.
+        <div class="invoice-connection-banner" role="status">
+            <span class="invoice-connection-icon"><x-icon name="check" class="size-4" /></span>
+            <p><strong>اتصال با سامانه مودیان برقرار است:</strong> صورتحساب‌های انتخاب‌شده به سامانه مودیان ارسال خواهند شد.</p>
         </div>
     @endif
 
     <div class="card">
-        <div class="table-toolbar">
-            <form method="GET" class="flex w-full max-w-2xl gap-2">
-                @if($status)<input type="hidden" name="status" value="{{ $status }}">@endif
-                @if($type)<input type="hidden" name="type" value="{{ $type }}">@endif
-                <div class="relative flex-1">
-                    <x-icon name="search" class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                    <input name="q" value="{{ $search }}" class="form-control pr-10" placeholder="شماره داخلی، شماره مالیاتی یا نام مشتری">
-                </div>
-                <button class="btn-secondary justify-center">جست‌وجو</button>
-                @if($search)<a href="{{ route('invoices.index', array_filter(['status' => $status, 'type' => $type])) }}" class="btn-secondary px-3" title="پاک کردن جست‌وجو">×</a>@endif
-            </form>
-            <div class="flex flex-wrap items-center gap-2">
+        <div class="invoice-toolbar">
+            <div class="invoice-toolbar-primary">
+                <form method="GET" class="invoice-search-form">
+                    @if($status)<input type="hidden" name="status" value="{{ $status }}">@endif
+                    @if($type)<input type="hidden" name="type" value="{{ $type }}">@endif
+                    <div class="relative min-w-0 flex-1">
+                        <x-icon name="search" class="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                        <input name="q" value="{{ $search }}" class="form-control pr-11" placeholder="شماره داخلی، شماره مالیاتی یا نام مشتری">
+                    </div>
+                    <button class="btn-secondary shrink-0 justify-center">جست‌وجو</button>
+                    @if($search)<a href="{{ route('invoices.index', array_filter(['status' => $status, 'type' => $type])) }}" class="btn-secondary shrink-0 px-3" title="پاک کردن جست‌وجو">×</a>@endif
+                </form>
+                <a href="{{ route('invoices.create') }}" class="btn-primary invoice-create-button"><x-icon name="plus" class="size-4" /><span>صورتحساب جدید</span></a>
+            </div>
+
+            <div class="invoice-toolbar-secondary">
                 <div class="table-count"><span class="size-1.5 rounded-full bg-amber-500"></span><strong>{{ number_format($invoices->total()) }}</strong> صورتحساب</div>
-                <a href="{{ route('invoices.export', request()->query()) }}" class="btn-secondary">خروجی اکسل</a>
-                <button type="button" class="btn-secondary" data-import-toggle="invoices-import">ورود اکسل</button>
-                @if($moadianIsReal)
-                    <button type="button" class="btn-secondary" data-import-toggle="moadian-sales-report">همگام‌سازی واکنش خریداران</button>
-                @endif
-                <a href="{{ route('invoices.create') }}" class="btn-primary"><x-icon name="plus" class="size-4" /><span>صورتحساب جدید</span></a>
+                <div class="invoice-utility-actions">
+                    <a href="{{ route('invoices.export', request()->query()) }}" class="btn-secondary">خروجی اکسل</a>
+                    <button type="button" class="btn-secondary" data-import-toggle="invoices-import">ورود اکسل</button>
+                    @if($moadianIsReal)
+                        <button type="button" class="btn-secondary" data-import-toggle="moadian-sales-report">همگام‌سازی واکنش خریداران</button>
+                    @endif
+                </div>
             </div>
         </div>
 
         @php($invoiceFilterQuery = request()->except(['page', 'status', 'type']))
-        <div class="border-b border-slate-100 bg-slate-50/65 px-4 pt-4 sm:px-6">
-            <div class="overflow-x-auto">
-                <nav class="flex min-w-max gap-1" aria-label="فیلتر وضعیت صورتحساب">
-                    <a href="{{ route('invoices.index', array_filter(array_merge($invoiceFilterQuery, ['type' => $type]))) }}" @class(['rounded-t-xl px-4 py-3 text-xs font-extrabold transition', 'bg-white text-teal-700 shadow-[0_-1px_0_0_#e2e8f0,1px_0_0_0_#e2e8f0,-1px_0_0_0_#e2e8f0]' => $status === '', 'text-slate-500 hover:bg-white/70 hover:text-slate-800' => $status !== ''])>همه وضعیت‌ها</a>
+        <div class="invoice-filter-panel">
+            <div class="invoice-status-filter">
+                <span class="invoice-filter-label">وضعیت صورتحساب</span>
+                <nav class="invoice-status-tabs" aria-label="فیلتر وضعیت صورتحساب">
+                    <a href="{{ route('invoices.index', array_filter(array_merge($invoiceFilterQuery, ['type' => $type]))) }}" @class(['invoice-status-tab', 'active' => $status === ''])>همه وضعیت‌ها</a>
                     @foreach($statuses as $option)
-                        <a href="{{ route('invoices.index', array_filter(array_merge($invoiceFilterQuery, ['status' => $option->value, 'type' => $type]))) }}" @class(['rounded-t-xl px-4 py-3 text-xs font-extrabold transition', 'bg-white text-teal-700 shadow-[0_-1px_0_0_#e2e8f0,1px_0_0_0_#e2e8f0,-1px_0_0_0_#e2e8f0]' => $status === $option->value, 'text-slate-500 hover:bg-white/70 hover:text-slate-800' => $status !== $option->value])>{{ $option->label() }}</a>
+                        <a href="{{ route('invoices.index', array_filter(array_merge($invoiceFilterQuery, ['status' => $option->value, 'type' => $type]))) }}" @class(['invoice-status-tab', 'active' => $status === $option->value])>{{ $option->label() }}</a>
                     @endforeach
                 </nav>
             </div>
-        </div>
-        <div class="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-white px-5 py-3 sm:px-6">
-            <span class="ml-1 text-[10px] font-black text-slate-400">نوع صورتحساب:</span>
-            <a href="{{ route('invoices.index', array_filter(array_merge($invoiceFilterQuery, ['status' => $status]))) }}" @class(['rounded-full px-3 py-1.5 text-[10px] font-extrabold ring-1 ring-inset transition', 'bg-slate-900 text-white ring-slate-900' => $type === '', 'bg-slate-50 text-slate-500 ring-slate-200 hover:bg-slate-100' => $type !== ''])>همه</a>
-            @foreach($types as $option)
-                <a href="{{ route('invoices.index', array_filter(array_merge($invoiceFilterQuery, ['status' => $status, 'type' => $option->value]))) }}" @class(['rounded-full px-3 py-1.5 text-[10px] font-extrabold ring-1 ring-inset transition', 'bg-slate-900 text-white ring-slate-900' => $type === $option->value, 'bg-slate-50 text-slate-500 ring-slate-200 hover:bg-slate-100' => $type !== $option->value])>{{ $option->label() }}</a>
-            @endforeach
+            <div class="invoice-type-filter">
+                <span class="invoice-filter-label">نوع صورتحساب:</span>
+                <div class="invoice-type-options">
+                    <a href="{{ route('invoices.index', array_filter(array_merge($invoiceFilterQuery, ['status' => $status]))) }}" @class(['invoice-type-option', 'active' => $type === ''])>همه</a>
+                    @foreach($types as $option)
+                        <a href="{{ route('invoices.index', array_filter(array_merge($invoiceFilterQuery, ['status' => $status, 'type' => $option->value]))) }}" @class(['invoice-type-option', 'active' => $type === $option->value])>{{ $option->label() }}</a>
+                    @endforeach
+                </div>
+            </div>
         </div>
 
         <x-spreadsheet-import-panel id="invoices-import" :action="route('invoices.import')" :template="route('invoices.template')" title="ورود گروهی صورتحساب‌ها" />

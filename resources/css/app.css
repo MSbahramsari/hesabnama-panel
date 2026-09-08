@@ -111,6 +111,26 @@
     .hero-mini-stat strong { @apply block text-xl font-black text-white; }
     .hero-mini-stat span { @apply mt-1 block text-xs text-slate-400; }
     .table-toolbar { @apply flex flex-col gap-3 border-b border-slate-100 bg-slate-50/45 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6; }
+    .invoice-connection-banner { @apply mb-5 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/90 px-4 py-3.5 text-xs leading-6 text-emerald-900 shadow-[0_5px_18px_rgba(16,185,129,.045)] sm:px-5 sm:text-sm; }
+    .invoice-connection-banner p { @apply min-w-0; }
+    .invoice-connection-banner strong { @apply font-black; }
+    .invoice-connection-icon { @apply grid size-9 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white shadow-[0_4px_12px_rgba(5,150,105,.18)]; }
+    .invoice-toolbar { @apply border-b border-slate-100 bg-white px-4 py-5 sm:px-6; }
+    .invoice-toolbar-primary { @apply grid items-center gap-3 lg:grid-cols-[minmax(0,1fr)_auto]; }
+    .invoice-search-form { @apply flex min-w-0 flex-col gap-2 sm:flex-row; }
+    .invoice-create-button { @apply min-h-[46px] whitespace-nowrap px-5; }
+    .invoice-toolbar-secondary { @apply mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between; }
+    .invoice-utility-actions { @apply flex flex-wrap items-center gap-2; }
+    .invoice-filter-panel { @apply grid gap-4 border-b border-slate-100 bg-slate-50/70 px-4 py-4 sm:px-6 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end; }
+    .invoice-status-filter { @apply min-w-0; }
+    .invoice-filter-label { @apply mb-2 block text-[10px] font-black text-slate-400; }
+    .invoice-status-tabs { @apply flex min-w-max gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-[0_1px_2px_rgba(15,23,42,.025)]; }
+    .invoice-status-filter { @apply overflow-x-auto pb-1; scrollbar-width: thin; }
+    .invoice-status-tab { @apply whitespace-nowrap rounded-lg px-3.5 py-2 text-[11px] font-extrabold text-slate-500 transition hover:bg-slate-50 hover:text-slate-800; }
+    .invoice-status-tab.active { @apply bg-teal-700 text-white shadow-[0_3px_10px_rgba(15,118,110,.18)]; }
+    .invoice-type-options { @apply flex flex-wrap items-center gap-1 rounded-xl border border-slate-200 bg-white p-1; }
+    .invoice-type-option { @apply rounded-lg px-3 py-2 text-[10px] font-extrabold text-slate-500 hover:bg-slate-50 hover:text-slate-800; }
+    .invoice-type-option.active { @apply bg-slate-900 text-white shadow-sm; }
     .table-count { @apply inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-[11px] font-bold text-slate-500 ring-1 ring-inset ring-slate-200; }
     .table-count strong { @apply text-slate-900; }
     .table-wrap { @apply relative w-full overflow-x-auto bg-white; scrollbar-color: #94a3b8 #f8fafc; scrollbar-width: thin; }
