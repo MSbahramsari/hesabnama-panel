@@ -23,7 +23,10 @@ class SyncMoadianInvoiceStatusesCommand extends Command
 
         Invoice::query()
             ->where('status', InvoiceStatus::AwaitingConfirmation)
-            ->whereNotNull('submission_uid')
+            ->where(function ($query): void {
+                $query->whereNotNull('reference_number')
+                    ->orWhereNotNull('submission_uid');
+            })
             ->with('user.taxpayerProfile')
             ->oldest('last_inquired_at')
             ->oldest('id')

@@ -317,6 +317,86 @@ it('inquires the official status by reference number', function () {
     ) && $request->hasHeader('Authorization', 'Bearer test-token'));
 });
 
+it('accepts a successful official inquiry without a redundant tax result', function () {
+    Http::preventStrayRequests();
+    Http::fake(function (Request $request) {
+        if (str_ends_with($request->url(), '/sync/GET_TOKEN')) {
+            return Http::response([
+                'result' => [
+                    'data' => [
+                        'token' => 'test-token',
+                        'expiresIn' => (int) floor(microtime(true) * 1000) + 600_000,
+                    ],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'result' => [
+                'data' => [[
+                    'referenceNumber' => '967072eb-203e-428e-b9bb-6d2efdb9d356',
+                    'status' => 'SUCCESS',
+                    'data' => [
+                        'success' => true,
+                        'confirmationReferenceId' => 'official-confirmation-id',
+                    ],
+                    'packetType' => 'RECEIVE_INVOICE_CONFIRM',
+                    'fiscalId' => 'ABC123',
+                ]],
+            ],
+        ]);
+    });
+
+    $result = $this->client->inquiryByReferenceNumber('967072eb-203e-428e-b9bb-6d2efdb9d356');
+
+    expect($result->isSuccessful())->toBeTrue()
+        ->and($result->isFailed())->toBeFalse()
+        ->and($result->taxResult)->toBeNull()
+        ->and($result->confirmationReferenceId)->toBe('official-confirmation-id');
+});
+
+it('uses the official reference number before the submission uid when inquiring an invoice', function () {
+    Http::preventStrayRequests();
+    Http::fake(function (Request $request) {
+        if (str_ends_with($request->url(), '/sync/GET_TOKEN')) {
+            return Http::response([
+                'result' => [
+                    'data' => [
+                        'token' => 'test-token',
+                        'expiresIn' => (int) floor(microtime(true) * 1000) + 600_000,
+                    ],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'result' => [
+                'data' => [[
+                    'status' => 'SUCCESS',
+                    'data' => ['taxResult' => 'SUCCESS'],
+                    'packetType' => 'RECEIVE_INVOICE_CONFIRM',
+                ]],
+            ],
+        ]);
+    });
+
+    $customer = Customer::factory()->for($this->user)->create();
+    $invoice = Invoice::factory()->for($this->user)->for($customer)->create([
+        'submission_uid' => '8a00f17a-bd35-46bc-ae52-3f61fab868c2',
+        'reference_number' => '967072eb-203e-428e-b9bb-6d2efdb9d356',
+    ]);
+
+    $result = app(MoadianTaxPlatformGateway::class)->inquire($invoice);
+
+    expect($result->isSuccessful())->toBeTrue();
+
+    Http::assertSent(fn (Request $request): bool => str_ends_with(
+        $request->url(),
+        '/sync/INQUIRY_BY_REFERENCE_NUMBER',
+    ));
+    Http::assertNotSent(fn (Request $request): bool => str_ends_with($request->url(), '/sync/INQUIRY_BY_UID'));
+});
+
 it('inquires the official status by submission uid and fiscal id', function () {
     Http::preventStrayRequests();
     Http::fake(function (Request $request) {

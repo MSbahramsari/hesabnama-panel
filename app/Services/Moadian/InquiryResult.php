@@ -13,7 +13,8 @@ readonly class InquiryResult
 
     public function isSuccessful(): bool
     {
-        return $this->status === 'SUCCESS' && mb_strtoupper((string) $this->taxResult) === 'SUCCESS';
+        return $this->status === 'SUCCESS'
+            && ($this->taxResult === null || mb_strtoupper($this->taxResult) === 'SUCCESS');
     }
 
     public function isFailed(): bool

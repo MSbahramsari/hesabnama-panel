@@ -412,8 +412,14 @@ class MoadianClient
     /** @param array<string, mixed> $result */
     private function inquiryFailureDetail(array $result, mixed $data): mixed
     {
+        $status = mb_strtoupper((string) ($result['status'] ?? ''));
+
         if (is_string($data) && filled($data)) {
-            return $data;
+            if ($status === 'FAILED' || mb_strtoupper($data) === 'SUCCESS') {
+                return $data;
+            }
+
+            return null;
         }
 
         $errors = is_array($data) ? ($data['error'] ?? $data['errors'] ?? null) : null;
@@ -430,24 +436,33 @@ class MoadianClient
             }
         }
 
-        $candidates = [
+        $taxResultCandidates = [
             is_array($data) ? ($data['taxResult'] ?? null) : null,
-            is_array($data) ? ($data['errorDetail'] ?? null) : null,
-            is_array($data) ? ($data['message'] ?? null) : null,
             $result['taxResult'] ?? null,
-            $result['errorDetail'] ?? null,
-            $result['message'] ?? null,
-            $result['errors'] ?? null,
         ];
 
-        foreach ($candidates as $candidate) {
+        foreach ($taxResultCandidates as $candidate) {
             if (filled($candidate)) {
                 return $candidate;
             }
         }
 
-        if (mb_strtoupper((string) ($result['status'] ?? '')) !== 'FAILED') {
+        if ($status !== 'FAILED') {
             return null;
+        }
+
+        $failureCandidates = [
+            is_array($data) ? ($data['errorDetail'] ?? null) : null,
+            is_array($data) ? ($data['message'] ?? null) : null,
+            $result['errorDetail'] ?? null,
+            $result['message'] ?? null,
+            $result['errors'] ?? null,
+        ];
+
+        foreach ($failureCandidates as $candidate) {
+            if (filled($candidate)) {
+                return $candidate;
+            }
         }
 
         return [

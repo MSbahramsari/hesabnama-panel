@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Contracts\TaxPlatformGateway;
+use App\Exceptions\MoadianApiException;
 use App\Models\Invoice;
 use App\Models\User;
 use App\Services\Moadian\InquiryResult;
@@ -88,11 +89,15 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
     {
         $client = $this->clientFactory->forUser($invoice->user);
 
+        if (filled($invoice->reference_number)) {
+            return $client->inquiryByReferenceNumber((string) $invoice->reference_number);
+        }
+
         if (filled($invoice->submission_uid)) {
             return $client->inquiryByUid((string) $invoice->submission_uid);
         }
 
-        return $client->inquiryByReferenceNumber((string) $invoice->reference_number);
+        throw new MoadianApiException('برای استعلام این صورتحساب، شناسه ارسال یا شماره مرجع مودیان ثبت نشده است.');
     }
 
     public function isDemo(): bool

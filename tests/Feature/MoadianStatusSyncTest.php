@@ -26,7 +26,7 @@ it('stores the official moadian processing result returned by uid inquiry', func
     mock(TaxPlatformGateway::class, function (MockInterface $mock): void {
         $mock->shouldReceive('inquire')->once()->andReturn(new InquiryResult(
             'SUCCESS',
-            'SUCCESS',
+            null,
             'd4c0e7e6-d42e-11ec-9d64-0242ac120002',
             'RECEIVE_INVOICE_CONFIRM',
         ));
@@ -36,10 +36,29 @@ it('stores the official moadian processing result returned by uid inquiry', func
 
     expect($invoice->refresh()->status)->toBe(InvoiceStatus::Confirmed)
         ->and($invoice->moadian_status)->toBe(MoadianStatus::Success)
-        ->and($invoice->moadian_tax_result)->toBe('SUCCESS')
+        ->and($invoice->moadian_tax_result)->toBeNull()
         ->and($invoice->moadian_confirmation_reference_id)->toBe('d4c0e7e6-d42e-11ec-9d64-0242ac120002')
         ->and($invoice->moadian_packet_type)->toBe('RECEIVE_INVOICE_CONFIRM')
         ->and($invoice->confirmed_at)->not->toBeNull();
+});
+
+it('synchronizes a pending invoice that only has an official reference number', function () {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->for($user)->create();
+    $invoice = Invoice::factory()->for($user)->for($customer)->create([
+        'status' => InvoiceStatus::AwaitingConfirmation,
+        'submission_uid' => null,
+        'reference_number' => '967072eb-203e-428e-b9bb-6d2efdb9d356',
+    ]);
+
+    mock(TaxPlatformGateway::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('inquire')->once()->andReturn(new InquiryResult('SUCCESS'));
+    });
+
+    $this->artisan('moadian:sync-invoices')->assertSuccessful();
+
+    expect($invoice->refresh()->status)->toBe(InvoiceStatus::Confirmed)
+        ->and($invoice->moadian_status)->toBe(MoadianStatus::Success);
 });
 
 it('imports actual buyer reactions from the official moadian sales report', function () {
