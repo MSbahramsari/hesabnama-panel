@@ -93,7 +93,7 @@ class SaveInvoiceRequest extends FormRequest
             ],
             'description' => ['nullable', 'string', 'max:1000'],
             'settlement_method' => ['required', Rule::enum(SettlementMethod::class)],
-            'cash_amount' => ['nullable', 'required_if:settlement_method,mixed', 'numeric', 'gt:0', 'max:9999999999999999'],
+            'cash_amount' => ['exclude_unless:settlement_method,mixed', 'required', 'numeric', 'gt:0', 'max:9999999999999999'],
             'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.good_id' => array_values(array_filter([
                 'required',
@@ -115,6 +115,9 @@ class SaveInvoiceRequest extends FormRequest
         return [
             'invoice_date.before_or_equal' => 'تاریخ صورتحساب نمی‌تواند بعد از تاریخ امروز باشد.',
             'invoice_date.after_or_equal' => "برای ارسال عادی به سامانه مودیان، تاریخ صورتحساب نباید بیشتر از {$submissionWindowDays} روز قبل باشد.",
+            'cash_amount.required' => 'در روش نقدی / نسیه، مبلغ پرداختی نقدی را وارد کنید.',
+            'cash_amount.numeric' => 'مبلغ پرداختی نقدی باید عدد باشد.',
+            'cash_amount.gt' => 'مبلغ پرداختی نقدی باید بزرگ‌تر از صفر باشد.',
             'items.*.unit_price.gt' => 'مبلغ واحد هر قلم باید بزرگ‌تر از صفر باشد.',
         ];
     }

@@ -69,6 +69,33 @@ it('accepts visually grouped invoice amounts', function () {
         ->and((float) $invoice->discount_total)->toBe(200_000.0);
 });
 
+it('ignores a zero cash amount unless the settlement method is mixed', function () {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->for($user)->create();
+    $good = Good::factory()->for($user)->create();
+
+    $response = $this->actingAs($user)->post(route('invoices.store'), [
+        'customer_id' => $customer->id,
+        'number' => 'INV-CASH-WITH-HIDDEN-ZERO',
+        'invoice_date' => today()->format('Y-m-d'),
+        'settlement_method' => SettlementMethod::Cash->value,
+        'cash_amount' => 0,
+        'items' => [[
+            'good_id' => $good->id,
+            'quantity' => 1,
+            'unit_price' => 1_000_000,
+            'tax_rate' => 10,
+            'discount' => 0,
+        ]],
+    ]);
+
+    $invoice = Invoice::query()->whereBelongsTo($user)->firstOrFail();
+
+    $response->assertRedirect(route('invoices.show', $invoice));
+    expect($invoice->settlement_method)->toBe(SettlementMethod::Cash)
+        ->and((float) $invoice->cash_amount)->toBe(1_000_000.0);
+});
+
 it('hides unit prices from the goods list', function () {
     $user = User::factory()->create();
     Good::factory()->for($user)->create(['unit_price' => 7_654_321]);

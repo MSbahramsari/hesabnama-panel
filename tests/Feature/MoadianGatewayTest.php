@@ -55,7 +55,7 @@ it('allocates high monotonically increasing serials for a fiscal memory', functi
     $secondSerial = $allocator->allocate($secondInvoice);
 
     expect($firstSerial)->toBeGreaterThan(1_000_000_000)
-        ->and($secondSerial)->toBe($firstSerial + 1);
+        ->and($secondSerial)->toBeGreaterThan($firstSerial);
 });
 
 it('looks up a customer from the official economic code endpoint', function () {

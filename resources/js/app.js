@@ -504,9 +504,14 @@ if (invoiceForm) {
 
     const syncSettlementFields = () => {
         const isMixed = settlementMethod?.value === 'mixed';
+        const cashAmountInput = cashAmountField?.querySelector('input');
 
         cashAmountField?.classList.toggle('hidden', !isMixed);
-        cashAmountField?.querySelector('input')?.toggleAttribute('required', isMixed);
+        cashAmountInput?.toggleAttribute('required', isMixed);
+
+        if (cashAmountInput) {
+            cashAmountInput.disabled = !isMixed;
+        }
     };
 
     const recalculate = () => {
