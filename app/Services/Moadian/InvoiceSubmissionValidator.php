@@ -59,7 +59,7 @@ class InvoiceSubmissionValidator
         }
 
         if ($invoice->items->count() > 100) {
-            throw new MoadianConfigurationException('هر صورتحساب در حساب‌نما حداکثر می‌تواند ۱۰۰ ردیف داشته باشد.');
+            throw new MoadianConfigurationException('هر صورتحساب در واسط‌نما حداکثر می‌تواند ۱۰۰ ردیف داشته باشد.');
         }
 
         foreach ($invoice->items as $index => $item) {

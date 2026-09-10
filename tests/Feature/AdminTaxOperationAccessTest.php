@@ -12,7 +12,7 @@ it('shows administrators a system management dashboard without tax operations', 
         ->get(route('dashboard'))
         ->assertOk()
         ->assertSee('داشبورد مدیریت')
-        ->assertSee('مدیریت حساب‌نما')
+        ->assertSee('مدیریت واسط‌نما')
         ->assertDontSee('<div class="nav-label">عملیات مالیاتی</div>', false)
         ->assertDontSee(route('customers.index'), false)
         ->assertDontSee(route('goods.index'), false)

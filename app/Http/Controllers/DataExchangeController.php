@@ -90,7 +90,7 @@ class DataExchangeController extends Controller
         $message = number_format($result['updated']).' واکنش رسمی خریدار به‌روزرسانی شد.';
 
         if ($result['unmatched'] > 0) {
-            $message .= ' '.number_format($result['unmatched']).' شماره مالیاتی در حساب‌نما پیدا نشد.';
+            $message .= ' '.number_format($result['unmatched']).' شماره مالیاتی در واسط‌نما پیدا نشد.';
         }
 
         if ($result['ignored'] > 0) {

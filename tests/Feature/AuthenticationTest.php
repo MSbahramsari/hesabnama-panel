@@ -4,11 +4,11 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 it('does not expose demo credentials on the login page', function () {
-    config()->set('app.name', 'حساب‌نما');
+    config()->set('app.name', 'واسط‌نما');
 
     $this->get(route('login'))
         ->assertSuccessful()
-        ->assertSee('حساب‌نما')
+        ->assertSee('واسط‌نما')
         ->assertDontSee('مودیان‌یار')
         ->assertDontSee('حساب آزمایشی')
         ->assertDontSee('demo@moadian.test')

@@ -9,7 +9,7 @@
         <div class="absolute -left-20 -top-24 size-72 rounded-full bg-blue-400/15 blur-3xl"></div>
         <div class="relative p-6 sm:p-8 lg:p-9">
             <div class="eyebrow"><span class="size-1.5 rounded-full bg-blue-300"></span>پنل سوپرادمین</div>
-            <h2 class="mt-5 text-2xl font-black leading-tight sm:text-[32px]">مدیریت حساب‌نما</h2>
+            <h2 class="mt-5 text-2xl font-black leading-tight sm:text-[32px]">مدیریت واسط‌نما</h2>
             <p class="mt-3 max-w-2xl text-sm leading-7 text-slate-400">این فضا فقط برای مدیریت کاربران و زیرساخت سامانه است. عملیات مالیاتی هر مودی در حساب خودش انجام می‌شود.</p>
             <div class="mt-6 flex flex-wrap gap-3">
                 <a href="{{ route('admin.users.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-extrabold text-slate-900"><x-icon name="plus" class="size-4" />ساخت حساب کاربری</a>
