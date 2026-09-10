@@ -1,6 +1,7 @@
 <?php
 
 use App\Contracts\TaxPlatformGateway;
+use App\Enums\BuyerStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\MoadianStatus;
 use App\Enums\SettlementMethod;
@@ -240,6 +241,41 @@ it('renders invoice status and type filters as tabs and preserves filtering', fu
         ->assertDontSee('<select name="type"', false)
         ->assertSee('CONFIRMED-TAB')
         ->assertDontSee('DRAFT-TAB');
+});
+
+it('filters invoice columns and shows unsynchronized buyer reactions', function () {
+    $user = User::factory()->create();
+    $firstCustomer = Customer::factory()->for($user)->create(['name' => 'مشتری اول']);
+    $secondCustomer = Customer::factory()->for($user)->create(['name' => 'مشتری دوم']);
+    Invoice::factory()->for($user)->for($firstCustomer)->create([
+        'number' => 'REJECTED-BUYER',
+        'buyer_status' => BuyerStatus::Rejected,
+        'total' => 2_000_000,
+    ]);
+    Invoice::factory()->for($user)->for($secondCustomer)->create([
+        'number' => 'NOT-SYNCED-BUYER',
+        'buyer_status' => null,
+        'total' => 500_000,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('invoices.index', [
+            'customer_id' => $firstCustomer->id,
+            'buyer_status' => BuyerStatus::Rejected->value,
+            'minimum_total' => 1_000_000,
+        ]))
+        ->assertOk()
+        ->assertSee('invoice-column-filters', false)
+        ->assertSee('REJECTED-BUYER')
+        ->assertSee('رد خریدار')
+        ->assertDontSee('NOT-SYNCED-BUYER');
+
+    $this->actingAs($user)
+        ->get(route('invoices.index', ['buyer_status' => 'not_synced']))
+        ->assertOk()
+        ->assertSee('NOT-SYNCED-BUYER')
+        ->assertSee('همگام‌سازی نشده')
+        ->assertDontSee('REJECTED-BUYER');
 });
 
 it('moves selected invoices through send confirmation', function () {

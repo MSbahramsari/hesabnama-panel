@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\DuplicateInvoiceAction;
 use App\Actions\SaveInvoiceAction;
+use App\Enums\BuyerStatus;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
+use App\Enums\SettlementMethod;
 use App\Http\Requests\SaveInvoiceRequest;
 use App\Models\Customer;
 use App\Models\Good;
 use App\Models\Invoice;
+use App\Models\User;
 use App\Services\Moadian\MoadianClientFactory;
 use App\Support\JalaliDate;
 use Illuminate\Database\Eloquent\Builder;
@@ -27,6 +31,12 @@ class InvoiceController extends Controller
         $search = $request->string('q')->trim()->toString();
         $status = $request->string('status')->toString();
         $type = $request->string('type')->toString();
+        $buyerStatus = $request->string('buyer_status')->toString();
+        $settlementMethod = $request->string('settlement_method')->toString();
+        $customerId = $request->integer('customer_id');
+        $invoiceDate = $request->string('invoice_date')->toString();
+        $invoiceDate = preg_match('/^\d{4}-\d{2}-\d{2}$/', $invoiceDate) === 1 ? $invoiceDate : '';
+        $minimumTotal = $request->float('minimum_total');
         $moadianConfiguration = $clientFactory->configurationForUser($user);
 
         $invoices = Invoice::query()
@@ -39,6 +49,12 @@ class InvoiceController extends Controller
                 ->orWhereHas('customer', fn (Builder $query) => $query->where('name', 'like', "%{$search}%"))))
             ->when(InvoiceStatus::tryFrom($status), fn (Builder $query) => $query->where('status', $status))
             ->when(InvoiceType::tryFrom($type), fn (Builder $query) => $query->where('invoice_type', $type))
+            ->when(SettlementMethod::tryFrom($settlementMethod), fn (Builder $query) => $query->where('settlement_method', $settlementMethod))
+            ->when($customerId > 0, fn (Builder $query) => $query->where('customer_id', $customerId))
+            ->when($invoiceDate !== '', fn (Builder $query) => $query->whereDate('invoice_date', $invoiceDate))
+            ->when($minimumTotal > 0, fn (Builder $query) => $query->where('total', '>=', $minimumTotal))
+            ->when($buyerStatus === 'not_synced', fn (Builder $query) => $query->whereNull('buyer_status'))
+            ->when(BuyerStatus::tryFrom($buyerStatus), fn (Builder $query) => $query->where('buyer_status', $buyerStatus))
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -48,8 +64,16 @@ class InvoiceController extends Controller
             'search' => $search,
             'status' => $status,
             'type' => $type,
+            'buyerStatus' => $buyerStatus,
+            'settlementMethod' => $settlementMethod,
+            'customerId' => $customerId,
+            'invoiceDate' => $invoiceDate,
+            'minimumTotal' => $minimumTotal > 0 ? $minimumTotal : null,
             'statuses' => InvoiceStatus::cases(),
             'types' => InvoiceType::cases(),
+            'buyerStatuses' => BuyerStatus::cases(),
+            'settlementMethods' => SettlementMethod::cases(),
+            'filterCustomers' => Customer::query()->whereBelongsTo($user)->orderBy('name')->get(['id', 'name']),
             'moadianIsReal' => $moadianConfiguration->isReal(),
             'moadianIsReady' => $moadianConfiguration->isReady(),
         ]);
@@ -104,25 +128,56 @@ class InvoiceController extends Controller
         Gate::authorize('delete', $invoice);
         $invoice->delete();
 
-        return redirect()->route('invoices.index')->with('success', 'پیش‌نویس صورتحساب با موفقیت حذف شد.');
+        return redirect()->route('invoices.index')->with('success', 'صورتحساب با موفقیت حذف شد.');
+    }
+
+    public function duplicate(Invoice $invoice, DuplicateInvoiceAction $action): RedirectResponse
+    {
+        Gate::authorize('duplicate', $invoice);
+        $copy = $action->handle($invoice->user, $invoice, $this->suggestedNumber($invoice->user));
+
+        return redirect()->route('invoices.edit', $copy)
+            ->with('success', 'یک پیش‌نویس جدید با اطلاعات این صورتحساب ساخته شد.');
     }
 
     /** @return array{customers: Collection<int, Customer>, goods: Collection<int, Good>, suggestedNumber: string} */
     private function formData(Request $request, ?Invoice $invoice = null): array
     {
         $user = $request->user();
-        $customers = Customer::query()->whereBelongsTo($user)->where('is_active', true)->orderBy('name')->get();
+        $invoiceGoodIds = $invoice?->items->pluck('good_id')->filter()->all() ?? [];
+        $customers = Customer::query()
+            ->whereBelongsTo($user)
+            ->where(fn (Builder $query) => $query
+                ->where('is_active', true)
+                ->when($invoice, fn (Builder $query) => $query->orWhere('id', $invoice->customer_id)))
+            ->orderBy('name')
+            ->get();
         $goods = Good::query()
             ->whereBelongsTo($user)
-            ->where('is_active', true)
+            ->where(fn (Builder $query) => $query
+                ->where('is_active', true)
+                ->when($invoiceGoodIds !== [], fn (Builder $query) => $query->orWhereIn('id', $invoiceGoodIds)))
             ->when(
                 $invoice?->invoice_type === InvoiceType::Correction,
                 fn (Builder $query) => $query->whereIn('id', $invoice->referenceInvoice?->items->pluck('good_id')->filter() ?? []),
             )
             ->orderBy('name')
             ->get();
-        $sequence = Invoice::query()->whereBelongsTo($user)->whereYear('created_at', now()->year)->count() + 1;
 
-        return ['customers' => $customers, 'goods' => $goods, 'suggestedNumber' => 'INV-'.JalaliDate::format(now(), 'Ym').'-'.str_pad((string) $sequence, 4, '0', STR_PAD_LEFT)];
+        return ['customers' => $customers, 'goods' => $goods, 'suggestedNumber' => $this->suggestedNumber($user)];
+    }
+
+    private function suggestedNumber(User $user): string
+    {
+        $sequence = Invoice::query()->whereBelongsTo($user)->whereYear('created_at', now()->year)->count() + 1;
+        $prefix = 'INV-'.JalaliDate::format(now(), 'Ym').'-';
+        $number = $prefix.str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
+
+        while (Invoice::query()->whereBelongsTo($user)->where('number', $number)->exists()) {
+            $sequence++;
+            $number = $prefix.str_pad((string) $sequence, 4, '0', STR_PAD_LEFT);
+        }
+
+        return $number;
     }
 }

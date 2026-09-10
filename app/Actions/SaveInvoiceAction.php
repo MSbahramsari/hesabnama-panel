@@ -18,9 +18,28 @@ class SaveInvoiceAction
     {
         return DB::transaction(function () use ($user, $data, $invoice): Invoice {
             $invoice ??= new Invoice(['user_id' => $user->id]);
+            $wasRejectedByMoadian = $invoice->exists && $invoice->status === InvoiceStatus::MoadianError;
             $data['settlement_method'] ??= $invoice->settlement_method?->value ?? SettlementMethod::Cash->value;
             $invoice->fill(Arr::only($data, ['customer_id', 'number', 'invoice_date', 'description', 'settlement_method']));
             $invoice->status = InvoiceStatus::Draft;
+
+            if ($wasRejectedByMoadian) {
+                $invoice->fill([
+                    'moadian_status' => null,
+                    'moadian_tax_result' => null,
+                    'moadian_confirmation_reference_id' => null,
+                    'moadian_packet_type' => null,
+                    'submission_uid' => null,
+                    'moadian_serial' => null,
+                    'tax_id' => null,
+                    'reference_number' => null,
+                    'sent_at' => null,
+                    'last_inquired_at' => null,
+                    'confirmed_at' => null,
+                    'error_message' => null,
+                ]);
+            }
+
             $invoice->save();
 
             $invoice->items()->delete();

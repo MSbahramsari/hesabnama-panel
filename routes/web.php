@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/invoices/import', [DataExchangeController::class, 'importInvoices'])->name('invoices.import');
             Route::post('/invoices/moadian-sales-report', [DataExchangeController::class, 'importMoadianSalesReport'])->name('invoices.moadian-sales-report.import');
             Route::resource('invoices', InvoiceController::class);
+            Route::post('/invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
             Route::post('/invoices/{invoice}/correction', [InvoiceAdjustmentController::class, 'correction'])->name('invoices.correction');
             Route::post('/invoices/{invoice}/cancellation', [InvoiceAdjustmentController::class, 'cancellation'])->name('invoices.cancellation');
             Route::post('/invoices/send', [InvoiceWorkflowController::class, 'send'])->middleware('throttle:10,1')->name('invoices.send');

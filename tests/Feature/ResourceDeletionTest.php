@@ -79,6 +79,37 @@ it('does not allow a submitted invoice to be deleted', function () {
     $this->assertModelExists($invoice);
 });
 
+it('allows pending and rejected invoices to be edited and deleted', function (InvoiceStatus $status) {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->for($user)->create();
+    $invoice = Invoice::factory()->for($user)->for($customer)->create(['status' => $status]);
+
+    $this->actingAs($user)->get(route('invoices.edit', $invoice))->assertOk();
+    $this->actingAs($user)
+        ->delete(route('invoices.destroy', $invoice))
+        ->assertRedirect(route('invoices.index'));
+
+    $this->assertModelMissing($invoice);
+})->with([
+    InvoiceStatus::Draft,
+    InvoiceStatus::PendingSend,
+    InvoiceStatus::MoadianError,
+]);
+
+it('prevents confirmed and processing invoices from being edited or deleted', function (InvoiceStatus $status) {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->for($user)->create();
+    $invoice = Invoice::factory()->for($user)->for($customer)->create(['status' => $status]);
+
+    $this->actingAs($user)->get(route('invoices.edit', $invoice))->assertForbidden();
+    $this->actingAs($user)->delete(route('invoices.destroy', $invoice))->assertForbidden();
+
+    $this->assertModelExists($invoice);
+})->with([
+    InvoiceStatus::AwaitingConfirmation,
+    InvoiceStatus::Confirmed,
+]);
+
 it('shows navigation deletion and logout controls in the panel', function () {
     $user = User::factory()->create();
     $customer = Customer::factory()->for($user)->create();

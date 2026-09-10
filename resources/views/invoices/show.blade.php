@@ -5,6 +5,12 @@
 @section('content')
     <div class="page-content-actions mb-5">
         <a href="{{ route('invoices.index') }}" class="btn-secondary"><x-icon name="arrow-left" class="size-4 rotate-180" />بازگشت</a>
+        @can('duplicate', $invoice)
+            <form method="POST" action="{{ route('invoices.duplicate', $invoice) }}">
+                @csrf
+                <button type="submit" class="btn-secondary"><x-icon name="copy" class="size-4" />کپی صورتحساب</button>
+            </form>
+        @endcan
         @if($invoice->isEditable())
             <a href="{{ route('invoices.edit', $invoice) }}" class="btn-secondary"><x-icon name="edit" class="size-4" />ویرایش</a>
         @endif
@@ -100,7 +106,7 @@
                         @foreach($invoice->items as $item)
                             <tr>
                                 <td><div class="table-primary">{{ $item->description }}</div><div dir="ltr" class="table-meta justify-end">{{ $item->commodity_code }}</div></td>
-                                <td class="table-number">{{ number_format($item->quantity, 3) }}</td>
+                                <td class="table-number">{{ \App\Support\Decimal::format($item->quantity, 3) }}</td>
                                 <td class="table-number">{{ number_format($item->unit_price) }}</td>
                                 <td class="table-number">{{ number_format($item->discount) }}</td>
                                 <td class="table-number">{{ number_format($item->tax_amount) }}</td>

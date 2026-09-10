@@ -50,7 +50,7 @@ class Invoice extends Model
     public function isEditable(): bool
     {
         return $this->invoice_type !== InvoiceType::Cancellation
-            && in_array($this->status, [InvoiceStatus::Draft, InvoiceStatus::PendingSend], true);
+            && in_array($this->status, [InvoiceStatus::Draft, InvoiceStatus::PendingSend, InvoiceStatus::MoadianError], true);
     }
 
     protected function casts(): array
