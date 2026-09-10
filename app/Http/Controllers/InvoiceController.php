@@ -107,6 +107,17 @@ class InvoiceController extends Controller
         ]);
     }
 
+    public function print(Invoice $invoice): View
+    {
+        Gate::authorize('view', $invoice);
+        $invoice->load(['customer', 'items.good', 'user.taxpayerProfile', 'referenceInvoice']);
+
+        return view('invoices.print', [
+            'invoice' => $invoice,
+            'profile' => $invoice->user->taxpayerProfile,
+        ]);
+    }
+
     public function edit(Request $request, Invoice $invoice): View
     {
         Gate::authorize('update', $invoice);

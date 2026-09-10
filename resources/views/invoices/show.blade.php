@@ -5,6 +5,7 @@
 @section('content')
     <div class="page-content-actions mb-5">
         <a href="{{ route('invoices.index') }}" class="btn-secondary"><x-icon name="arrow-left" class="size-4 rotate-180" />بازگشت</a>
+        <a href="{{ route('invoices.print', $invoice) }}" target="_blank" rel="noopener" class="btn-primary"><x-icon name="print" class="size-4" />چاپ صورتحساب</a>
         @can('duplicate', $invoice)
             <form method="POST" action="{{ route('invoices.duplicate', $invoice) }}">
                 @csrf

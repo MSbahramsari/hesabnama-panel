@@ -44,6 +44,13 @@ class UpdateProfileRequest extends FormRequest
                 Rule::unique((new TaxpayerProfile)->getTable())->ignore($taxpayerProfile),
             ],
             'branch_code' => ['nullable', 'digits_between:1,4'],
+            'address' => [$isAdmin ? 'prohibited' : 'nullable', 'string', 'max:1000'],
+            'postal_code' => [$isAdmin ? 'prohibited' : 'nullable', 'digits:10'],
+            'phone' => [$isAdmin ? 'prohibited' : 'nullable', 'string', 'max:20', 'regex:/^[0-9+\-() ]+$/'],
+            'company_logo' => [$isAdmin ? 'prohibited' : 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'stamp_signature' => [$isAdmin ? 'prohibited' : 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'remove_company_logo' => [$isAdmin ? 'prohibited' : 'nullable', 'boolean'],
+            'remove_stamp_signature' => [$isAdmin ? 'prohibited' : 'nullable', 'boolean'],
             'private_key' => [
                 $isAdmin ? 'prohibited' : Rule::requiredIf($taxpayerProfile === null),
                 'nullable',

@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/invoices/import-template', [DataExchangeController::class, 'invoiceTemplate'])->name('invoices.template');
             Route::post('/invoices/import', [DataExchangeController::class, 'importInvoices'])->name('invoices.import');
             Route::post('/invoices/moadian-sales-report', [DataExchangeController::class, 'importMoadianSalesReport'])->name('invoices.moadian-sales-report.import');
+            Route::get('/invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
             Route::resource('invoices', InvoiceController::class);
             Route::post('/invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('invoices.duplicate');
             Route::post('/invoices/{invoice}/correction', [InvoiceAdjustmentController::class, 'correction'])->name('invoices.correction');
@@ -51,6 +52,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::get('/profile/branding/{asset}', [ProfileController::class, 'branding'])->whereIn('asset', ['logo', 'stamp-signature'])->name('profile.branding');
         Route::post('/profile/moadian/test', TaxpayerConnectionController::class)->middleware(['tax-operator', 'throttle:5,1'])->name('profile.moadian.test');
 
         Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {

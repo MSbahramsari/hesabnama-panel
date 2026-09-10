@@ -61,7 +61,7 @@
             </div>
 
             @if(!auth()->user()->isAdmin())
-                <x-taxpayer-profile.form :profile="$taxpayerProfile" required />
+                <x-taxpayer-profile.form :profile="$taxpayerProfile" required show-print-branding />
             @endif
 
             <div class="mt-7 flex justify-end"><button class="btn-primary">ذخیره تغییرات</button></div>

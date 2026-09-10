@@ -63,6 +63,9 @@ class SaveUserRequest extends FormRequest
                 Rule::unique((new TaxpayerProfile)->getTable())->ignore($taxpayerProfile),
             ],
             'branch_code' => ['nullable', 'digits_between:1,4'],
+            'address' => ['nullable', 'string', 'max:1000'],
+            'postal_code' => ['nullable', 'digits:10'],
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\-() ]+$/'],
             'private_key' => [
                 Rule::requiredIf($requiresTaxpayerProfile && $taxpayerProfile === null),
                 'nullable',

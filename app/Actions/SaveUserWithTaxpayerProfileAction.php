@@ -20,6 +20,9 @@ class SaveUserWithTaxpayerProfileAction
         'economic_code',
         'fiscal_id',
         'branch_code',
+        'address',
+        'postal_code',
+        'phone',
         'private_key',
     ];
 

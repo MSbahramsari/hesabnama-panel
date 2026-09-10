@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'taxpayer_name', 'taxpayer_type', 'national_id', 'economic_code', 'fiscal_id', 'branch_code', 'private_key', 'connection_verified_at'])]
+#[Fillable(['user_id', 'taxpayer_name', 'taxpayer_type', 'national_id', 'economic_code', 'fiscal_id', 'branch_code', 'address', 'postal_code', 'phone', 'company_logo_path', 'stamp_signature_path', 'private_key', 'connection_verified_at'])]
 #[Hidden(['private_key'])]
 class TaxpayerProfile extends Model
 {
