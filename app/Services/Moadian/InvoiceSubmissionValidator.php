@@ -36,8 +36,8 @@ class InvoiceSubmissionValidator
             throw new MoadianConfigurationException('خریدار صورتحساب مشخص نشده است.');
         }
 
-        if (preg_match('/^(?:\d{11}|\d{14})$/', (string) $invoice->customer->economic_code) !== 1) {
-            throw new MoadianConfigurationException('شماره اقتصادی خریدار باید مطابق قالب رسمی، ۱۱ یا ۱۴ رقم باشد.');
+        if (preg_match('/^(?:\d{10}|\d{11}|\d{14})$/', (string) $invoice->customer->economic_code) !== 1) {
+            throw new MoadianConfigurationException('شناسه خریدار باید کد ملی ۱۰ رقمی یا شناسه/شماره اقتصادی ۱۱ یا ۱۴ رقمی باشد.');
         }
 
         $nationalId = (string) $invoice->customer->national_id;

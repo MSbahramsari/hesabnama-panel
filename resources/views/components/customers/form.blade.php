@@ -1,7 +1,7 @@
 @props(['customer' => null, 'lookupResult' => null, 'economicCode' => null])
 @php($data = $lookupResult ?? [])
 <div class="grid gap-5 md:grid-cols-2">
-    <x-form.input name="economic_code" label="کد اقتصادی" :value="$customer?->economic_code ?? $economicCode" inputmode="numeric" required />
+    <x-form.input name="economic_code" label="کد اقتصادی / شناسه مشتری" :value="$customer?->economic_code ?? $economicCode" inputmode="numeric" required />
     <x-form.input name="national_id" label="شناسه ملی / کد ملی" :value="$customer?->national_id ?? ($data['national_id'] ?? null)" inputmode="numeric" />
     <x-form.input name="name" label="نام مشتری" :value="$customer?->name ?? ($data['name'] ?? null)" required />
     <div>

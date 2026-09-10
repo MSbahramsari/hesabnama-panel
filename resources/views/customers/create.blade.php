@@ -18,7 +18,7 @@
                         <p class="mt-1 text-xs leading-6 text-blue-700">پس از تکمیل اتصال، اطلاعات مؤدی مستقیماً از سرور رسمی دریافت می‌شود.</p>
                     @endif
                     <form method="GET" class="mt-4 flex flex-col gap-2 sm:flex-row">
-                        <input name="economic_code" value="{{ $economicCode }}" class="form-control bg-white" inputmode="numeric" placeholder="کد اقتصادی">
+                        <input name="economic_code" value="{{ $economicCode }}" class="form-control bg-white" inputmode="numeric" placeholder="کد اقتصادی، شناسه ملی یا کد ملی">
                         <button class="btn-primary shrink-0">استعلام اطلاعات</button>
                     </form>
                     @if($lookupError && $lookupNeedsConfiguration)

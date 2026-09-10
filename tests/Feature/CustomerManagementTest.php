@@ -43,6 +43,21 @@ it('normalizes Persian digits for a legal customer identity fields', function ()
         ->and($customer->phone)->toBe('02188776655');
 });
 
+it('accepts a ten digit national code as an individual customer identifier', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('customers.store'), [
+        'economic_code' => '۰۲۰۰۱۰۰۷۵۰',
+        'national_id' => '۰۲۰۰۱۰۰۷۵۰',
+        'name' => 'مشتری حقیقی آزمون',
+        'type' => 'individual',
+        'is_active' => true,
+    ])->assertRedirect(route('customers.index'));
+
+    expect(Customer::query()->whereBelongsTo($user)->firstOrFail()->economic_code)
+        ->toBe('0200100750');
+});
+
 it('prevents users from editing another account customer', function () {
     $user = User::factory()->create();
     $customer = Customer::factory()->create();

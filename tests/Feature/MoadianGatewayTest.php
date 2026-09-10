@@ -127,8 +127,10 @@ it('maps alternate and nested customer information fields returned by moadian', 
                         'taxpayerName' => 'شرکت با پاسخ جایگزین',
                         'nationalCode' => '14001234567',
                         'personType' => 'LEGAL',
-                        'fullAddress' => 'تهران، خیابان آزمون',
-                        'postalCode' => '1991912345',
+                        'addresses' => [[
+                            'fullAddress' => 'تهران، خیابان آزمون',
+                            'postalCode' => '1991912345',
+                        ]],
                         'phoneNumber' => '02188776655',
                     ],
                 ],
@@ -146,6 +148,44 @@ it('maps alternate and nested customer information fields returned by moadian', 
         'address' => 'تهران، خیابان آزمون',
         'postal_code' => '1991912345',
         'phone' => '02188776655',
+    ]);
+});
+
+it('uses a personal identifier as national id when moadian omits it', function () {
+    Http::preventStrayRequests();
+    Http::fake(function (Request $request) {
+        if (str_ends_with($request->url(), '/sync/GET_TOKEN')) {
+            return Http::response([
+                'result' => [
+                    'data' => [
+                        'token' => 'customer-lookup-token',
+                        'expiresIn' => (int) floor(microtime(true) * 1000) + 600_000,
+                    ],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'result' => [
+                'data' => [
+                    'economicCode' => '0200100750',
+                    'taxpayerType' => 'REAL',
+                    'nameTrade' => 'مشتری حقیقی',
+                    'postalcodeTaxpayer' => ['1991912345'],
+                    'addressTaxpayer' => ['تهران'],
+                ],
+            ],
+        ]);
+    });
+
+    $customer = app(MoadianTaxPlatformGateway::class)
+        ->lookupCustomer($this->user, '0200100750');
+
+    expect($customer)->toMatchArray([
+        'national_id' => '0200100750',
+        'type' => 'individual',
+        'address' => 'تهران',
+        'postal_code' => '1991912345',
     ]);
 });
 

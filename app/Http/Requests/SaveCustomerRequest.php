@@ -29,7 +29,7 @@ class SaveCustomerRequest extends FormRequest
         $customer = $this->route('customer');
 
         return [
-            'economic_code' => ['required', 'regex:/^(?:\d{11}|\d{14})$/', Rule::unique((new Customer)->getTable())->where('user_id', $this->user()->id)->ignore($customer)],
+            'economic_code' => ['required', 'regex:/^(?:\d{10}|\d{11}|\d{14})$/', Rule::unique((new Customer)->getTable())->where('user_id', $this->user()->id)->ignore($customer)],
             'national_id' => ['nullable', 'digits_between:10,14'],
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::in(['legal', 'individual'])],
@@ -37,6 +37,16 @@ class SaveCustomerRequest extends FormRequest
             'postal_code' => ['nullable', 'digits:10'],
             'phone' => ['nullable', 'string', 'max:20'],
             'is_active' => ['required', 'boolean'],
+        ];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return [
+            'economic_code.regex' => 'برای شخص حقیقی کد ملی ۱۰ رقمی و برای شخص حقوقی شناسه یا شماره اقتصادی ۱۱ یا ۱۴ رقمی وارد کنید.',
+            'national_id.digits_between' => 'شناسه ملی یا کد ملی باید بین ۱۰ تا ۱۴ رقم باشد.',
+            'postal_code.digits' => 'کد پستی باید دقیقاً ۱۰ رقم باشد.',
         ];
     }
 

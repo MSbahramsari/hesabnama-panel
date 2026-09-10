@@ -30,10 +30,17 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
             return null;
         }
 
+        $type = $this->customerType($this->customerValue($customer, ['taxpayerType', 'personType', 'type']));
+        $nationalId = (string) ($this->customerValue($customer, ['nationalId', 'nationalCode', 'nid']) ?? '');
+
+        if ($nationalId === '' && in_array(strlen($economicCode), [10, 11], true)) {
+            $nationalId = $economicCode;
+        }
+
         return [
             'name' => (string) ($this->customerValue($customer, ['nameTrade', 'taxpayerName', 'name', 'title']) ?? $economicCode),
-            'national_id' => (string) ($this->customerValue($customer, ['nationalId', 'nationalCode', 'nid']) ?? ''),
-            'type' => $this->customerType($this->customerValue($customer, ['taxpayerType', 'personType', 'type'])),
+            'national_id' => $nationalId,
+            'type' => $type,
             'address' => (string) ($this->customerValue($customer, ['addressTaxpayer', 'taxpayerAddress', 'fullAddress', 'address']) ?? ''),
             'postal_code' => (string) ($this->customerValue($customer, ['postalcodeTaxpayer', 'postalCodeTaxpayer', 'postalCode', 'postalcode']) ?? ''),
             'phone' => (string) ($this->customerValue($customer, ['phoneTaxpayer', 'taxpayerPhone', 'phoneNumber', 'phone', 'tel']) ?? ''),
@@ -111,7 +118,7 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
     {
         $type = mb_strtoupper((string) $taxpayerType);
 
-        return in_array($type, ['1', 'NATURAL', 'REAL'], true) ? 'individual' : 'legal';
+        return in_array($type, ['1', 'NATURAL', 'REAL', 'حقیقی', 'طبیعی'], true) ? 'individual' : 'legal';
     }
 
     /**
@@ -125,9 +132,12 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
             ->all();
 
         foreach (Arr::dot($customer) as $key => $value) {
-            $field = mb_strtolower((string) last(explode('.', $key)));
+            $fields = array_map(
+                fn (string $field): string => mb_strtolower($field),
+                explode('.', $key),
+            );
 
-            if (in_array($field, $normalizedAliases, true) && filled($value)) {
+            if (array_intersect($fields, $normalizedAliases) !== [] && filled($value)) {
                 return $value;
             }
         }
