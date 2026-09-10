@@ -18,8 +18,29 @@ it('allows a permitted user to create a customer', function () {
     ]);
 
     $customer = Customer::whereBelongsTo($user)->firstOrFail();
-    $response->assertRedirect(route('customers.edit', $customer));
+    $response->assertRedirect(route('customers.index'));
     $this->assertModelExists($customer);
+});
+
+it('normalizes Persian digits for a legal customer identity fields', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('customers.store'), [
+        'economic_code' => '۴۱۱۱۱۱۱۱۱۱۱',
+        'national_id' => '۱۴۰۰۱۲۳۴۵۶۷',
+        'name' => 'شرکت حقوقی آزمون',
+        'type' => 'legal',
+        'postal_code' => '۱۹۹۱۹۱۲۳۴۵',
+        'phone' => '۰۲۱۸۸۷۷۶۶۵۵',
+        'is_active' => true,
+    ])->assertRedirect(route('customers.index'));
+
+    $customer = Customer::query()->whereBelongsTo($user)->firstOrFail();
+
+    expect($customer->economic_code)->toBe('41111111111')
+        ->and($customer->national_id)->toBe('14001234567')
+        ->and($customer->postal_code)->toBe('1991912345')
+        ->and($customer->phone)->toBe('02188776655');
 });
 
 it('prevents users from editing another account customer', function () {

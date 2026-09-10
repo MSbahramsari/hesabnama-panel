@@ -81,6 +81,7 @@ it('looks up a customer from the official economic code endpoint', function () {
                     'taxpayerType' => 'LEGAL',
                     'addressTaxpayer' => 'تهران',
                     'postalcodeTaxpayer' => '1991912345',
+                    'phoneTaxpayer' => '02188776655',
                 ],
             ],
         ]);
@@ -95,12 +96,57 @@ it('looks up a customer from the official economic code endpoint', function () {
         'type' => 'legal',
         'address' => 'تهران',
         'postal_code' => '1991912345',
+        'phone' => '02188776655',
     ]);
 
     Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/sync/GET_ECONOMIC_CODE_INFORMATION')
         && $request->hasHeader('Authorization', 'Bearer customer-lookup-token')
         && ($request->data()['packet']['fiscalId'] ?? null) === 'ABC123'
         && ($request->data()['packet']['data']['economicCode'] ?? null) === '41111111111');
+});
+
+it('maps alternate and nested customer information fields returned by moadian', function () {
+    Http::preventStrayRequests();
+    Http::fake(function (Request $request) {
+        if (str_ends_with($request->url(), '/sync/GET_TOKEN')) {
+            return Http::response([
+                'result' => [
+                    'data' => [
+                        'token' => 'customer-lookup-token',
+                        'expiresIn' => (int) floor(microtime(true) * 1000) + 600_000,
+                    ],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'result' => [
+                'data' => [
+                    'economicCode' => '41111111111',
+                    'taxpayer' => [
+                        'taxpayerName' => 'شرکت با پاسخ جایگزین',
+                        'nationalCode' => '14001234567',
+                        'personType' => 'LEGAL',
+                        'fullAddress' => 'تهران، خیابان آزمون',
+                        'postalCode' => '1991912345',
+                        'phoneNumber' => '02188776655',
+                    ],
+                ],
+            ],
+        ]);
+    });
+
+    $customer = app(MoadianTaxPlatformGateway::class)
+        ->lookupCustomer($this->user, '41111111111');
+
+    expect($customer)->toBe([
+        'name' => 'شرکت با پاسخ جایگزین',
+        'national_id' => '14001234567',
+        'type' => 'legal',
+        'address' => 'تهران، خیابان آزمون',
+        'postal_code' => '1991912345',
+        'phone' => '02188776655',
+    ]);
 });
 
 it('looks up a good from the official service and stuff endpoint', function () {

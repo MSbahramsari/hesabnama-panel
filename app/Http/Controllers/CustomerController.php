@@ -65,9 +65,9 @@ class CustomerController extends Controller
     public function store(SaveCustomerRequest $request): RedirectResponse
     {
         Gate::authorize('create', Customer::class);
-        $customer = $request->user()->customers()->create($request->validated());
+        $request->user()->customers()->create($request->validated());
 
-        return redirect()->route('customers.edit', $customer)->with('success', 'مشتری با موفقیت ذخیره شد.');
+        return redirect()->route('customers.index')->with('success', 'مشتری با موفقیت ذخیره شد.');
     }
 
     public function edit(Customer $customer): View

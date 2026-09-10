@@ -56,7 +56,7 @@
 
 <div class="my-7 border-t border-slate-100"></div>
 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <div><h3 class="card-title">اقلام صورتحساب</h3><p class="card-subtitle">مقدار، قیمت، مالیات و تخفیف هر ردیف را مشخص کنید.</p></div>
+    <div><h3 class="card-title">اقلام صورتحساب</h3><p class="card-subtitle">مقدار، قیمت و تخفیف هر ردیف را مشخص کنید؛ مالیات از اطلاعات قلم محاسبه می‌شود.</p></div>
     <button type="button" class="btn-secondary" data-add-invoice-item><x-icon name="plus" class="size-4" />افزودن ردیف</button>
 </div>
 
@@ -69,10 +69,10 @@
     @foreach($initialItems as $index => $item)
         <div class="invoice-item-row" data-invoice-item>
             <div class="invoice-item-number">{{ $loop->iteration }}</div>
-            <div class="min-w-0 sm:col-span-2 lg:col-span-3"><label class="form-label">کالا / خدمت</label><select name="items[{{ $index }}][good_id]" class="form-control" data-good-select required><option value="">انتخاب قلم</option>@foreach($goods as $good)<option value="{{ $good->id }}" data-tax="{{ $good->tax_rate }}" @selected((string) ($item['good_id'] ?? '') === (string) $good->id)>{{ $good->name }} — {{ $good->commodity_code }}</option>@endforeach</select></div>
+            <div class="min-w-0 sm:col-span-2 lg:col-span-3"><label class="form-label">کالا / خدمت</label><select name="items[{{ $index }}][good_id]" class="form-control" data-good-select required><option value="">انتخاب قلم</option>@foreach($goods as $good)<option value="{{ $good->id }}" data-tax="{{ \App\Support\Decimal::format($good->tax_rate) }}" @selected((string) ($item['good_id'] ?? '') === (string) $good->id)>{{ $good->name }} — {{ $good->commodity_code }}</option>@endforeach</select></div>
             <div><label class="form-label">تعداد</label><input name="items[{{ $index }}][quantity]" type="number" min="0.001" step="0.001" value="{{ $item['quantity'] ?? 1 }}" class="form-control" data-quantity required></div>
             <div class="lg:col-span-2"><label class="form-label">قیمت واحد</label><input name="items[{{ $index }}][unit_price]" type="text" inputmode="numeric" value="{{ number_format((float) ($item['unit_price'] ?? 0), 0, '.', ',') }}" class="form-control" data-money-input data-unit-price required></div>
-            <div><label class="form-label">مالیات ٪</label><input name="items[{{ $index }}][tax_rate]" type="number" min="0" max="100" step="0.01" value="{{ $item['tax_rate'] ?? 10 }}" class="form-control" data-tax-rate required></div>
+            <input name="items[{{ $index }}][tax_rate]" type="hidden" value="{{ \App\Support\Decimal::format($item['tax_rate'] ?? 10) }}" data-tax-rate>
             <div><label class="form-label">تخفیف</label><input name="items[{{ $index }}][discount]" type="text" inputmode="numeric" value="{{ number_format((float) ($item['discount'] ?? 0), 0, '.', ',') }}" class="form-control" data-money-input data-discount></div>
             <div class="flex items-end justify-between gap-3 lg:block"><div><div class="form-label">جمع ردیف</div><div class="pb-3 text-sm font-black text-slate-900" data-line-total>۰ ریال</div></div><button type="button" class="mb-1 rounded-xl p-2 text-rose-500 transition hover:bg-rose-50" data-remove-invoice-item title="حذف ردیف">حذف</button></div>
         </div>
@@ -82,10 +82,10 @@
 <template id="invoice-item-template">
     <div class="invoice-item-row" data-invoice-item>
         <div class="invoice-item-number">#</div>
-        <div class="min-w-0 sm:col-span-2 lg:col-span-3"><label class="form-label">کالا / خدمت</label><select class="form-control" data-field="good_id" data-good-select required><option value="">انتخاب قلم</option>@foreach($goods as $good)<option value="{{ $good->id }}" data-tax="{{ $good->tax_rate }}">{{ $good->name }} — {{ $good->commodity_code }}</option>@endforeach</select></div>
+        <div class="min-w-0 sm:col-span-2 lg:col-span-3"><label class="form-label">کالا / خدمت</label><select class="form-control" data-field="good_id" data-good-select required><option value="">انتخاب قلم</option>@foreach($goods as $good)<option value="{{ $good->id }}" data-tax="{{ \App\Support\Decimal::format($good->tax_rate) }}">{{ $good->name }} — {{ $good->commodity_code }}</option>@endforeach</select></div>
         <div><label class="form-label">تعداد</label><input type="number" min="0.001" step="0.001" value="1" class="form-control" data-field="quantity" data-quantity required></div>
         <div class="lg:col-span-2"><label class="form-label">قیمت واحد</label><input type="text" inputmode="numeric" value="0" class="form-control" data-field="unit_price" data-money-input data-unit-price required></div>
-        <div><label class="form-label">مالیات ٪</label><input type="number" min="0" max="100" step="0.01" value="10" class="form-control" data-field="tax_rate" data-tax-rate required></div>
+        <input type="hidden" value="10" data-field="tax_rate" data-tax-rate>
         <div><label class="form-label">تخفیف</label><input type="text" inputmode="numeric" value="0" class="form-control" data-field="discount" data-money-input data-discount></div>
         <div class="flex items-end justify-between gap-3 lg:block"><div><div class="form-label">جمع ردیف</div><div class="pb-3 text-sm font-black text-slate-900" data-line-total>۰ ریال</div></div><button type="button" class="mb-1 rounded-xl p-2 text-rose-500 transition hover:bg-rose-50" data-remove-invoice-item>حذف</button></div>
     </div>

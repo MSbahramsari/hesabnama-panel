@@ -11,6 +11,7 @@ use App\Services\Moadian\InvoicePayloadFactory;
 use App\Services\Moadian\InvoiceSerialAllocator;
 use App\Services\Moadian\MoadianClientFactory;
 use App\Services\Moadian\SubmissionResult;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 class MoadianTaxPlatformGateway implements TaxPlatformGateway
@@ -30,11 +31,12 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
         }
 
         return [
-            'name' => (string) ($customer['nameTrade'] ?? $customer['taxpayerName'] ?? $economicCode),
-            'national_id' => (string) ($customer['nationalId'] ?? ''),
-            'type' => $this->customerType($customer['taxpayerType'] ?? null),
-            'address' => (string) ($customer['addressTaxpayer'] ?? ''),
-            'postal_code' => (string) ($customer['postalcodeTaxpayer'] ?? ''),
+            'name' => (string) ($this->customerValue($customer, ['nameTrade', 'taxpayerName', 'name', 'title']) ?? $economicCode),
+            'national_id' => (string) ($this->customerValue($customer, ['nationalId', 'nationalCode', 'nid']) ?? ''),
+            'type' => $this->customerType($this->customerValue($customer, ['taxpayerType', 'personType', 'type'])),
+            'address' => (string) ($this->customerValue($customer, ['addressTaxpayer', 'taxpayerAddress', 'fullAddress', 'address']) ?? ''),
+            'postal_code' => (string) ($this->customerValue($customer, ['postalcodeTaxpayer', 'postalCodeTaxpayer', 'postalCode', 'postalcode']) ?? ''),
+            'phone' => (string) ($this->customerValue($customer, ['phoneTaxpayer', 'taxpayerPhone', 'phoneNumber', 'phone', 'tel']) ?? ''),
         ];
     }
 
@@ -110,5 +112,26 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
         $type = mb_strtoupper((string) $taxpayerType);
 
         return in_array($type, ['1', 'NATURAL', 'REAL'], true) ? 'individual' : 'legal';
+    }
+
+    /**
+     * @param  array<string, mixed>  $customer
+     * @param  array<int, string>  $aliases
+     */
+    private function customerValue(array $customer, array $aliases): mixed
+    {
+        $normalizedAliases = collect($aliases)
+            ->map(fn (string $alias): string => mb_strtolower($alias))
+            ->all();
+
+        foreach (Arr::dot($customer) as $key => $value) {
+            $field = mb_strtolower((string) last(explode('.', $key)));
+
+            if (in_array($field, $normalizedAliases, true) && filled($value)) {
+                return $value;
+            }
+        }
+
+        return null;
     }
 }

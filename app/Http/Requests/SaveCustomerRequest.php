@@ -8,6 +8,16 @@ use Illuminate\Validation\Rule;
 
 class SaveCustomerRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'economic_code' => $this->normalizeDigits($this->input('economic_code')),
+            'national_id' => $this->normalizeDigits($this->input('national_id')),
+            'postal_code' => $this->normalizeDigits($this->input('postal_code')),
+            'phone' => $this->normalizeDigits($this->input('phone')),
+        ]);
+    }
+
     public function authorize(): bool
     {
         return $this->user()?->hasPermission('customers') ?? false;
@@ -28,5 +38,19 @@ class SaveCustomerRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:20'],
             'is_active' => ['required', 'boolean'],
         ];
+    }
+
+    private function normalizeDigits(mixed $value): mixed
+    {
+        if (! is_string($value)) {
+            return $value;
+        }
+
+        return strtr(trim($value), [
+            '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
+            '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+            '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+        ]);
     }
 }

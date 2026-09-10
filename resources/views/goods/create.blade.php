@@ -43,7 +43,7 @@
                     <select id="catalog_vat" name="catalog_vat" class="form-control">
                         <option value="">همه نرخ‌ها</option>
                         @foreach($catalogVats as $vat)
-                            <option value="{{ $vat }}" @selected($catalogVat !== '' && (float) $catalogVat === (float) $vat)>{{ number_format((float) $vat, 2) }}٪</option>
+                            <option value="{{ \App\Support\Decimal::format($vat) }}" @selected($catalogVat !== '' && (float) $catalogVat === (float) $vat)>{{ \App\Support\Decimal::format($vat) }}٪</option>
                         @endforeach
                     </select>
                 </div>
@@ -99,7 +99,7 @@
                                             <td data-label="نوع"><span class="catalog-chip">{{ $item->type ?: 'نامشخص' }}</span></td>
                                             <td data-label="مالیات">
                                                 <div class="catalog-tax-cell">
-                                                    <span @class(['catalog-vat', 'catalog-vat-exempt' => (float) $item->vat === 0.0, 'catalog-vat-taxable' => (float) $item->vat > 0])>{{ number_format((float) $item->vat, 2) }}٪</span>
+                                                    <span @class(['catalog-vat', 'catalog-vat-exempt' => (float) $item->vat === 0.0, 'catalog-vat-taxable' => (float) $item->vat > 0])>{{ \App\Support\Decimal::format($item->vat) }}٪</span>
                                                     <span class="catalog-tax-state">{{ $item->taxable ?: ((float) $item->vat > 0 ? 'مشمول' : 'معاف') }}</span>
                                                 </div>
                                             </td>

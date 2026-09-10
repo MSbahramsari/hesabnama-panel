@@ -53,7 +53,7 @@
                                 </td>
                                 <td data-label="شناسه کالا/خدمت" dir="ltr" class="text-right"><span class="goods-code">{{ $good->commodity_code }}</span></td>
                                 <td data-label="واحد"><span class="goods-unit">{{ $good->unit }}</span></td>
-                                <td data-label="نرخ مالیات"><span @class(['goods-tax', 'goods-tax-exempt' => (float) $good->tax_rate === 0.0, 'goods-taxable' => (float) $good->tax_rate > 0])>{{ number_format($good->tax_rate, 0) }}٪</span></td>
+                                <td data-label="نرخ مالیات"><span @class(['goods-tax', 'goods-tax-exempt' => (float) $good->tax_rate === 0.0, 'goods-taxable' => (float) $good->tax_rate > 0])>{{ \App\Support\Decimal::format($good->tax_rate) }}٪</span></td>
                                 <td data-label="وضعیت"><span @class(['status-badge', 'status-emerald' => $good->is_active, 'status-slate' => ! $good->is_active])>{{ $good->is_active ? 'فعال' : 'غیرفعال' }}</span></td>
                                 <td data-label="عملیات" class="table-actions-cell">
                                     <div class="table-row-actions">

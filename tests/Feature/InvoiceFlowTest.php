@@ -118,6 +118,32 @@ it('does not render a unit price field in the goods editor', function () {
         ->assertDontSee('قیمت واحد');
 });
 
+it('keeps the automatic tax rate hidden in the invoice editor', function () {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->for($user)->create();
+    $good = Good::factory()->for($user)->create(['tax_rate' => 9.5]);
+    $invoice = Invoice::factory()->for($user)->for($customer)->create();
+    $invoice->items()->create([
+        'good_id' => $good->id,
+        'description' => $good->name,
+        'commodity_code' => $good->commodity_code,
+        'quantity' => 1,
+        'unit_price' => 1_000_000,
+        'tax_rate' => 9.5,
+        'discount' => 0,
+        'subtotal' => 1_000_000,
+        'tax_amount' => 95_000,
+        'total' => 1_095_000,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('invoices.edit', $invoice))
+        ->assertOk()
+        ->assertDontSee('مالیات ٪')
+        ->assertSee('type="hidden" value="10" data-field="tax_rate"', false)
+        ->assertSee('name="items[0][tax_rate]" type="hidden" value="9.5"', false);
+});
+
 it('accepts a jalali invoice date and stores its gregorian equivalent', function () {
     $user = User::factory()->create();
     $customer = Customer::factory()->for($user)->create();

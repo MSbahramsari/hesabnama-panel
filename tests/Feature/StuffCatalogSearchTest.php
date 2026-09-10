@@ -80,7 +80,7 @@ it('assigns the measurement unit code automatically when a good is saved', funct
         'unit' => 'خدمت',
         'tax_rate' => 10,
         'is_active' => true,
-    ])->assertRedirect();
+    ])->assertRedirect(route('goods.index'));
 
     $good = Good::query()
         ->whereBelongsTo($user)
@@ -89,6 +89,17 @@ it('assigns the measurement unit code automatically when a good is saved', funct
 
     expect($good->measurement_unit_code)->toBe('1627')
         ->and((float) $good->unit_price)->toBe(0.0);
+});
+
+it('renders tax percentages without redundant decimal zeros', function () {
+    $user = User::factory()->create();
+    $good = Good::factory()->for($user)->create(['tax_rate' => 9.5]);
+
+    $this->actingAs($user)
+        ->get(route('goods.edit', $good))
+        ->assertOk()
+        ->assertSee('value="9.5"', false)
+        ->assertDontSee('value="9.50"', false);
 });
 
 it('shows numbered pagination for catalog search results', function () {

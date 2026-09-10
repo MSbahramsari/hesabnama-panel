@@ -11,7 +11,7 @@
             <option value="individual" @selected(old('type', $customer?->type ?? ($data['type'] ?? 'legal')) === 'individual')>حقیقی</option>
         </select>
     </div>
-    <x-form.input name="phone" label="شماره تماس" :value="$customer?->phone" dir="ltr" />
+    <x-form.input name="phone" label="شماره تماس" :value="$customer?->phone ?? ($data['phone'] ?? null)" dir="ltr" />
     <x-form.input name="postal_code" label="کد پستی" :value="$customer?->postal_code ?? ($data['postal_code'] ?? null)" inputmode="numeric" />
     <x-form.textarea name="address" label="نشانی" :value="$customer?->address ?? ($data['address'] ?? null)" class="md:col-span-2" />
     <div class="md:col-span-2">

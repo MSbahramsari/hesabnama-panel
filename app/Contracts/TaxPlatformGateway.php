@@ -9,7 +9,7 @@ use App\Services\Moadian\SubmissionResult;
 
 interface TaxPlatformGateway
 {
-    /** @return array{name: string, national_id: string, type: string, address: string, postal_code: string}|null */
+    /** @return array{name: string, national_id: string, type: string, address: string, postal_code: string, phone?: string}|null */
     public function lookupCustomer(User $user, string $economicCode): ?array;
 
     /** @return array{name: string, unit: string, tax_rate: int}|null */

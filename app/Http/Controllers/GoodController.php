@@ -108,12 +108,12 @@ class GoodController extends Controller
     public function store(SaveGoodRequest $request): RedirectResponse
     {
         Gate::authorize('create', Good::class);
-        $good = $request->user()->goods()->create([
+        $request->user()->goods()->create([
             ...$request->validated(),
             'unit_price' => 0,
         ]);
 
-        return redirect()->route('goods.edit', $good)->with('success', 'کالا یا خدمت با موفقیت ذخیره شد.');
+        return redirect()->route('goods.index')->with('success', 'کالا یا خدمت با موفقیت ذخیره شد.');
     }
 
     public function edit(Good $good): View
