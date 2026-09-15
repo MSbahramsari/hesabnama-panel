@@ -36,11 +36,16 @@ class InvoiceSubmissionValidator
             throw new MoadianConfigurationException('خریدار صورتحساب مشخص نشده است.');
         }
 
-        if (preg_match('/^(?:\d{10}|\d{11}|\d{14})$/', (string) $invoice->customer->economic_code) !== 1) {
-            throw new MoadianConfigurationException('شناسه خریدار باید کد ملی ۱۰ رقمی یا شناسه/شماره اقتصادی ۱۱ یا ۱۴ رقمی باشد.');
+        $economicCode = $invoice->customer->moadianEconomicCode();
+        $nationalId = $invoice->customer->moadianNationalIdentifier();
+
+        if ($invoice->customer->type === 'individual' && preg_match('/^\d{14}$/', $economicCode) !== 1) {
+            throw new MoadianConfigurationException('شماره اقتصادی خریدار حقیقی باید ۱۴ رقم باشد؛ در صورت ورود کد ملی، شماره اقتصادی شعبه اصلی به‌صورت خودکار ساخته می‌شود.');
         }
 
-        $nationalId = (string) $invoice->customer->national_id;
+        if ($invoice->customer->type !== 'individual' && preg_match('/^(?:\d{11}|\d{14})$/', $economicCode) !== 1) {
+            throw new MoadianConfigurationException('شماره اقتصادی خریدار حقوقی باید ۱۱ یا ۱۴ رقم باشد.');
+        }
 
         if ($nationalId !== '') {
             $expectedLength = $invoice->customer->type === 'individual' ? 10 : 11;

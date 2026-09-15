@@ -92,6 +92,45 @@ it('builds a version one invoice payload from persisted invoice data', function 
         ]);
 });
 
+it('converts an individual national code to the fourteen digit buyer economic code', function () {
+    $user = User::factory()->create();
+    $taxpayerProfile = TaxpayerProfile::factory()->for($user)->create([
+        'fiscal_id' => 'ABC123',
+        'economic_code' => '12345678901',
+        'private_key' => $this->privateKey,
+    ]);
+    $customer = Customer::factory()->for($user)->create([
+        'type' => 'individual',
+        'economic_code' => '0058147961',
+        'national_id' => '0058147961',
+    ]);
+    $good = Good::factory()->for($user)->create(['measurement_unit_code' => '1627']);
+    $invoice = Invoice::factory()->for($user)->for($customer)->create();
+    $invoice->items()->create([
+        'good_id' => $good->id,
+        'description' => $good->name,
+        'commodity_code' => $good->commodity_code,
+        'quantity' => 1,
+        'unit_price' => 10_000_000,
+        'tax_rate' => 10,
+        'discount' => 0,
+        'subtotal' => 10_000_000,
+        'tax_amount' => 1_000_000,
+        'total' => 11_000_000,
+    ]);
+
+    $payload = app(InvoicePayloadFactory::class)->make(
+        $invoice,
+        app(MoadianClientFactory::class)->configuration($taxpayerProfile),
+    );
+
+    expect($payload['header'])->toMatchArray([
+        'tob' => 1,
+        'bid' => '0058147961',
+        'tinb' => '00581479610001',
+    ]);
+});
+
 it('maps mixed settlement and corrective references to official payload fields', function () {
     $user = User::factory()->create();
     $taxpayerProfile = TaxpayerProfile::factory()->for($user)->create([

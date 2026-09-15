@@ -27,6 +27,34 @@ class Customer extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function moadianEconomicCode(): string
+    {
+        $economicCode = (string) $this->economic_code;
+
+        if ($this->type !== 'individual' || strlen($economicCode) === 14) {
+            return $economicCode;
+        }
+
+        $nationalId = $this->moadianNationalIdentifier();
+
+        return strlen($nationalId) === 10 ? $nationalId.'0001' : $economicCode;
+    }
+
+    public function moadianNationalIdentifier(): string
+    {
+        $nationalId = (string) $this->national_id;
+
+        if ($this->type === 'individual' && strlen($nationalId) !== 10) {
+            $economicCode = (string) $this->economic_code;
+
+            if (in_array(strlen($economicCode), [10, 14], true)) {
+                return substr($economicCode, 0, 10);
+            }
+        }
+
+        return $nationalId;
+    }
+
     protected function casts(): array
     {
         return ['is_active' => 'boolean'];
