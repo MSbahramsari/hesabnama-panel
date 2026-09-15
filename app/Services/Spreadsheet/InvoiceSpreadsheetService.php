@@ -52,7 +52,7 @@ class InvoiceSpreadsheetService
             return $invoice->items->map(fn ($item): array => [
                 $invoice->number,
                 JalaliDate::format($invoice->invoice_date),
-                (string) $invoice->customer->economic_code,
+                (string) $invoice->customer?->economic_code,
                 $invoice->settlement_method->label(),
                 $invoice->settlement_method === SettlementMethod::Mixed ? (float) $invoice->cash_amount : '',
                 (string) $item->commodity_code,

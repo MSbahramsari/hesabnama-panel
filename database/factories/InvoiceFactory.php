@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ElectronicInvoiceType;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\SettlementMethod;
@@ -21,6 +22,7 @@ class InvoiceFactory extends Factory
             'number' => fake()->unique()->bothify('INV-####-????'),
             'invoice_date' => today(),
             'invoice_type' => InvoiceType::Original,
+            'electronic_invoice_type' => ElectronicInvoiceType::Full,
             'settlement_method' => SettlementMethod::Cash,
             'status' => InvoiceStatus::Draft,
             'subtotal' => 10000000,

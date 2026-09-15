@@ -93,7 +93,7 @@
                 <div class="meta-line"><span class="meta-label">شماره منحصر به فرد مالیاتی:</span><strong class="ltr">{{ $invoice->tax_id ?: '—' }}</strong></div>
                 <div class="meta-line"><span class="meta-label">تاریخ صدور صورتحساب:</span><strong>{{ \App\Support\JalaliDate::format($invoice->invoice_date) }}</strong></div>
                 <div class="meta-line"><span class="meta-label">شماره صورتحساب:</span><strong class="ltr">{{ $invoice->number }}</strong></div>
-                <div class="meta-line"><span class="meta-label">نوع صورتحساب:</span><strong>{{ $invoice->invoice_type->label() }}</strong></div>
+                <div class="meta-line"><span class="meta-label">نوع صورتحساب:</span><strong>{{ $invoice->electronic_invoice_type->label() }}</strong></div>
             </div>
             <div class="header-cell invoice-title">
                 <h1>صورتحساب فروش کالا و خدمات</h1>
@@ -123,6 +123,7 @@
         </section>
 
         <div class="section-title">مشخصات خریدار</div>
+        @if($invoice->customer)
         <section class="party">
             <div><span class="label">نام شخص حقیقی / حقوقی:</span><strong>{{ $invoice->customer->name }}</strong></div>
             <div><span class="label">شماره اقتصادی:</span><strong class="ltr">{{ $invoice->customer->economic_code ?: '—' }}</strong></div>
@@ -132,6 +133,9 @@
             <div><span class="label">کد پستی:</span><span class="ltr">{{ $invoice->customer->postal_code ?: '—' }}</span></div>
             <div><span class="label">تلفن:</span><span class="ltr">{{ $invoice->customer->phone ?: '—' }}</span></div>
         </section>
+        @else
+            <section class="party"><div style="grid-column: 1 / -1; text-align: center;"><strong>فروش به مصرف‌کننده نهایی — اطلاعات خریدار ثبت نشده است.</strong></div></section>
+        @endif
 
         <table aria-label="اقلام صورتحساب">
             <colgroup>
@@ -179,6 +183,12 @@
             <div><span class="label">مبلغ نقدی:</span><strong>{{ number_format($cashAmount) }} ریال</strong></div>
             <div><span class="label">مبلغ نسیه:</span><strong>{{ number_format($creditAmount) }} ریال</strong></div>
             <div><span class="label">مبلغ مالیات:</span><strong>{{ number_format((float) $invoice->tax_total) }} ریال</strong></div>
+            @if($invoice->electronic_invoice_type === \App\Enums\ElectronicInvoiceType::PosReceipt)
+                <div><span class="label">شماره پایانه:</span><strong class="ltr">{{ $invoice->payment_terminal_number }}</strong></div>
+                <div><span class="label">شماره پذیرنده:</span><strong class="ltr">{{ $invoice->payment_acceptor_number }}</strong></div>
+                <div><span class="label">شماره پیگیری:</span><strong class="ltr">{{ $invoice->payment_tracking_number }}</strong></div>
+                <div><span class="label">زمان پرداخت:</span><strong class="ltr">{{ $invoice->payment_at?->format('Y-m-d H:i') }}</strong></div>
+            @endif
         </section>
 
         <section class="signatures">

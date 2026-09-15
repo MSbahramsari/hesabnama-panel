@@ -487,6 +487,12 @@ if (invoiceForm) {
     const formatter = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 0 });
     const settlementMethod = invoiceForm.querySelector('[data-settlement-method]');
     const cashAmountField = invoiceForm.querySelector('[data-cash-amount-field]');
+    const electronicType = invoiceForm.querySelector('[data-electronic-invoice-type]');
+    const customerField = invoiceForm.querySelector('[data-customer-field]');
+    const customerSelect = invoiceForm.querySelector('#customer_id');
+    const customerRequiredMark = invoiceForm.querySelector('[data-customer-required-mark]');
+    const posPaymentFields = invoiceForm.querySelector('[data-pos-payment-fields]');
+    const electronicTypeHelp = invoiceForm.querySelector('[data-electronic-type-help]');
     let nextIndex = itemsContainer.querySelectorAll('[data-invoice-item]').length;
 
     const money = (value) => `${formatter.format(Math.round(value || 0))} ریال`;
@@ -512,6 +518,36 @@ if (invoiceForm) {
         if (cashAmountInput) {
             cashAmountInput.disabled = !isMixed;
         }
+    };
+
+    const syncElectronicType = () => {
+        const type = Number(electronicType?.value || 1);
+        const requiresCustomer = type === 1;
+        const isPosReceipt = type === 3;
+
+        customerField?.classList.toggle('hidden', isPosReceipt);
+        customerSelect?.toggleAttribute('required', requiresCustomer);
+        if (isPosReceipt && customerSelect) customerSelect.value = '';
+        customerRequiredMark?.classList.toggle('hidden', !requiresCustomer);
+        posPaymentFields?.classList.toggle('hidden', !isPosReceipt);
+        posPaymentFields?.querySelectorAll('input, select').forEach((field) => field.toggleAttribute('required', isPosReceipt));
+
+        if (type !== 1 && settlementMethod) {
+            settlementMethod.value = 'cash';
+            settlementMethod.querySelectorAll('option').forEach((option) => option.disabled = option.value !== 'cash');
+        } else {
+            settlementMethod?.querySelectorAll('option').forEach((option) => option.disabled = false);
+        }
+
+        if (electronicTypeHelp) {
+            electronicTypeHelp.textContent = type === 1
+                ? 'اطلاعات خریدار الزامی است و صورتحساب می‌تواند برای او اعتبار مالیاتی ایجاد کند.'
+                : type === 2
+                    ? 'اطلاعات خریدار اختیاری و تسویه کاملاً نقدی است؛ برای خریدار اعتبار مالیاتی ایجاد نمی‌شود.'
+                    : 'مخصوص رسید واقعی کارت‌خوان یا درگاه ثبت‌شده است و شناسه‌های رسمی تراکنش الزامی هستند.';
+        }
+
+        syncSettlementFields();
     };
 
     const recalculate = () => {
@@ -579,12 +615,13 @@ if (invoiceForm) {
     });
 
     settlementMethod?.addEventListener('change', syncSettlementFields);
+    electronicType?.addEventListener('change', syncElectronicType);
     cashAmountField?.querySelector('[data-money-input]')?.addEventListener('input', (event) => formatMoneyInput(event.target));
     invoiceForm.addEventListener('submit', () => {
         invoiceForm.querySelectorAll('[data-money-input]').forEach((input) => {
             input.value = String(moneyValue(input.value));
         });
     });
-    syncSettlementFields();
+    syncElectronicType();
     recalculate();
 }

@@ -2,6 +2,7 @@
 @php
     $isCorrection = $invoice?->invoice_type === \App\Enums\InvoiceType::Correction;
     $settlementMethod = old('settlement_method', $invoice?->settlement_method?->value ?? \App\Enums\SettlementMethod::Cash->value);
+    $electronicType = (int) old('electronic_invoice_type', $invoice?->electronic_invoice_type?->value ?? 1);
     $initialItems = old('items');
     if ($initialItems === null && $invoice) {
         $initialItems = $invoice->items->map(fn ($item) => [
@@ -24,15 +25,25 @@
     </div>
 @endif
 
+<div class="mb-6 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+    <label for="electronic_invoice_type" class="form-label">نوع الکترونیکی صورتحساب <span class="text-rose-500">*</span></label>
+    <select id="electronic_invoice_type" name="electronic_invoice_type" class="form-control" data-electronic-invoice-type required>
+        @foreach(\App\Enums\ElectronicInvoiceType::cases() as $type)
+            <option value="{{ $type->value }}" @selected($electronicType === $type->value)>{{ $type->label() }}</option>
+        @endforeach
+    </select>
+    <p class="mt-2 text-xs leading-6 text-slate-500" data-electronic-type-help></p>
+</div>
+
 <div class="grid gap-5 md:grid-cols-3">
-    <div>
-        <label for="customer_id" class="form-label">مشتری <span class="text-rose-500">*</span></label>
+    <div data-customer-field @class(['hidden' => $electronicType === 3])>
+        <label for="customer_id" class="form-label">مشتری <span class="text-rose-500" data-customer-required-mark>*</span></label>
         @if($isCorrection)
             <input type="hidden" name="customer_id" value="{{ $invoice->customer_id }}">
             <div class="form-control bg-slate-100 text-slate-500">{{ $invoice->referenceInvoice->customer->name ?? $customers->firstWhere('id', $invoice->customer_id)?->name }}</div>
             <p class="mt-2 text-[10px] text-slate-400">خریدار صورتحساب اصلاحی باید با مرجع یکسان باشد.</p>
         @else
-            <select id="customer_id" name="customer_id" class="form-control" required><option value="">انتخاب مشتری</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id', $invoice?->customer_id) === (string) $customer->id)>{{ $customer->name }} — {{ $customer->economic_code }}</option>@endforeach</select>
+            <select id="customer_id" name="customer_id" class="form-control" @required($electronicType === 1)><option value="">بدون اطلاعات خریدار</option>@foreach($customers as $customer)<option value="{{ $customer->id }}" @selected((string) old('customer_id', $invoice?->customer_id) === (string) $customer->id)>{{ $customer->name }} — {{ $customer->economic_code }}</option>@endforeach</select>
             <a href="{{ route('customers.create') }}" class="mt-2 inline-flex text-xs font-bold text-teal-700">+ افزودن سریع مشتری</a>
         @endif
         @error('customer_id')<p class="mt-1.5 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
@@ -52,6 +63,18 @@
         <x-form.input name="cash_amount" label="مبلغ پرداختی نقدی (بدون مالیات)" type="text" inputmode="numeric" data-money-input :value="$invoice?->settlement_method === \App\Enums\SettlementMethod::Mixed ? number_format((float) $invoice->cash_amount, 0, '.', ',') : null" />
     </div>
     <x-form.textarea name="description" label="توضیحات" :value="$invoice?->description" class="md:col-span-3" />
+</div>
+
+<div data-pos-payment-fields @class(['mt-6 grid gap-5 rounded-2xl border border-blue-200 bg-blue-50/60 p-5 md:grid-cols-3', 'hidden' => $electronicType !== 3])>
+    <div class="md:col-span-3"><h3 class="font-black text-blue-950">اطلاعات رسمی تراکنش پایانه</h3><p class="mt-1 text-xs leading-6 text-blue-800">این مقادیر باید دقیقاً از تراکنش کارت‌خوان یا درگاه ثبت‌شده در کارپوشه دریافت شوند.</p></div>
+    <x-form.input name="payment_switch_number" label="شماره سوئیچ پرداخت (۹ رقم)" inputmode="numeric" maxlength="9" :value="$invoice?->payment_switch_number" />
+    <x-form.input name="payment_acceptor_number" label="شماره پذیرنده (۱۴ رقم)" inputmode="numeric" maxlength="14" :value="$invoice?->payment_acceptor_number" />
+    <x-form.input name="payment_terminal_number" label="شماره پایانه (۸ رقم)" inputmode="numeric" maxlength="8" :value="$invoice?->payment_terminal_number" />
+    <div><label class="form-label" for="payment_method">روش پرداخت</label><select id="payment_method" name="payment_method" class="form-control">@foreach([1 => 'چک', 2 => 'تهاتر', 3 => 'وجه نقد', 4 => 'دستگاه POS', 5 => 'درگاه پرداخت اینترنتی', 6 => 'کارت به کارت', 7 => 'انتقال به حساب', 8 => 'سایر'] as $value => $label)<option value="{{ $value }}" @selected((int) old('payment_method', $invoice?->payment_method ?? 4) === $value)>{{ $label }}</option>@endforeach</select></div>
+    <x-form.input name="payment_tracking_number" label="شماره پیگیری تراکنش" inputmode="numeric" maxlength="14" :value="$invoice?->payment_tracking_number" />
+    <x-form.input name="payer_card_number" label="شماره کارت پرداخت‌کننده" inputmode="numeric" maxlength="16" :value="$invoice?->payer_card_number" />
+    <x-form.input name="payer_identifier" label="کد ملی/شناسه پرداخت‌کننده" inputmode="numeric" maxlength="12" :value="$invoice?->payer_identifier" />
+    <x-form.input name="payment_at" label="تاریخ و زمان پرداخت" type="datetime-local" :value="$invoice?->payment_at?->format('Y-m-d\TH:i')" />
 </div>
 
 <div class="my-7 border-t border-slate-100"></div>

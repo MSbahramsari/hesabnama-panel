@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', $invoice->number)
 @section('page-title', 'جزئیات صورتحساب')
-@section('page-subtitle', $invoice->number.' — '.$invoice->customer->name)
+@section('page-subtitle', $invoice->number.' — '.($invoice->customer?->name ?? 'مصرف‌کننده نهایی'))
 @section('content')
     <div class="page-content-actions mb-5">
         <a href="{{ route('invoices.index') }}" class="btn-secondary"><x-icon name="arrow-left" class="size-4 rotate-180" />بازگشت</a>
@@ -44,14 +44,15 @@
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <x-status-badge :status="$invoice->invoice_type" />
+                        <span class="status-badge status-blue">{{ $invoice->electronic_invoice_type->label() }}</span>
                         <x-status-badge :status="$invoice->moadian_status ?? $invoice->status" />
                     </div>
                 </div>
                 <div class="mt-7 grid gap-4 border-t border-slate-100 pt-6 sm:grid-cols-2">
                     <div>
                         <div class="text-xs font-bold text-slate-400">خریدار</div>
-                        <div class="mt-2 font-extrabold">{{ $invoice->customer->name }}</div>
-                        <div dir="ltr" class="mt-1 text-right text-sm text-slate-500">{{ $invoice->customer->economic_code }}</div>
+                        <div class="mt-2 font-extrabold">{{ $invoice->customer?->name ?? 'مصرف‌کننده نهایی' }}</div>
+                        <div dir="ltr" class="mt-1 text-right text-sm text-slate-500">{{ $invoice->customer?->economic_code ?? 'بدون اطلاعات خریدار' }}</div>
                     </div>
                     <div>
                         <div class="text-xs font-bold text-slate-400">روش تسویه</div>

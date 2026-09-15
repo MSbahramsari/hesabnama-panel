@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ElectronicInvoiceType;
 use App\Enums\InvoiceType;
 use App\Enums\SettlementMethod;
 use App\Models\Customer;
@@ -21,6 +22,10 @@ class SaveInvoiceRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->merge([
+            'electronic_invoice_type' => $this->input('electronic_invoice_type', ElectronicInvoiceType::Full->value),
+        ]);
+
         $items = $this->input('items');
 
         if (is_array($items)) {
@@ -40,6 +45,10 @@ class SaveInvoiceRequest extends FormRequest
         }
 
         if (! $this->filled('settlement_method')) {
+            $this->merge(['settlement_method' => SettlementMethod::Cash->value]);
+        }
+
+        if ((int) $this->input('electronic_invoice_type', 1) !== ElectronicInvoiceType::Full->value) {
             $this->merge(['settlement_method' => SettlementMethod::Cash->value]);
         }
 
@@ -75,15 +84,23 @@ class SaveInvoiceRequest extends FormRequest
         $referenceGoodIds = $invoice instanceof Invoice && $invoice->invoice_type === InvoiceType::Correction
             ? $referenceInvoice?->items()->pluck('good_id')->filter()->all()
             : null;
-        $customerRules = ['required', Rule::exists((new Customer)->getTable(), 'id')->where('user_id', $userId)];
+        $electronicType = (int) $this->input('electronic_invoice_type', ElectronicInvoiceType::Full->value);
+        $customerRules = [Rule::requiredIf($electronicType === ElectronicInvoiceType::Full->value), 'nullable', Rule::exists((new Customer)->getTable(), 'id')->where('user_id', $userId)];
         $submissionWindowDays = (int) config('services.moadian.normal_submission_window_days', InvoiceSubmissionValidator::NORMAL_SUBMISSION_WINDOW_DAYS);
 
         if ($invoice instanceof Invoice && $invoice->invoice_type === InvoiceType::Correction) {
             $customerRules[] = Rule::in([$referenceInvoice?->customer_id]);
         }
 
+        $electronicTypeRules = ['required', Rule::enum(ElectronicInvoiceType::class)];
+
+        if ($invoice instanceof Invoice && $invoice->invoice_type !== InvoiceType::Original) {
+            $electronicTypeRules[] = Rule::in([$invoice->electronic_invoice_type->value]);
+        }
+
         return [
             'customer_id' => $customerRules,
+            'electronic_invoice_type' => $electronicTypeRules,
             'number' => ['required', 'string', 'max:50', Rule::unique((new Invoice)->getTable())->where('user_id', $userId)->ignore($invoice)],
             'invoice_date' => [
                 'required',
@@ -94,6 +111,14 @@ class SaveInvoiceRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:1000'],
             'settlement_method' => ['required', Rule::enum(SettlementMethod::class)],
             'cash_amount' => ['exclude_unless:settlement_method,mixed', 'required', 'numeric', 'gt:0', 'max:9999999999999999'],
+            'payment_switch_number' => ['required_if:electronic_invoice_type,3', 'nullable', 'digits:9'],
+            'payment_acceptor_number' => ['required_if:electronic_invoice_type,3', 'nullable', 'digits:14'],
+            'payment_terminal_number' => ['required_if:electronic_invoice_type,3', 'nullable', 'digits:8'],
+            'payment_method' => ['required_if:electronic_invoice_type,3', 'nullable', 'integer', Rule::in(range(1, 8))],
+            'payment_tracking_number' => ['required_if:electronic_invoice_type,3', 'nullable', 'digits_between:1,14'],
+            'payer_card_number' => ['required_if:electronic_invoice_type,3', 'nullable', 'digits:16'],
+            'payer_identifier' => ['required_if:electronic_invoice_type,3', 'nullable', 'digits_between:10,12'],
+            'payment_at' => ['required_if:electronic_invoice_type,3', 'nullable', 'date'],
             'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.good_id' => array_values(array_filter([
                 'required',

@@ -152,8 +152,8 @@
                             <tr>
                                 <td><input type="checkbox" name="invoice_ids[]" value="{{ $invoice->id }}" @disabled(!$canSend) class="size-4 rounded border-slate-300 text-teal-600 disabled:opacity-30" data-invoice-checkbox></td>
                                 <td><a href="{{ route('invoices.show', $invoice) }}" class="table-primary hover:text-teal-700">{{ $invoice->number }}</a><div dir="ltr" class="table-meta justify-end">{{ $invoice->tax_id ?: 'بدون شماره مالیاتی' }}</div></td>
-                                <td><x-status-badge :status="$invoice->invoice_type" /><div class="mt-1 text-[10px] font-bold text-slate-400">{{ $invoice->settlement_method->label() }}</div></td>
-                                <td><div class="table-primary font-extrabold">{{ $invoice->customer->name }}</div><div dir="ltr" class="table-meta justify-end">{{ $invoice->customer->economic_code }}</div></td>
+                                <td><x-status-badge :status="$invoice->invoice_type" /><div class="mt-1 text-[10px] font-bold text-slate-500">{{ $invoice->electronic_invoice_type->label() }}</div><div class="mt-0.5 text-[10px] font-bold text-slate-400">{{ $invoice->settlement_method->label() }}</div></td>
+                                <td><div class="table-primary font-extrabold">{{ $invoice->customer?->name ?? 'مصرف‌کننده نهایی' }}</div><div dir="ltr" class="table-meta justify-end">{{ $invoice->customer?->economic_code ?? 'بدون اطلاعات خریدار' }}</div></td>
                                 <td dir="ltr" class="table-number text-right">{{ \App\Support\JalaliDate::format($invoice->invoice_date) }}</td>
                                 <td class="table-number">{{ number_format($invoice->total) }}<small>ریال</small></td>
                                 <td>

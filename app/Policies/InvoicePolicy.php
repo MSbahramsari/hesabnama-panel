@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\ElectronicInvoiceType;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Models\Invoice;
@@ -62,6 +63,7 @@ class InvoicePolicy
         return $this->view($user, $invoice)
             && $invoice->status === InvoiceStatus::Confirmed
             && $invoice->invoice_type !== InvoiceType::Cancellation
+            && $invoice->electronic_invoice_type !== ElectronicInvoiceType::PosReceipt
             && filled($invoice->tax_id)
             && ! $invoice->adjustments()->where('status', InvoiceStatus::Confirmed)->exists();
     }

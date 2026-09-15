@@ -15,6 +15,7 @@ class DuplicateInvoiceAction
 
         return $this->saveInvoice->handle($user, [
             'customer_id' => $source->customer_id,
+            'electronic_invoice_type' => $source->electronic_invoice_type,
             'number' => $number,
             'invoice_date' => now('Asia/Tehran')->format('Y-m-d'),
             'description' => $source->description,

@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Enums\ElectronicInvoiceType;
 use App\Enums\InvoiceStatus;
 use App\Enums\SettlementMethod;
 use App\Models\Good;
@@ -19,8 +20,29 @@ class SaveInvoiceAction
         return DB::transaction(function () use ($user, $data, $invoice): Invoice {
             $invoice ??= new Invoice(['user_id' => $user->id]);
             $wasRejectedByMoadian = $invoice->exists && $invoice->status === InvoiceStatus::MoadianError;
+            $electronicTypeValue = $data['electronic_invoice_type'] ?? $invoice->electronic_invoice_type ?? ElectronicInvoiceType::Full;
+            $electronicType = $electronicTypeValue instanceof ElectronicInvoiceType
+                ? $electronicTypeValue
+                : ElectronicInvoiceType::from((int) $electronicTypeValue);
+            $data['electronic_invoice_type'] = $electronicType->value;
             $data['settlement_method'] ??= $invoice->settlement_method?->value ?? SettlementMethod::Cash->value;
-            $invoice->fill(Arr::only($data, ['customer_id', 'number', 'invoice_date', 'description', 'settlement_method']));
+
+            if ($electronicType !== ElectronicInvoiceType::Full) {
+                $data['settlement_method'] = SettlementMethod::Cash->value;
+            }
+
+            if ($electronicType === ElectronicInvoiceType::PosReceipt) {
+                $data['customer_id'] = null;
+            } else {
+                foreach (['payment_switch_number', 'payment_acceptor_number', 'payment_terminal_number', 'payment_method', 'payment_tracking_number', 'payer_card_number', 'payer_identifier', 'payment_at'] as $paymentField) {
+                    $data[$paymentField] = null;
+                }
+            }
+            $invoice->fill(Arr::only($data, [
+                'customer_id', 'number', 'invoice_date', 'description', 'electronic_invoice_type', 'settlement_method',
+                'payment_switch_number', 'payment_acceptor_number', 'payment_terminal_number', 'payment_method',
+                'payment_tracking_number', 'payer_card_number', 'payer_identifier', 'payment_at',
+            ]));
             $invoice->status = InvoiceStatus::Draft;
 
             if ($wasRejectedByMoadian) {

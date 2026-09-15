@@ -2,6 +2,7 @@
 
 namespace App\Services\Moadian;
 
+use App\Enums\ElectronicInvoiceType;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\SettlementMethod;
@@ -32,8 +33,22 @@ class InvoiceSubmissionValidator
             );
         }
 
-        if ($invoice->customer === null) {
+        if ($invoice->electronic_invoice_type === ElectronicInvoiceType::Full && $invoice->customer === null) {
             throw new MoadianConfigurationException('خریدار صورتحساب مشخص نشده است.');
+        }
+
+        if ($invoice->electronic_invoice_type !== ElectronicInvoiceType::Full && $invoice->settlement_method !== SettlementMethod::Cash) {
+            throw new MoadianConfigurationException('صورتحساب نوع دوم و سوم فقط با روش تسویه نقدی قابل ارسال است.');
+        }
+
+        if ($invoice->electronic_invoice_type === ElectronicInvoiceType::PosReceipt) {
+            $this->assertPosPaymentIsValid($invoice);
+        }
+
+        if ($invoice->customer === null) {
+            $this->assertItemsAndTotalsAreValid($invoice);
+
+            return;
         }
 
         $economicCode = $invoice->customer->moadianEconomicCode();
@@ -59,6 +74,11 @@ class InvoiceSubmissionValidator
             throw new MoadianConfigurationException('کد پستی خریدار باید دقیقاً ۱۰ رقم باشد.');
         }
 
+        $this->assertItemsAndTotalsAreValid($invoice);
+    }
+
+    private function assertItemsAndTotalsAreValid(Invoice $invoice): void
+    {
         if ($invoice->items->isEmpty()) {
             throw new MoadianConfigurationException('صورتحساب بدون قلم قابل ارسال به سامانه مودیان نیست.');
         }
@@ -73,6 +93,28 @@ class InvoiceSubmissionValidator
 
         $this->assertTotalsAreValid($invoice);
         $this->assertReferenceIsValid($invoice);
+    }
+
+    private function assertPosPaymentIsValid(Invoice $invoice): void
+    {
+        $rules = [
+            'شماره سوئیچ پرداخت' => [(string) $invoice->payment_switch_number, '/^\d{9}$/'],
+            'شماره پذیرنده' => [(string) $invoice->payment_acceptor_number, '/^\d{14}$/'],
+            'شماره پایانه' => [(string) $invoice->payment_terminal_number, '/^\d{8}$/'],
+            'شماره پیگیری تراکنش' => [(string) $invoice->payment_tracking_number, '/^\d{1,14}$/'],
+            'شماره کارت پرداخت‌کننده' => [(string) $invoice->payer_card_number, '/^\d{16}$/'],
+            'شناسه پرداخت‌کننده' => [(string) $invoice->payer_identifier, '/^\d{10,12}$/'],
+        ];
+
+        foreach ($rules as $label => [$value, $pattern]) {
+            if (preg_match($pattern, $value) !== 1) {
+                throw new MoadianConfigurationException("{$label} برای صورتحساب نوع سوم معتبر نیست.");
+            }
+        }
+
+        if ($invoice->payment_at === null || ! in_array((int) $invoice->payment_method, range(1, 8), true)) {
+            throw new MoadianConfigurationException('تاریخ یا روش پرداخت رسید پایانه فروشگاهی معتبر نیست.');
+        }
     }
 
     private function assertItemIsValid(InvoiceItem $item, int $row): void

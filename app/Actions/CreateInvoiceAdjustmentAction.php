@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Enums\ElectronicInvoiceType;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Models\Invoice;
@@ -14,6 +15,10 @@ class CreateInvoiceAdjustmentAction
     {
         if ($type === InvoiceType::Original || $referenceInvoice->invoice_type === InvoiceType::Cancellation) {
             throw ValidationException::withMessages(['invoice' => 'این صورتحساب نمی‌تواند به‌عنوان مرجع استفاده شود.']);
+        }
+
+        if ($referenceInvoice->electronic_invoice_type === ElectronicInvoiceType::PosReceipt) {
+            throw ValidationException::withMessages(['invoice' => 'رسید نوع سوم پایانه فروشگاهی قابل اصلاح یا ابطال دستی نیست.']);
         }
 
         if ($referenceInvoice->status !== InvoiceStatus::Confirmed || blank($referenceInvoice->tax_id)) {
@@ -36,6 +41,7 @@ class CreateInvoiceAdjustmentAction
             $invoice = Invoice::query()->create([
                 'user_id' => $referenceInvoice->user_id,
                 'customer_id' => $referenceInvoice->customer_id,
+                'electronic_invoice_type' => $referenceInvoice->electronic_invoice_type,
                 'number' => "{$prefix}-{$referenceInvoice->id}-{$sequence}",
                 'invoice_date' => today(),
                 'description' => "ارجاع به صورتحساب {$referenceInvoice->number}",

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ElectronicInvoiceType;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\SettlementMethod;
@@ -129,6 +130,98 @@ it('converts an individual national code to the fourteen digit buyer economic co
         'bid' => '0058147961',
         'tinb' => '00581479610001',
     ]);
+});
+
+it('builds a type two payload without buyer identifiers', function () {
+    $user = User::factory()->create();
+    $taxpayerProfile = TaxpayerProfile::factory()->for($user)->create([
+        'fiscal_id' => 'ABC123',
+        'economic_code' => '12345678901',
+        'private_key' => $this->privateKey,
+    ]);
+    $good = Good::factory()->for($user)->create(['measurement_unit_code' => '1627']);
+    $invoice = Invoice::factory()->for($user)->create([
+        'customer_id' => null,
+        'electronic_invoice_type' => ElectronicInvoiceType::Consumer,
+    ]);
+    $invoice->items()->create([
+        'good_id' => $good->id,
+        'description' => $good->name,
+        'commodity_code' => $good->commodity_code,
+        'quantity' => 1,
+        'unit_price' => 10_000_000,
+        'tax_rate' => 10,
+        'discount' => 0,
+        'subtotal' => 10_000_000,
+        'tax_amount' => 1_000_000,
+        'total' => 11_000_000,
+    ]);
+
+    $payload = app(InvoicePayloadFactory::class)->make(
+        $invoice,
+        app(MoadianClientFactory::class)->configuration($taxpayerProfile),
+    );
+
+    expect($payload['header'])->toMatchArray([
+        'inty' => 2,
+        'tob' => null,
+        'bid' => null,
+        'tinb' => null,
+        'setm' => 1,
+    ]);
+});
+
+it('maps type three payment identifiers to the official payment payload', function () {
+    $user = User::factory()->create();
+    $taxpayerProfile = TaxpayerProfile::factory()->for($user)->create([
+        'fiscal_id' => 'ABC123',
+        'economic_code' => '12345678901',
+        'private_key' => $this->privateKey,
+    ]);
+    $good = Good::factory()->for($user)->create(['measurement_unit_code' => '1627']);
+    $paymentAt = now()->startOfSecond();
+    $invoice = Invoice::factory()->for($user)->create([
+        'customer_id' => null,
+        'electronic_invoice_type' => ElectronicInvoiceType::PosReceipt,
+        'payment_switch_number' => '123456789',
+        'payment_acceptor_number' => '12345678901234',
+        'payment_terminal_number' => '12345678',
+        'payment_method' => 4,
+        'payment_tracking_number' => '1234567890',
+        'payer_card_number' => '6037991234567890',
+        'payer_identifier' => '0058147961',
+        'payment_at' => $paymentAt,
+    ]);
+    $invoice->items()->create([
+        'good_id' => $good->id,
+        'description' => $good->name,
+        'commodity_code' => $good->commodity_code,
+        'quantity' => 1,
+        'unit_price' => 10_000_000,
+        'tax_rate' => 10,
+        'discount' => 0,
+        'subtotal' => 10_000_000,
+        'tax_amount' => 1_000_000,
+        'total' => 11_000_000,
+    ]);
+
+    $payload = app(InvoicePayloadFactory::class)->make(
+        $invoice,
+        app(MoadianClientFactory::class)->configuration($taxpayerProfile),
+    );
+
+    expect($payload['header'])->toMatchArray(['inty' => 3, 'tob' => null, 'tinb' => null])
+        ->and($payload['payments'][0])->toMatchArray([
+            'iinn' => '123456789',
+            'acn' => '12345678901234',
+            'trmn' => '12345678',
+            'pmt' => 4,
+            'trn' => '1234567890',
+            'pcn' => '6037991234567890',
+            'pid' => '0058147961',
+            'pdt' => $paymentAt->getTimestampMs(),
+            'pv' => 11_000_000,
+        ]);
 });
 
 it('maps mixed settlement and corrective references to official payload fields', function () {

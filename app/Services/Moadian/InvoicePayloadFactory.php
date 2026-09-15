@@ -2,6 +2,7 @@
 
 namespace App\Services\Moadian;
 
+use App\Enums\ElectronicInvoiceType;
 use App\Enums\InvoiceType;
 use App\Enums\SettlementMethod;
 use App\Exceptions\MoadianConfigurationException;
@@ -41,17 +42,17 @@ class InvoicePayloadFactory
                 'taxid' => $taxId,
                 'indatim' => $issuedAt->getTimestampMs(),
                 'indati2m' => null,
-                'inty' => 1,
+                'inty' => $invoice->electronic_invoice_type->value,
                 'inno' => mb_strtoupper(str_pad(dechex($internalSerial), 10, '0', STR_PAD_LEFT)),
                 'irtaxid' => $invoice->invoice_type === InvoiceType::Original ? null : $invoice->referenceInvoice?->tax_id,
                 'inp' => 1,
                 'ins' => $invoice->invoice_type->subjectCode(),
                 'tins' => $configuration->sellerEconomicCode(),
-                'tob' => $invoice->customer->type === 'individual' ? 1 : 2,
-                'bid' => $invoice->customer->moadianNationalIdentifier(),
-                'tinb' => $invoice->customer->moadianEconomicCode(),
+                'tob' => $invoice->customer ? ($invoice->customer->type === 'individual' ? 1 : 2) : null,
+                'bid' => $invoice->customer?->moadianNationalIdentifier(),
+                'tinb' => $invoice->customer?->moadianEconomicCode(),
                 'sbc' => $configuration->sellerBranchCode(),
-                'bpc' => $invoice->customer->postal_code,
+                'bpc' => $invoice->customer?->postal_code,
                 'bbc' => null,
                 'ft' => null,
                 'bpn' => null,
@@ -72,14 +73,19 @@ class InvoicePayloadFactory
                 'tax17' => 0,
             ],
             'body' => $invoice->items->map(fn (InvoiceItem $item): array => $this->body($item, $configuration, $cashRatio))->all(),
-            'payments' => [[
-                'iinn' => null,
-                'acn' => null,
-                'trmn' => null,
-                'trn' => null,
-                'pcn' => null,
-                'pid' => null,
-                'pdt' => null,
+            'payments' => [$invoice->electronic_invoice_type === ElectronicInvoiceType::PosReceipt ? [
+                'iinn' => $invoice->payment_switch_number,
+                'acn' => $invoice->payment_acceptor_number,
+                'trmn' => $invoice->payment_terminal_number,
+                'pmt' => $invoice->payment_method,
+                'trn' => $invoice->payment_tracking_number,
+                'pcn' => $invoice->payer_card_number,
+                'pid' => $invoice->payer_identifier,
+                'pdt' => $invoice->payment_at?->getTimestampMs(),
+                'pv' => $this->money($invoice->total),
+            ] : [
+                'iinn' => null, 'acn' => null, 'trmn' => null, 'pmt' => null, 'trn' => null,
+                'pcn' => null, 'pid' => null, 'pdt' => null, 'pv' => null,
             ]],
             'extension' => null,
         ];

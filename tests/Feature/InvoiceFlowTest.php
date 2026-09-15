@@ -2,6 +2,7 @@
 
 use App\Contracts\TaxPlatformGateway;
 use App\Enums\BuyerStatus;
+use App\Enums\ElectronicInvoiceType;
 use App\Enums\InvoiceStatus;
 use App\Enums\MoadianStatus;
 use App\Enums\SettlementMethod;
@@ -41,6 +42,109 @@ it('creates an invoice and calculates its totals on the server', function () {
         ->and((float) $invoice->tax_total)->toBe(180000.0)
         ->and((float) $invoice->total)->toBe(1980000.0)
         ->and($invoice->items)->toHaveCount(1);
+});
+
+it('creates a type two invoice without buyer information', function () {
+    $user = User::factory()->create();
+    $good = Good::factory()->for($user)->create();
+
+    $this->actingAs($user)->post(route('invoices.store'), [
+        'electronic_invoice_type' => ElectronicInvoiceType::Consumer->value,
+        'number' => 'INV-TYPE-TWO',
+        'invoice_date' => today()->format('Y-m-d'),
+        'settlement_method' => SettlementMethod::Credit->value,
+        'items' => [[
+            'good_id' => $good->id,
+            'quantity' => 1,
+            'unit_price' => 1_000_000,
+            'tax_rate' => 10,
+            'discount' => 0,
+        ]],
+    ])->assertRedirect();
+
+    $invoice = Invoice::query()->whereBelongsTo($user)->firstOrFail();
+
+    expect($invoice->electronic_invoice_type)->toBe(ElectronicInvoiceType::Consumer)
+        ->and($invoice->customer_id)->toBeNull()
+        ->and($invoice->settlement_method)->toBe(SettlementMethod::Cash);
+});
+
+it('requires buyer information for a type one invoice', function () {
+    $user = User::factory()->create();
+    $good = Good::factory()->for($user)->create();
+
+    $this->actingAs($user)->post(route('invoices.store'), [
+        'electronic_invoice_type' => ElectronicInvoiceType::Full->value,
+        'number' => 'INV-TYPE-ONE-NO-BUYER',
+        'invoice_date' => today()->format('Y-m-d'),
+        'items' => [[
+            'good_id' => $good->id,
+            'quantity' => 1,
+            'unit_price' => 1_000_000,
+            'tax_rate' => 10,
+            'discount' => 0,
+        ]],
+    ])->assertSessionHasErrors('customer_id');
+});
+
+it('creates a type three receipt with official transaction identifiers', function () {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->for($user)->create();
+    $good = Good::factory()->for($user)->create();
+
+    $this->actingAs($user)->post(route('invoices.store'), [
+        'electronic_invoice_type' => ElectronicInvoiceType::PosReceipt->value,
+        'customer_id' => $customer->id,
+        'number' => 'INV-TYPE-THREE',
+        'invoice_date' => today()->format('Y-m-d'),
+        'payment_switch_number' => '123456789',
+        'payment_acceptor_number' => '12345678901234',
+        'payment_terminal_number' => '12345678',
+        'payment_method' => 4,
+        'payment_tracking_number' => '1234567890',
+        'payer_card_number' => '6037991234567890',
+        'payer_identifier' => '0058147961',
+        'payment_at' => now()->format('Y-m-d H:i:s'),
+        'items' => [[
+            'good_id' => $good->id,
+            'quantity' => 1,
+            'unit_price' => 1_000_000,
+            'tax_rate' => 10,
+            'discount' => 0,
+        ]],
+    ])->assertRedirect();
+
+    $invoice = Invoice::query()->whereBelongsTo($user)->firstOrFail();
+
+    expect($invoice->electronic_invoice_type)->toBe(ElectronicInvoiceType::PosReceipt)
+        ->and($invoice->customer_id)->toBeNull()
+        ->and($invoice->payment_terminal_number)->toBe('12345678');
+});
+
+it('requires transaction identifiers for a type three receipt', function () {
+    $user = User::factory()->create();
+    $good = Good::factory()->for($user)->create();
+
+    $this->actingAs($user)->post(route('invoices.store'), [
+        'electronic_invoice_type' => ElectronicInvoiceType::PosReceipt->value,
+        'number' => 'INV-TYPE-THREE-INCOMPLETE',
+        'invoice_date' => today()->format('Y-m-d'),
+        'items' => [[
+            'good_id' => $good->id,
+            'quantity' => 1,
+            'unit_price' => 1_000_000,
+            'tax_rate' => 10,
+            'discount' => 0,
+        ]],
+    ])->assertSessionHasErrors([
+        'payment_switch_number',
+        'payment_acceptor_number',
+        'payment_terminal_number',
+        'payment_tracking_number',
+        'payer_card_number',
+        'payer_identifier',
+        'payment_at',
+    ]);
 });
 
 it('accepts visually grouped invoice amounts', function () {
