@@ -34,7 +34,7 @@
                             <td>
                                 <div class="flex flex-wrap gap-1.5">
                                     @forelse($user->permissions ?? [] as $permission)
-                                        <span class="rounded-md bg-slate-100 px-2 py-1 text-[9px] font-bold text-slate-600 ring-1 ring-inset ring-slate-200/60">{{ ['customers' => 'مشتری', 'goods' => 'کالا', 'invoices' => 'فاکتور'][$permission] ?? $permission }}</span>
+                                        <span class="rounded-md bg-slate-100 px-2 py-1 text-[9px] font-bold text-slate-600 ring-1 ring-inset ring-slate-200/60">{{ ['customers' => 'مشتری', 'goods' => 'کالا', 'invoices' => 'فاکتور', 'bank_statements' => 'صورتحساب بانکی'][$permission] ?? $permission }}</span>
                                     @empty
                                         <span class="text-xs text-slate-400">—</span>
                                     @endforelse

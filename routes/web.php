@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\StuffCatalogController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\BankStatementController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DataExchangeController;
@@ -26,6 +27,11 @@ Route::middleware('auth')->group(function () {
     Route::middleware('license')->group(function () {
         Route::redirect('/', '/dashboard');
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+        Route::middleware('can:convert-bank-statements')->group(function () {
+            Route::get('/bank-statements', [BankStatementController::class, 'index'])->name('bank-statements.index');
+            Route::post('/bank-statements/convert', [BankStatementController::class, 'convert'])->middleware('throttle:10,1')->name('bank-statements.convert');
+        });
 
         Route::middleware('tax-operator')->group(function () {
             Route::get('/customers/export', [DataExchangeController::class, 'exportCustomers'])->name('customers.export');

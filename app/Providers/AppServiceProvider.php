@@ -6,6 +6,7 @@ use App\Contracts\TaxPlatformGateway;
 use App\Services\DemoTaxPlatformGateway;
 use App\Services\MoadianTaxPlatformGateway;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,5 +21,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Model::preventLazyLoading(! $this->app->isProduction());
+
+        Gate::define('convert-bank-statements', fn ($user): bool => $user->isAdmin() || $user->hasPermission('bank_statements'));
     }
 }

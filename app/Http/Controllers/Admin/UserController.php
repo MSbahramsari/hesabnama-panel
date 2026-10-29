@@ -70,7 +70,12 @@ class UserController extends Controller
         return [
             'roles' => UserRole::cases(),
             'plans' => Plan::cases(),
-            'permissions' => ['customers' => 'مدیریت مشتریان', 'goods' => 'مدیریت کالا و خدمات', 'invoices' => 'مدیریت و ارسال فاکتورها'],
+            'permissions' => [
+                'customers' => 'مدیریت مشتریان',
+                'goods' => 'مدیریت کالا و خدمات',
+                'invoices' => 'مدیریت و ارسال فاکتورها',
+                'bank_statements' => 'تبدیل صورتحساب بانکی',
+            ],
         ];
     }
 }

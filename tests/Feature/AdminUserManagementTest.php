@@ -18,7 +18,7 @@ it('allows an admin to provision a licensed user', function () {
         'password_confirmation' => 'password123',
         'role' => UserRole::Member->value,
         'plan' => Plan::Business->value,
-        'permissions' => ['customers', 'goods', 'invoices'],
+        'permissions' => ['customers', 'goods', 'invoices', 'bank_statements'],
         'license_expires_at_jalali' => '1406/05/24',
         'is_active' => true,
         'taxpayer_name' => 'شرکت کاربر تازه',
@@ -35,7 +35,7 @@ it('allows an admin to provision a licensed user', function () {
     $user = User::query()->with('taxpayerProfile')->where('email', 'new-user@example.com')->firstOrFail();
     $storedPrivateKey = DB::table('taxpayer_profiles')->where('user_id', $user->id)->value('private_key');
 
-    expect($user->permissions)->toBe(['customers', 'goods', 'invoices'])
+    expect($user->permissions)->toBe(['customers', 'goods', 'invoices', 'bank_statements'])
         ->and($user->hasActiveLicense())->toBeTrue()
         ->and($user->license_expires_at->format('Y-m-d'))->toBe('2027-08-15')
         ->and($user->taxpayerProfile->fiscal_id)->toBe('ABC123')
@@ -92,6 +92,7 @@ it('renders the taxpayer fields on the account creation form', function () {
         ->get(route('admin.users.create'))
         ->assertSuccessful()
         ->assertSee('اطلاعات اتصال به سامانه مودیان')
+        ->assertSee('تبدیل صورتحساب بانکی')
         ->assertSee('data-jalali-date', false)
         ->assertDontSee('type="date"', false);
 });

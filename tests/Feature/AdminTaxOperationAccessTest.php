@@ -38,6 +38,7 @@ it('forbids administrators from all taxpayer operation areas', function () {
     }
 
     $this->actingAs($admin)->post(route('profile.moadian.test'))->assertForbidden();
+    $this->actingAs($admin)->get(route('bank-statements.index'))->assertOk();
 });
 
 it('keeps taxpayer operation areas available to licensed members', function () {
@@ -46,4 +47,5 @@ it('keeps taxpayer operation areas available to licensed members', function () {
     $this->actingAs($member)->get(route('customers.index'))->assertOk();
     $this->actingAs($member)->get(route('goods.index'))->assertOk();
     $this->actingAs($member)->get(route('invoices.index'))->assertOk();
+    $this->actingAs($member)->get(route('bank-statements.index'))->assertOk();
 });

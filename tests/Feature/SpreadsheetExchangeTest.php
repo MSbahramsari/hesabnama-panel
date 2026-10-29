@@ -6,6 +6,7 @@ use App\Models\Good;
 use App\Models\Invoice;
 use App\Models\User;
 use App\Services\Spreadsheet\GoodSpreadsheetService;
+use App\Support\JalaliDate;
 use Illuminate\Http\UploadedFile;
 
 it('imports customers and invoices from csv files', function () {
@@ -27,10 +28,11 @@ it('imports customers and invoices from csv files', function () {
         'unit_price' => 1_000_000,
         'tax_rate' => 10,
     ]);
+    $today = JalaliDate::format(now());
     $invoiceCsv = implode("\n", [
         'شماره داخلی,تاریخ صورتحساب,کد اقتصادی مشتری,روش تسویه,مبلغ نقدی,شناسه کالا/خدمت,تعداد,قیمت واحد,نرخ مالیات,تخفیف,توضیحات,نوع صورتحساب,شماره مالیاتی,وضعیت',
-        "INV-XLSX-1,1405/06/14,{$customer->economic_code},نسیه,0,{$good->commodity_code},2,1000000,10,0,ورود از اکسل,اصلی,,",
-        "INV-XLSX-1,1405/06/14,{$customer->economic_code},نسیه,0,{$good->commodity_code},1,500000,10,0,ورود از اکسل,اصلی,,",
+        "INV-XLSX-1,{$today},{$customer->economic_code},نسیه,0,{$good->commodity_code},2,1000000,10,0,ورود از اکسل,اصلی,,",
+        "INV-XLSX-1,{$today},{$customer->economic_code},نسیه,0,{$good->commodity_code},1,500000,10,0,ورود از اکسل,اصلی,,",
     ]);
 
     $this->actingAs($user)->post(route('invoices.import'), [

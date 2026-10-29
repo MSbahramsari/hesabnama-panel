@@ -49,7 +49,7 @@ class SaveUserRequest extends FormRequest
             'role' => ['required', Rule::enum(UserRole::class)],
             'plan' => ['required', Rule::enum(Plan::class)],
             'permissions' => ['array'],
-            'permissions.*' => [Rule::in(['customers', 'goods', 'invoices'])],
+            'permissions.*' => [Rule::in(['customers', 'goods', 'invoices', 'bank_statements'])],
             'license_expires_at' => ['nullable', 'date'],
             'is_active' => ['required', 'boolean'],
             'taxpayer_name' => [Rule::requiredIf($requiresTaxpayerProfile), 'nullable', 'string', 'max:255'],

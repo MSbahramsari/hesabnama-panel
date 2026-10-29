@@ -15,6 +15,7 @@
             request()->routeIs('customers.*') => ['label' => 'مدیریت طرف‌حساب‌ها', 'icon' => 'users'],
             request()->routeIs('goods.*') => ['label' => 'مدیریت کالا و خدمات', 'icon' => 'box'],
             request()->routeIs('invoices.*') => ['label' => 'صورتحساب الکترونیکی', 'icon' => 'invoice'],
+            request()->routeIs('bank-statements.*') => ['label' => 'تبدیل گردش بانکی', 'icon' => 'bank'],
             request()->routeIs('profile.*') => ['label' => 'تنظیمات حساب', 'icon' => 'settings'],
             request()->routeIs('admin.users.*') => ['label' => 'مدیریت کاربران', 'icon' => 'users'],
             request()->routeIs('admin.stuff-catalog.*') => ['label' => 'کاتالوگ رسمی', 'icon' => 'box'],
@@ -68,6 +69,11 @@
                                     @endif
                                 </a>
                             @endif
+                            @can('convert-bank-statements')
+                                <a href="{{ route('bank-statements.index') }}" @class(['nav-link', 'active' => request()->routeIs('bank-statements.*')])>
+                                    <x-icon name="bank" class="size-5" /><span>تبدیل صورتحساب بانکی</span>
+                                </a>
+                            @endcan
                         </div>
                         </div>
                     @endif
@@ -81,6 +87,9 @@
                                 </a>
                                 <a href="{{ route('admin.stuff-catalog.index') }}" @class(['nav-link', 'active' => request()->routeIs('admin.stuff-catalog.*')])>
                                     <x-icon name="box" class="size-5" /><span>بروزرسانی کاتالوگ</span>
+                                </a>
+                                <a href="{{ route('bank-statements.index') }}" @class(['nav-link', 'active' => request()->routeIs('bank-statements.*')])>
+                                    <x-icon name="bank" class="size-5" /><span>تبدیل صورتحساب بانکی</span>
                                 </a>
                             </div>
                         </div>

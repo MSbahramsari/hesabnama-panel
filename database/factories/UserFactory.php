@@ -23,7 +23,7 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'role' => UserRole::Member,
             'plan' => Plan::Business,
-            'permissions' => ['customers', 'goods', 'invoices'],
+            'permissions' => ['customers', 'goods', 'invoices', 'bank_statements'],
             'license_expires_at' => now()->addYear(),
             'is_active' => true,
             'remember_token' => Str::random(10),
