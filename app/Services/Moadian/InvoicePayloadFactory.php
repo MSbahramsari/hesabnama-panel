@@ -53,7 +53,7 @@ class InvoicePayloadFactory
                 'tinb' => $invoice->customer?->moadianEconomicCode(),
                 'sbc' => $configuration->sellerBranchCode(),
                 'bpc' => $invoice->customer?->postal_code,
-                'bbc' => null,
+                'bbc' => $invoice->customer?->branch_code,
                 'ft' => null,
                 'bpn' => null,
                 'scln' => null,

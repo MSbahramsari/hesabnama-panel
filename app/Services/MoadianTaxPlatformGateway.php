@@ -43,6 +43,7 @@ class MoadianTaxPlatformGateway implements TaxPlatformGateway
             'type' => $type,
             'address' => (string) ($this->customerValue($customer, ['addressTaxpayer', 'taxpayerAddress', 'fullAddress', 'address']) ?? ''),
             'postal_code' => (string) ($this->customerValue($customer, ['postalcodeTaxpayer', 'postalCodeTaxpayer', 'postalCode', 'postalcode']) ?? ''),
+            'branch_code' => (string) ($this->customerValue($customer, ['branchCodeTaxpayer', 'taxpayerBranchCode', 'branchCode', 'branch']) ?? ''),
             'phone' => (string) ($this->customerValue($customer, ['phoneTaxpayer', 'taxpayerPhone', 'phoneNumber', 'phone', 'tel']) ?? ''),
         ];
     }

@@ -81,6 +81,7 @@ it('looks up a customer from the official economic code endpoint', function () {
                     'taxpayerType' => 'LEGAL',
                     'addressTaxpayer' => 'تهران',
                     'postalcodeTaxpayer' => '1991912345',
+                    'branchCodeTaxpayer' => '12',
                     'phoneTaxpayer' => '02188776655',
                 ],
             ],
@@ -96,6 +97,7 @@ it('looks up a customer from the official economic code endpoint', function () {
         'type' => 'legal',
         'address' => 'تهران',
         'postal_code' => '1991912345',
+        'branch_code' => '12',
         'phone' => '02188776655',
     ]);
 
@@ -132,6 +134,7 @@ it('maps alternate and nested customer information fields returned by moadian', 
                             'postalCode' => '1991912345',
                         ]],
                         'phoneNumber' => '02188776655',
+                        'branchCode' => '7',
                     ],
                 ],
             ],
@@ -147,6 +150,7 @@ it('maps alternate and nested customer information fields returned by moadian', 
         'type' => 'legal',
         'address' => 'تهران، خیابان آزمون',
         'postal_code' => '1991912345',
+        'branch_code' => '7',
         'phone' => '02188776655',
     ]);
 });

@@ -13,6 +13,7 @@ it('allows a permitted user to create a customer', function () {
         'type' => 'legal',
         'address' => 'تهران',
         'postal_code' => '1991912345',
+        'branch_code' => '۱۲',
         'phone' => '02188776655',
         'is_active' => true,
     ]);
@@ -20,6 +21,7 @@ it('allows a permitted user to create a customer', function () {
     $customer = Customer::whereBelongsTo($user)->firstOrFail();
     $response->assertRedirect(route('customers.index'));
     $this->assertModelExists($customer);
+    expect($customer->branch_code)->toBe('12');
 });
 
 it('normalizes Persian digits for a legal customer identity fields', function () {

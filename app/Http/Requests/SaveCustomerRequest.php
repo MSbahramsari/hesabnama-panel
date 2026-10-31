@@ -14,6 +14,7 @@ class SaveCustomerRequest extends FormRequest
             'economic_code' => $this->normalizeDigits($this->input('economic_code')),
             'national_id' => $this->normalizeDigits($this->input('national_id')),
             'postal_code' => $this->normalizeDigits($this->input('postal_code')),
+            'branch_code' => $this->normalizeDigits($this->input('branch_code')),
             'phone' => $this->normalizeDigits($this->input('phone')),
         ]);
     }
@@ -35,6 +36,7 @@ class SaveCustomerRequest extends FormRequest
             'type' => ['required', Rule::in(['legal', 'individual'])],
             'address' => ['nullable', 'string', 'max:500'],
             'postal_code' => ['nullable', 'digits:10'],
+            'branch_code' => ['nullable', 'digits_between:1,4'],
             'phone' => ['nullable', 'string', 'max:20'],
             'is_active' => ['required', 'boolean'],
         ];
@@ -47,6 +49,7 @@ class SaveCustomerRequest extends FormRequest
             'economic_code.regex' => 'برای شخص حقیقی کد ملی ۱۰ رقمی و برای شخص حقوقی شناسه یا شماره اقتصادی ۱۱ یا ۱۴ رقمی وارد کنید.',
             'national_id.digits_between' => 'شناسه ملی یا کد ملی باید بین ۱۰ تا ۱۴ رقم باشد.',
             'postal_code.digits' => 'کد پستی باید دقیقاً ۱۰ رقم باشد.',
+            'branch_code.digits_between' => 'کد شعبه خریدار باید عددی و حداکثر ۴ رقم باشد.',
         ];
     }
 

@@ -12,8 +12,8 @@ use Illuminate\Http\UploadedFile;
 it('imports customers and invoices from csv files', function () {
     $user = User::factory()->create();
     $customerCsv = implode("\n", [
-        'کد اقتصادی,شناسه ملی,نام مشتری,نوع شخصیت,نشانی,کد پستی,شماره تماس,وضعیت',
-        '41111111111,14001234567,شرکت آزمون اکسل,حقوقی,تهران,1234567890,02112345678,فعال',
+        'کد اقتصادی,شناسه ملی,نام مشتری,نوع شخصیت,نشانی,کد پستی,کد شعبه خریدار,شماره تماس,وضعیت',
+        '41111111111,14001234567,شرکت آزمون اکسل,حقوقی,تهران,1234567890,12,02112345678,فعال',
     ]);
 
     $this->actingAs($user)->post(route('customers.import'), [
@@ -21,7 +21,8 @@ it('imports customers and invoices from csv files', function () {
     ])->assertRedirect()->assertSessionHas('success');
 
     $customer = Customer::query()->whereBelongsTo($user)->firstOrFail();
-    expect($customer->name)->toBe('شرکت آزمون اکسل');
+    expect($customer->name)->toBe('شرکت آزمون اکسل')
+        ->and($customer->branch_code)->toBe('12');
 
     $good = Good::factory()->for($user)->create([
         'commodity_code' => '1234567890123',

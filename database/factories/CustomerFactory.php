@@ -19,6 +19,7 @@ class CustomerFactory extends Factory
             'type' => 'legal',
             'address' => fake()->address(),
             'postal_code' => fake()->numerify('##########'),
+            'branch_code' => null,
             'phone' => fake()->phoneNumber(),
             'is_active' => true,
         ];

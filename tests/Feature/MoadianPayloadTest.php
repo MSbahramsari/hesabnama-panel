@@ -33,7 +33,7 @@ it('builds a version one invoice payload from persisted invoice data', function 
         'economic_code' => '12345678901',
         'private_key' => $this->privateKey,
     ]);
-    $customer = Customer::factory()->for($user)->create(['type' => 'legal']);
+    $customer = Customer::factory()->for($user)->create(['type' => 'legal', 'branch_code' => '12']);
     $good = Good::factory()->for($user)->create(['measurement_unit_code' => '1627']);
     $invoice = Invoice::factory()->for($user)->for($customer)->create([
         'moadian_serial' => 42,
@@ -66,6 +66,7 @@ it('builds a version one invoice payload from persisted invoice data', function 
             'tins' => '12345678901',
             'tinb' => $customer->economic_code,
             'tob' => 2,
+            'bbc' => '12',
             'tprdis' => 2_000_000,
             'tdis' => 200_000,
             'tvam' => 180_000,

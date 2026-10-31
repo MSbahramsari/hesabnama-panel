@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class CustomerSpreadsheetService
 {
-    private const HEADERS = ['کد اقتصادی', 'شناسه ملی', 'نام مشتری', 'نوع شخصیت', 'نشانی', 'کد پستی', 'شماره تماس', 'وضعیت'];
+    private const HEADERS = ['کد اقتصادی', 'شناسه ملی', 'نام مشتری', 'نوع شخصیت', 'نشانی', 'کد پستی', 'کد شعبه خریدار', 'شماره تماس', 'وضعیت'];
 
     public function __construct(private SpreadsheetFile $spreadsheet) {}
 
@@ -32,6 +32,7 @@ class CustomerSpreadsheetService
                 $customer->type === 'legal' ? 'حقوقی' : 'حقیقی',
                 (string) $customer->address,
                 (string) $customer->postal_code,
+                (string) $customer->branch_code,
                 (string) $customer->phone,
                 $customer->is_active ? 'فعال' : 'غیرفعال',
             ]);
@@ -60,6 +61,7 @@ class CustomerSpreadsheetService
                 'type' => $this->customerType($row['نوع شخصیت'] ?? ''),
                 'address' => trim((string) ($row['نشانی'] ?? '')),
                 'postal_code' => $this->spreadsheet->normalizeDigits($row['کد پستی'] ?? ''),
+                'branch_code' => $this->spreadsheet->normalizeDigits($row['کد شعبه خریدار'] ?? ''),
                 'phone' => $this->spreadsheet->normalizeDigits($row['شماره تماس'] ?? ''),
                 'is_active' => $this->isActive($row['وضعیت'] ?? 'فعال'),
             ];
@@ -70,6 +72,7 @@ class CustomerSpreadsheetService
                 'type' => ['required', 'in:legal,individual'],
                 'address' => ['nullable', 'string', 'max:500'],
                 'postal_code' => ['nullable', 'digits:10'],
+                'branch_code' => ['nullable', 'digits_between:1,4'],
                 'phone' => ['nullable', 'string', 'max:20'],
                 'is_active' => ['boolean'],
             ]);

@@ -131,6 +131,7 @@
             <div><span class="label">نوع شخص:</span><strong>{{ $invoice->customer->type === 'legal' ? 'حقوقی' : 'حقیقی' }}</strong></div>
             <div class="party-address"><span class="label">نشانی:</span><span>{{ $invoice->customer->address ?: '—' }}</span></div>
             <div><span class="label">کد پستی:</span><span class="ltr">{{ $invoice->customer->postal_code ?: '—' }}</span></div>
+            <div><span class="label">کد شعبه:</span><span class="ltr">{{ $invoice->customer->branch_code ?: '—' }}</span></div>
             <div><span class="label">تلفن:</span><span class="ltr">{{ $invoice->customer->phone ?: '—' }}</span></div>
         </section>
         @else

@@ -13,6 +13,7 @@
     </div>
     <x-form.input name="phone" label="شماره تماس" :value="$customer?->phone ?? ($data['phone'] ?? null)" dir="ltr" />
     <x-form.input name="postal_code" label="کد پستی" :value="$customer?->postal_code ?? ($data['postal_code'] ?? null)" inputmode="numeric" />
+    <x-form.input name="branch_code" label="کد شعبه خریدار" :value="$customer?->branch_code ?? ($data['branch_code'] ?? null)" inputmode="numeric" hint="اختیاری؛ در صورت اعلام شعبه خریدار، حداکثر ۴ رقم وارد کنید." />
     <x-form.textarea name="address" label="نشانی" :value="$customer?->address ?? ($data['address'] ?? null)" class="md:col-span-2" />
     <div class="md:col-span-2">
         <input type="hidden" name="is_active" value="0">
