@@ -7,6 +7,7 @@
     if ($initialItems === null && $invoice) {
         $initialItems = $invoice->items->map(fn ($item) => [
             'good_id' => $item->good_id,
+            'description' => $item->description,
             'quantity' => $item->quantity,
             'unit_price' => $item->unit_price,
             'tax_rate' => $item->tax_rate,
@@ -92,6 +93,7 @@
     @foreach($initialItems as $index => $item)
         <div class="invoice-item-row" data-invoice-item>
             <div class="invoice-item-number">{{ $loop->iteration }}</div>
+            <div class="min-w-0 sm:col-span-2 lg:col-span-full"><label class="form-label">شرح قلم در این صورتحساب</label><input name="items[{{ $index }}][description]" value="{{ $item['description'] ?? '' }}" class="form-control" maxlength="400" placeholder="در صورت خالی بودن، نام اصلی کالا استفاده می‌شود" data-item-description>@error("items.$index.description")<p class="mt-1 text-xs text-rose-600">{{ $message }}</p>@enderror</div>
             <div class="min-w-0 sm:col-span-2 lg:col-span-3"><label class="form-label">کالا / خدمت</label><select name="items[{{ $index }}][good_id]" class="form-control" data-good-select required><option value="">انتخاب قلم</option>@foreach($goods as $good)<option value="{{ $good->id }}" data-tax="{{ \App\Support\Decimal::format($good->tax_rate) }}" @selected((string) ($item['good_id'] ?? '') === (string) $good->id)>{{ $good->name }} — {{ $good->commodity_code }}</option>@endforeach</select></div>
             <div><label class="form-label">تعداد</label><input name="items[{{ $index }}][quantity]" type="number" min="0.001" step="0.001" value="{{ $item['quantity'] ?? 1 }}" class="form-control" data-quantity required></div>
             <div class="lg:col-span-2"><label class="form-label">قیمت واحد</label><input name="items[{{ $index }}][unit_price]" type="text" inputmode="numeric" value="{{ number_format((float) ($item['unit_price'] ?? 0), 0, '.', ',') }}" class="form-control" data-money-input data-unit-price required></div>
@@ -105,6 +107,7 @@
 <template id="invoice-item-template">
     <div class="invoice-item-row" data-invoice-item>
         <div class="invoice-item-number">#</div>
+        <div class="min-w-0 sm:col-span-2 lg:col-span-full"><label class="form-label">شرح قلم در این صورتحساب</label><input class="form-control" data-field="description" maxlength="400" placeholder="در صورت خالی بودن، نام اصلی کالا استفاده می‌شود" data-item-description></div>
         <div class="min-w-0 sm:col-span-2 lg:col-span-3"><label class="form-label">کالا / خدمت</label><select class="form-control" data-field="good_id" data-good-select required><option value="">انتخاب قلم</option>@foreach($goods as $good)<option value="{{ $good->id }}" data-tax="{{ \App\Support\Decimal::format($good->tax_rate) }}">{{ $good->name }} — {{ $good->commodity_code }}</option>@endforeach</select></div>
         <div><label class="form-label">تعداد</label><input type="number" min="0.001" step="0.001" value="1" class="form-control" data-field="quantity" data-quantity required></div>
         <div class="lg:col-span-2"><label class="form-label">قیمت واحد</label><input type="text" inputmode="numeric" value="0" class="form-control" data-field="unit_price" data-money-input data-unit-price required></div>

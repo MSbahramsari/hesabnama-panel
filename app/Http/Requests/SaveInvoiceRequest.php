@@ -125,6 +125,7 @@ class SaveInvoiceRequest extends FormRequest
                 Rule::exists((new Good)->getTable(), 'id')->where('user_id', $userId),
                 $referenceGoodIds !== null ? Rule::in($referenceGoodIds) : null,
             ])),
+            'items.*.description' => ['nullable', 'string', 'max:400'],
             'items.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999999'],
             'items.*.unit_price' => ['required', 'numeric', 'gt:0', 'max:9999999999999999'],
             'items.*.tax_rate' => ['required', 'numeric', 'min:0', 'max:100'],

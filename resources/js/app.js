@@ -583,6 +583,7 @@ if (invoiceForm) {
     const bindRow = (row) => {
         row.querySelector('[data-good-select]')?.addEventListener('change', (event) => {
             const option = event.target.selectedOptions[0];
+            row.querySelector('[data-item-description]').value = option?.value ? option.textContent.split(' — ')[0].trim() : '';
             row.querySelector('[data-unit-price]').value = 0;
             row.querySelector('[data-tax-rate]').value = option?.dataset.tax || 0;
             formatMoneyInput(row.querySelector('[data-unit-price]'));

@@ -89,7 +89,7 @@ class SaveInvoiceAction
 
                 $invoice->items()->create([
                     'good_id' => $good->id,
-                    'description' => $good->name,
+                    'description' => filled($itemData['description'] ?? null) ? trim($itemData['description']) : $good->name,
                     'commodity_code' => $good->commodity_code,
                     'quantity' => $quantity,
                     'unit_price' => $unitPrice,

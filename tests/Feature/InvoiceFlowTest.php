@@ -28,6 +28,7 @@ it('creates an invoice and calculates its totals on the server', function () {
         'invoice_date' => today()->format('Y-m-d'),
         'items' => [[
             'good_id' => $good->id,
+            'description' => 'شرح اختصاصی این فاکتور',
             'quantity' => 2,
             'unit_price' => 1000000,
             'tax_rate' => 10,
@@ -41,7 +42,9 @@ it('creates an invoice and calculates its totals on the server', function () {
         ->and((float) $invoice->discount_total)->toBe(200000.0)
         ->and((float) $invoice->tax_total)->toBe(180000.0)
         ->and((float) $invoice->total)->toBe(1980000.0)
-        ->and($invoice->items)->toHaveCount(1);
+        ->and($invoice->items)->toHaveCount(1)
+        ->and($invoice->items->first()->description)->toBe('شرح اختصاصی این فاکتور')
+        ->and($good->fresh()->name)->toBe($good->name);
 });
 
 it('creates a type two invoice without buyer information', function () {
