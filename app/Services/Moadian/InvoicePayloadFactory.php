@@ -139,8 +139,10 @@ class InvoicePayloadFactory
         return $date->setTime($now->hour, $now->minute, $now->second, $now->microsecond);
     }
 
-    private function money(int|float|string|null $value): int
+    private function money(int|float|string|null $value): int|float
     {
-        return (int) round((float) $value);
+        $amount = round((float) $value, 2);
+
+        return floor($amount) === $amount ? (int) $amount : $amount;
     }
 }

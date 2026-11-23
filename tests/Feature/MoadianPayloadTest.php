@@ -94,6 +94,52 @@ it('builds a version one invoice payload from persisted invoice data', function 
         ]);
 });
 
+it('preserves fractional vat and totals in the serialized submission payload', function () {
+    $user = User::factory()->create();
+    $profile = TaxpayerProfile::factory()->for($user)->create([
+        'economic_code' => '12345678901',
+        'private_key' => $this->privateKey,
+    ]);
+    $customer = Customer::factory()->for($user)->create();
+    $good = Good::factory()->for($user)->create(['measurement_unit_code' => '1627']);
+    $invoice = Invoice::factory()->for($user)->for($customer)->create([
+        'subtotal' => '1818181818.00',
+        'discount_total' => '0.00',
+        'tax_total' => '181818181.80',
+        'total' => '1999999999.80',
+    ]);
+    $invoice->items()->create([
+        'good_id' => $good->id,
+        'description' => $good->name,
+        'commodity_code' => $good->commodity_code,
+        'quantity' => 1,
+        'unit_price' => '1818181818.00',
+        'subtotal' => '1818181818.00',
+        'discount' => 0,
+        'tax_rate' => 10,
+        'tax_amount' => '181818181.80',
+        'total' => '1999999999.80',
+    ]);
+
+    $payload = app(InvoicePayloadFactory::class)->make(
+        $invoice,
+        app(MoadianClientFactory::class)->configuration($profile),
+    );
+    $wirePayload = json_decode(json_encode($payload, JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($wirePayload['body'][0])->toMatchArray([
+        'fee' => 1818181818,
+        'adis' => 1818181818,
+        'vam' => 181818181.8,
+        'vop' => 181818181.8,
+        'tsstam' => 1999999999.8,
+    ])->and($wirePayload['header'])->toMatchArray([
+        'tvam' => 181818181.8,
+        'tvop' => 181818181.8,
+        'tbill' => 1999999999.8,
+    ]);
+});
+
 it('converts an individual national code to the fourteen digit buyer economic code', function () {
     $user = User::factory()->create();
     $taxpayerProfile = TaxpayerProfile::factory()->for($user)->create([
