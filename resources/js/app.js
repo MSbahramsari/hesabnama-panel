@@ -1,3 +1,5 @@
+import { calculateRialLine, normalizeInvoiceNumber } from './invoice-calculation';
+
 const sidebar = document.querySelector('[data-sidebar]');
 const sidebarBackdrop = document.querySelector('[data-sidebar-backdrop]');
 
@@ -495,17 +497,13 @@ if (invoiceForm) {
     const electronicTypeHelp = invoiceForm.querySelector('[data-electronic-type-help]');
     let nextIndex = itemsContainer.querySelectorAll('[data-invoice-item]').length;
 
-    const money = (value) => `${formatter.format(Math.round(value || 0))} ریال`;
-    const normalizedMoney = (value) => String(value ?? '')
-        .replace(/[۰-۹]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(digit)))
-        .replace(/[٠-٩]/g, (digit) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)))
-        .replace(/[,٬\s]/g, '')
-        .replace(/[^0-9]/g, '');
-    const moneyValue = (value) => Number(normalizedMoney(value)) || 0;
+    const money = (value) => `${formatter.format(value || 0n)} ریال`;
+    const normalizedMoney = normalizeInvoiceNumber;
     const formatMoneyInput = (input) => {
         const value = normalizedMoney(input.value);
 
-        input.value = value === '' ? '' : new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(Number(value));
+        const [whole, ...fraction] = value.split('.');
+        input.value = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (fraction.length ? `.${fraction.join('.')}` : '');
     };
 
     const syncSettlementFields = () => {
@@ -551,22 +549,21 @@ if (invoiceForm) {
     };
 
     const recalculate = () => {
-        let subtotal = 0;
-        let discountTotal = 0;
-        let taxTotal = 0;
+        let subtotal = 0n;
+        let discountTotal = 0n;
+        let taxTotal = 0n;
 
         const rows = itemsContainer.querySelectorAll('[data-invoice-item]');
         itemsEmptyState?.classList.toggle('hidden', rows.length > 0);
 
         rows.forEach((row, position) => {
             row.querySelector('.invoice-item-number').textContent = String(position + 1);
-            const quantity = Number(row.querySelector('[data-quantity]')?.value || 0);
-            const unitPrice = moneyValue(row.querySelector('[data-unit-price]')?.value);
-            const taxRate = Number(row.querySelector('[data-tax-rate]')?.value || 0);
-            const lineSubtotal = quantity * unitPrice;
-            const discount = Math.min(moneyValue(row.querySelector('[data-discount]')?.value), lineSubtotal);
-            const tax = (lineSubtotal - discount) * taxRate / 100;
-            const total = lineSubtotal - discount + tax;
+            const { subtotal: lineSubtotal, discount, tax, total } = calculateRialLine(
+                row.querySelector('[data-quantity]')?.value,
+                row.querySelector('[data-unit-price]')?.value,
+                row.querySelector('[data-tax-rate]')?.value,
+                row.querySelector('[data-discount]')?.value,
+            );
 
             row.querySelector('[data-line-total]').textContent = money(total);
             subtotal += lineSubtotal;

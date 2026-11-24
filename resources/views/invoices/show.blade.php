@@ -108,7 +108,7 @@
                         @foreach($invoice->items as $item)
                             <tr>
                                 <td><div class="table-primary">{{ $item->description }}</div><div dir="ltr" class="table-meta justify-end">{{ $item->commodity_code }}</div></td>
-                                <td class="table-number">{{ \App\Support\Decimal::format($item->quantity, 3) }}</td>
+                                <td class="table-number">{{ \App\Support\Decimal::format($item->quantity, 8) }}</td>
                                 <td class="table-number">{{ number_format($item->unit_price) }}</td>
                                 <td class="table-number">{{ number_format($item->discount) }}</td>
                                 <td class="table-number">{{ number_format($item->tax_amount) }}</td>

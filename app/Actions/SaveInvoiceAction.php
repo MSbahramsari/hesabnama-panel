@@ -8,12 +8,15 @@ use App\Enums\SettlementMethod;
 use App\Models\Good;
 use App\Models\Invoice;
 use App\Models\User;
+use App\Services\Moadian\RialInvoiceCalculator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class SaveInvoiceAction
 {
+    public function __construct(private RialInvoiceCalculator $calculator) {}
+
     /** @param array{customer_id: int, number: string, invoice_date: string, description?: string|null, settlement_method: string, cash_amount?: numeric-string|int|float|null, items: array<int, array{good_id: int, quantity: numeric-string|int|float, unit_price: numeric-string|int|float, tax_rate: numeric-string|int|float, discount?: numeric-string|int|float}>} $data */
     public function handle(User $user, array $data, ?Invoice $invoice = null): Invoice
     {
@@ -65,9 +68,9 @@ class SaveInvoiceAction
             $invoice->save();
 
             $invoice->items()->delete();
-            $subtotal = 0.0;
-            $discountTotal = 0.0;
-            $taxTotal = 0.0;
+            $subtotal = 0;
+            $discountTotal = 0;
+            $taxTotal = 0;
 
             $goods = Good::query()
                 ->whereBelongsTo($user)
@@ -79,13 +82,22 @@ class SaveInvoiceAction
                 $good = $goods->get((int) $itemData['good_id']);
                 abort_unless($good, 422, 'یکی از کالاها معتبر نیست.');
 
-                $quantity = (float) $itemData['quantity'];
-                $unitPrice = (float) $itemData['unit_price'];
-                $taxRate = (float) $itemData['tax_rate'];
-                $lineSubtotal = round($quantity * $unitPrice, 2);
-                $discount = min(round((float) ($itemData['discount'] ?? 0), 2), $lineSubtotal);
-                $taxAmount = round(($lineSubtotal - $discount) * $taxRate / 100, 2);
-                $lineTotal = $lineSubtotal - $discount + $taxAmount;
+                $quantity = bcadd((string) $itemData['quantity'], '0', 8);
+                $unitPrice = bcadd((string) $itemData['unit_price'], '0', 8);
+                $taxRate = bcadd((string) $itemData['tax_rate'], '0', 2);
+                if (bccomp(bcmul($quantity, $unitPrice, 0), '9999999999999999', 0) > 0) {
+                    throw ValidationException::withMessages(['items' => 'مبلغ ردیف از محدوده قابل ذخیره سامانه بیشتر است.']);
+                }
+                $amounts = $this->calculator->line($quantity, $unitPrice, $taxRate, $itemData['discount'] ?? 0);
+                $lineSubtotal = $amounts['subtotal'];
+                $discount = $amounts['discount'];
+                $taxAmount = $amounts['tax_amount'];
+                $lineTotal = $amounts['total'];
+
+                if ($lineSubtotal <= 0 || $subtotal + $lineSubtotal > 9999999999999999
+                    || $subtotal - $discountTotal + $taxTotal + $lineTotal > 9999999999999999) {
+                    throw ValidationException::withMessages(['items' => 'مبلغ ردیف پس از قطع اعشار باید حداقل یک ریال و مجموع صورتحساب در محدوده مجاز سامانه باشد.']);
+                }
 
                 $invoice->items()->create([
                     'good_id' => $good->id,
@@ -110,7 +122,7 @@ class SaveInvoiceAction
             $cashAmount = match ($settlementMethod) {
                 SettlementMethod::Cash => $netAmount,
                 SettlementMethod::Credit => 0,
-                SettlementMethod::Mixed => round((float) ($data['cash_amount'] ?? 0), 2),
+                SettlementMethod::Mixed => $this->calculator->rial($data['cash_amount'] ?? 0),
             };
 
             if ($settlementMethod === SettlementMethod::Mixed && ($cashAmount <= 0 || $cashAmount >= $netAmount)) {

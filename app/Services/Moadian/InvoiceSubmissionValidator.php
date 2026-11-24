@@ -13,6 +13,8 @@ use Carbon\CarbonImmutable;
 
 class InvoiceSubmissionValidator
 {
+    public function __construct(private RialInvoiceCalculator $calculator) {}
+
     public const NORMAL_SUBMISSION_WINDOW_DAYS = 12;
 
     public function assertValid(Invoice $invoice): void
@@ -149,23 +151,32 @@ class InvoiceSubmissionValidator
             throw new MoadianConfigurationException("کد واحد اندازه‌گیری ردیف {$row} باید از جدول رسمی واحدها و حداکثر ۸ رقم باشد.");
         }
 
-        $calculatedSubtotal = round((float) $item->quantity * (float) $item->unit_price, 2);
-        $calculatedTax = round(($calculatedSubtotal - (float) $item->discount) * (float) $item->tax_rate / 100, 2);
-        $calculatedTotal = $calculatedSubtotal - (float) $item->discount + $calculatedTax;
+        $calculatedSubtotal = bcadd(bcmul($item->quantity, $item->unit_price, 16), '0.005', 2);
+        $calculatedTax = bcadd(bcdiv(bcmul(bcsub($calculatedSubtotal, $item->discount, 2), $item->tax_rate, 4), '100', 4), '0.005', 2);
+        $calculatedTotal = bcadd(bcsub($calculatedSubtotal, $item->discount, 2), $calculatedTax, 2);
 
-        if (! $this->moneyEquals($calculatedSubtotal, $item->subtotal)
+        $amounts = $this->calculator->line($item->quantity, $item->unit_price, $item->tax_rate, $item->discount);
+        if ($amounts['subtotal'] <= 0) {
+            throw new MoadianConfigurationException("مبلغ ردیف {$row} پس از قطع اعشار باید حداقل یک ریال باشد.");
+        }
+        $matchesCurrentRules = $this->moneyEquals($amounts['subtotal'], $item->subtotal)
+            && $this->moneyEquals($amounts['discount'], $item->discount)
+            && $this->moneyEquals($amounts['tax_amount'], $item->tax_amount)
+            && $this->moneyEquals($amounts['total'], $item->total);
+
+        if (! $matchesCurrentRules && (! $this->moneyEquals($calculatedSubtotal, $item->subtotal)
             || ! $this->moneyEquals($calculatedTax, $item->tax_amount)
-            || ! $this->moneyEquals($calculatedTotal, $item->total)) {
+            || ! $this->moneyEquals($calculatedTotal, $item->total))) {
             throw new MoadianConfigurationException("محاسبات مبلغ، تخفیف یا مالیات ردیف {$row} با قواعد سامانه مودیان تطابق ندارد؛ صورتحساب را دوباره ذخیره کنید.");
         }
     }
 
     private function assertTotalsAreValid(Invoice $invoice): void
     {
-        $subtotal = (float) $invoice->items->sum(fn (InvoiceItem $item): float => (float) $item->subtotal);
-        $discount = (float) $invoice->items->sum(fn (InvoiceItem $item): float => (float) $item->discount);
-        $tax = (float) $invoice->items->sum(fn (InvoiceItem $item): float => (float) $item->tax_amount);
-        $netAmount = $subtotal - $discount;
+        $subtotal = $invoice->items->reduce(fn (string $sum, InvoiceItem $item): string => bcadd($sum, $item->subtotal, 2), '0');
+        $discount = $invoice->items->reduce(fn (string $sum, InvoiceItem $item): string => bcadd($sum, $item->discount, 2), '0');
+        $tax = $invoice->items->reduce(fn (string $sum, InvoiceItem $item): string => bcadd($sum, $item->tax_amount, 2), '0');
+        $netAmount = bcsub($subtotal, $discount, 2);
 
         if ($netAmount <= 0) {
             throw new MoadianConfigurationException('مجموع صورتحساب پس از تخفیف باید بزرگ‌تر از صفر باشد.');
@@ -174,12 +185,12 @@ class InvoiceSubmissionValidator
         if (! $this->moneyEquals($subtotal, $invoice->subtotal)
             || ! $this->moneyEquals($discount, $invoice->discount_total)
             || ! $this->moneyEquals($tax, $invoice->tax_total)
-            || ! $this->moneyEquals($netAmount + $tax, $invoice->total)) {
+            || ! $this->moneyEquals(bcadd($netAmount, $tax, 2), $invoice->total)) {
             throw new MoadianConfigurationException('جمع مبالغ صورتحساب با جمع ردیف‌ها تطابق ندارد؛ صورتحساب را دوباره ذخیره کنید.');
         }
 
         if ($invoice->settlement_method === SettlementMethod::Mixed
-            && ((float) $invoice->cash_amount <= 0 || (float) $invoice->cash_amount >= $netAmount)) {
+            && (bccomp($invoice->cash_amount, '0', 2) <= 0 || bccomp($invoice->cash_amount, $netAmount, 2) >= 0)) {
             throw new MoadianConfigurationException('در تسویه نقدی/نسیه، مبلغ نقدی باید بزرگ‌تر از صفر و کمتر از مبلغ پس از تخفیف باشد.');
         }
     }
@@ -224,6 +235,6 @@ class InvoiceSubmissionValidator
 
     private function moneyEquals(int|float|string|null $first, int|float|string|null $second): bool
     {
-        return abs((float) $first - (float) $second) < 0.01;
+        return bccomp((string) ($first ?? 0), (string) ($second ?? 0), 2) === 0;
     }
 }

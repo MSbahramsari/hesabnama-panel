@@ -89,12 +89,12 @@ it('builds a version one invoice payload from persisted invoice data', function 
             'dis' => 200_000,
             'vam' => 180_000,
             'tsstam' => 1_980_000,
-            'cop' => 1_800_000,
+            'cop' => 1_980_000,
             'vop' => 180_000,
         ]);
 });
 
-it('preserves fractional vat and totals in the serialized submission payload', function () {
+it('truncates rial vat and derives consistent wire totals without rounding up', function () {
     $user = User::factory()->create();
     $profile = TaxpayerProfile::factory()->for($user)->create([
         'economic_code' => '12345678901',
@@ -130,14 +130,37 @@ it('preserves fractional vat and totals in the serialized submission payload', f
     expect($wirePayload['body'][0])->toMatchArray([
         'fee' => 1818181818,
         'adis' => 1818181818,
-        'vam' => 181818181.8,
-        'vop' => 181818181.8,
-        'tsstam' => 1999999999.8,
+        'vam' => 181818181,
+        'vop' => 181818181,
+        'tsstam' => 1999999999,
     ])->and($wirePayload['header'])->toMatchArray([
-        'tvam' => 181818181.8,
-        'tvop' => 181818181.8,
-        'tbill' => 1999999999.8,
+        'tvam' => 181818181,
+        'tvop' => 181818181,
+        'tbill' => 1999999999,
     ]);
+
+    $invoice->items->first()->replicate()->save();
+    $invoice->update([
+        'subtotal' => '3636363636.00',
+        'tax_total' => '363636363.60',
+        'total' => '3999999999.60',
+    ]);
+    $invoice->unsetRelation('items');
+    $multiRowPayload = app(InvoicePayloadFactory::class)->make(
+        $invoice,
+        app(MoadianClientFactory::class)->configuration($profile),
+    );
+
+    expect($multiRowPayload['header']['tvam'])->toBe(363636362)
+        ->and($multiRowPayload['header']['tbill'])->toBe(3999999998)
+        ->and($multiRowPayload['header']['tvop'])->toBe(363636362)
+        ->and($invoice->fresh()->total)->toBe('3999999999.60');
+
+    foreach ($multiRowPayload['body'] as $row) {
+        foreach (['prdis', 'dis', 'adis', 'vam', 'cop', 'vop', 'tsstam'] as $field) {
+            expect($row[$field])->toBeInt();
+        }
+    }
 });
 
 it('converts an individual national code to the fourteen digit buyer economic code', function () {
@@ -331,7 +354,7 @@ it('maps mixed settlement and corrective references to official payload fields',
         'insp' => 900_000,
         'tvop' => 90_000,
     ])->and($payload['body'][0])->toMatchArray([
-        'cop' => 900_000,
+        'cop' => 990_000,
         'vop' => 90_000,
     ]);
 

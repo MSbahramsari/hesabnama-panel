@@ -56,8 +56,8 @@ class InvoiceSpreadsheetService
                 $invoice->settlement_method->label(),
                 $invoice->settlement_method === SettlementMethod::Mixed ? (float) $invoice->cash_amount : '',
                 (string) $item->commodity_code,
-                (float) $item->quantity,
-                (float) $item->unit_price,
+                $item->quantity,
+                $item->unit_price,
                 (float) $item->tax_rate,
                 (float) $item->discount,
                 (string) $invoice->description,
@@ -147,13 +147,13 @@ class InvoiceSpreadsheetService
                     ],
                     'description' => ['nullable', 'string', 'max:1000'],
                     'settlement_method' => ['required', 'in:cash,credit,mixed'],
-                    'cash_amount' => ['nullable', 'numeric', 'min:0'],
+                    'cash_amount' => ['nullable', 'numeric', 'regex:/^\d+(?:\.\d{1,8})?$/', 'min:0', 'max:9999999999999999'],
                     'items' => ['required', 'array', 'min:1', 'max:100'],
                     'items.*.good_id' => ['required', 'integer'],
-                    'items.*.quantity' => ['required', 'numeric', 'gt:0'],
-                    'items.*.unit_price' => ['required', 'numeric', 'gt:0'],
-                    'items.*.tax_rate' => ['required', 'numeric', 'between:0,100'],
-                    'items.*.discount' => ['nullable', 'numeric', 'min:0'],
+                    'items.*.quantity' => ['required', 'numeric', 'decimal:0,8', 'gt:0', 'max:999999999'],
+                    'items.*.unit_price' => ['required', 'numeric', 'decimal:0,8', 'gt:0', 'max:9999999999999999'],
+                    'items.*.tax_rate' => ['required', 'numeric', 'decimal:0,2', 'between:0,100'],
+                    'items.*.discount' => ['nullable', 'numeric', 'regex:/^\d+(?:\.\d{1,8})?$/', 'min:0', 'max:9999999999999999'],
                 ]);
 
                 if ($validator->fails()) {
@@ -209,8 +209,8 @@ class InvoiceSpreadsheetService
         }
     }
 
-    private function numeric(mixed $value): float
+    private function numeric(mixed $value): string
     {
-        return (float) str_replace([',', '٬', ' '], '', $this->spreadsheet->normalizeDigits($value));
+        return str_replace([',', '٬', ' '], '', $this->spreadsheet->normalizeDigits($value));
     }
 }

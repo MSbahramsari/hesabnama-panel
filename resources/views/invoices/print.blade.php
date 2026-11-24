@@ -153,7 +153,7 @@
                     <td>{{ $loop->iteration }}</td>
                     <td class="ltr">{{ $item->commodity_code }}</td>
                     <td class="description">{{ $item->description }}</td>
-                    <td>{{ \App\Support\Decimal::format($item->quantity, 3) }}</td>
+                    <td>{{ \App\Support\Decimal::format($item->quantity, 8) }}</td>
                     <td>{{ $item->good?->unit ?? 'عدد' }}</td>
                     <td>{{ number_format((float) $item->unit_price) }}</td>
                     <td>{{ number_format((float) $item->subtotal) }}</td>

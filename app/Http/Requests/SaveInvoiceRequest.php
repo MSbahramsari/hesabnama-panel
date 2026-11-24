@@ -110,7 +110,7 @@ class SaveInvoiceRequest extends FormRequest
             ],
             'description' => ['nullable', 'string', 'max:1000'],
             'settlement_method' => ['required', Rule::enum(SettlementMethod::class)],
-            'cash_amount' => ['exclude_unless:settlement_method,mixed', 'required', 'numeric', 'gt:0', 'max:9999999999999999'],
+            'cash_amount' => ['exclude_unless:settlement_method,mixed', 'required', 'numeric', 'regex:/^\d+(?:\.\d{1,8})?$/', 'gt:0', 'max:9999999999999999'],
             'payment_switch_number' => ['required_if:electronic_invoice_type,3', 'nullable', 'digits:9'],
             'payment_acceptor_number' => ['required_if:electronic_invoice_type,3', 'nullable', 'digits:14'],
             'payment_terminal_number' => ['required_if:electronic_invoice_type,3', 'nullable', 'digits:8'],
@@ -126,10 +126,10 @@ class SaveInvoiceRequest extends FormRequest
                 $referenceGoodIds !== null ? Rule::in($referenceGoodIds) : null,
             ])),
             'items.*.description' => ['nullable', 'string', 'max:400'],
-            'items.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999999'],
-            'items.*.unit_price' => ['required', 'numeric', 'gt:0', 'max:9999999999999999'],
-            'items.*.tax_rate' => ['required', 'numeric', 'min:0', 'max:100'],
-            'items.*.discount' => ['nullable', 'numeric', 'min:0', 'max:9999999999999999'],
+            'items.*.quantity' => ['required', 'numeric', 'decimal:0,8', 'gt:0', 'max:999999999'],
+            'items.*.unit_price' => ['required', 'numeric', 'decimal:0,8', 'gt:0', 'max:9999999999999999'],
+            'items.*.tax_rate' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:100'],
+            'items.*.discount' => ['nullable', 'numeric', 'regex:/^\d+(?:\.\d{1,8})?$/', 'min:0', 'max:9999999999999999'],
         ];
     }
 
@@ -145,6 +145,9 @@ class SaveInvoiceRequest extends FormRequest
             'cash_amount.numeric' => 'مبلغ پرداختی نقدی باید عدد باشد.',
             'cash_amount.gt' => 'مبلغ پرداختی نقدی باید بزرگ‌تر از صفر باشد.',
             'items.*.unit_price.gt' => 'مبلغ واحد هر قلم باید بزرگ‌تر از صفر باشد.',
+            'items.*.quantity.decimal' => 'تعداد هر قلم حداکثر می‌تواند ۸ رقم اعشار داشته باشد.',
+            'items.*.unit_price.decimal' => 'قیمت واحد حداکثر می‌تواند ۸ رقم اعشار داشته باشد.',
+            'items.*.tax_rate.decimal' => 'نرخ مالیات حداکثر می‌تواند ۲ رقم اعشار داشته باشد.',
         ];
     }
 }
